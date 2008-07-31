@@ -1,0 +1,33 @@
+require 'rake/clean'
+
+CC      = "gcc"
+CFLAGS  = "-fno-common -g -O2 -pipe"
+LDFLAGS = "-L."
+SRC     = FileList['*.c']
+OBJ     = SRC.ext('o')
+EXEC    = "vm"
+RUBY_19 = "ruby19" # Maybe change this?
+
+CLEAN.include('*.o', 'boot.h')
+CLOBBER.include(EXEC)
+
+task :default => :compile
+task :compile => EXEC
+task :recompile => [:clean, :clobber, :compile]
+
+rule ".o" => ".c" do |t|
+  sh "#{CC} #{CFLAGS} -c -o #{t.name} #{t.source}"
+end
+
+file EXEC => OBJ do |t|
+  sh "#{CC} #{LDFLAGS} -o #{EXEC} #{OBJ}"
+end
+
+file "boot.h" => ["boot.rb", "compile.rb"] do |t|
+  sh "#{RUBY_19} compile.rb boot boot.rb > #{t.name}"
+end
+
+# File dependencies
+file 'main.o' => %w( main.c vm.h )
+file 'vm.h' => "boot.h"
+file 'vm.o' => %w( inst.h vm.h vm.c )
