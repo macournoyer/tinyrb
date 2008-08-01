@@ -119,4 +119,4 @@ typedef enum {
   UNIFIED_DUP_SETLOCAL,
   UNIFIED_GETLOCAL_GETLOCAL, 
   UNIFIED_GETLOCAL_PUTOBJECT
-} trb_inst_e;
+} tr_inst_e;

@@ -27,9 +27,9 @@ iseq = VM::InstructionSequence.compile_file(file, OUTPUT_COMPILE_OPTION)
 puts '#ifndef _BOOT_H_'
 puts '#define _BOOT_H_'
 puts
-puts '#include "vm.h"'
+puts '#include "tinyrb.h"'
 puts
-puts "trb_inst_t trb_#{name}_insts[] = {"
+puts "tr_inst tr_#{name}_insts[] = {"
 
 iseq.to_a.last.each do |inst|
   next if inst.is_a?(Fixnum)

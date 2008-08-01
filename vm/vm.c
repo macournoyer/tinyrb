@@ -1,6 +1,6 @@
-#include "vm.h"
+#include "tinyrb.h"
 
-static trb_send(const char *method, trb_sf_t *sf)
+static tr_send(const char *method, tr_sf *sf)
 {
   /* TODO support multiple args */
   OBJECT arg = (OBJECT) sf->stack->items;
@@ -12,7 +12,7 @@ static trb_send(const char *method, trb_sf_t *sf)
     printf("%s", arg);
 }
 
-int trb_exec_inst(trb_sf_t *sf, trb_inst_t *inst)
+int tr_exec_inst(tr_sf *sf, tr_inst *inst)
 {
   void *ptr;
   
@@ -28,7 +28,7 @@ int trb_exec_inst(trb_sf_t *sf, trb_inst_t *inst)
       sf->stack->nitems--;
       break;
     case SEND:
-      trb_send((char *) inst->ops[0], sf);
+      tr_send((char *) inst->ops[0], sf);
       break;
     case LEAVE:
       /* TODO clear stack */
@@ -41,16 +41,16 @@ int trb_exec_inst(trb_sf_t *sf, trb_inst_t *inst)
   return TRB_OK;
 }
 
-int trb_exec_insts(trb_inst_t *insts, size_t n)
+int tr_exec_insts(tr_inst *insts, size_t n)
 {
   size_t   i;
-  trb_sf_t sf;
+  tr_sf sf;
 
   sf.sp = 0;
   sf.stack = array_create(5, sizeof(OBJECT));
   
   for (i = 0; i < n; ++i) {
-    trb_exec_inst(&sf, &(insts[i]));
+    tr_exec_inst(&sf, &(insts[i]));
   }
   
   return TRB_OK;
