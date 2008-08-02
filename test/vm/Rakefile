@@ -1,0 +1,13 @@
+load "../../tasks/compile.rake"
+
+Dir["*_test.c"].each do |file|
+  exec   = file.ext("")
+  tested = file.gsub("_test.c", "")
+  
+  # Create an executable for each _test.c file
+  compile_test_tasks exec, "../../vm/#{tested}"
+end
+
+task :compile_src do
+  cd("../../vm") { sh "rake compile" }
+end
