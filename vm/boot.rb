@@ -1,2 +1,1 @@
-print "oh"
-puts "aie!"
+Kernel.puts "aie!"

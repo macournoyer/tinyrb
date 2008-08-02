@@ -29,7 +29,7 @@ puts '#define _BOOT_H_'
 puts
 puts '#include "tinyrb.h"'
 puts
-puts "tr_inst tr_#{name}_insts[] = {"
+puts "tr_op tr_#{name}_insts[] = {"
 
 iseq.to_a.last.each do |inst|
   next if inst.is_a?(Fixnum)

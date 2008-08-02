@@ -3,7 +3,10 @@
 
 int main(int argc, char const *argv[])
 {
-  size_t n = sizeof(tr_boot_insts) / sizeof(tr_inst);
-  tr_exec_insts(tr_boot_insts, n);
+  tr_vm  vm;
+  
+  tr_init(&vm);
+  tr_run(&vm, tr_boot_insts, sizeof(tr_boot_insts) / sizeof(tr_op));
+  
   return 0;
 }

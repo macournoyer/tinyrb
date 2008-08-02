@@ -1,9 +1,9 @@
 #include "tinyrb.h"
 
-static tr_send(const char *method, tr_sf *sf)
+static tr_send(const char *method, tr_frame *f)
 {
   /* TODO support multiple args */
-  OBJECT arg = (OBJECT) sf->stack->items;
+  OBJECT arg = (OBJECT) f->stack->items;
   
   /* HACK yeah ok... this is just proof of concept */
   if (strcmp(method, "puts") == 0)
@@ -12,46 +12,52 @@ static tr_send(const char *method, tr_sf *sf)
     printf("%s", arg);
 }
 
-int tr_exec_inst(tr_sf *sf, tr_inst *inst)
+int tr_step(tr_frame *f, tr_op *op)
 {
   void *ptr;
   
-  switch (inst->code) {
+  switch (op->inst) {
+    /* case GETCONSTANT:
+      break; */
     case PUTNIL:
       /* TODO reset stack */
       break;
     case PUTSTRING:
-      ptr = (void *) tr_array_push(sf->stack);
-      memcpy(ptr, (void *) inst->ops[0], sizeof(OBJECT));
+      ptr = tr_array_push(f->stack);
+      memcpy(ptr, (void *) op->cmd[0], sizeof(OBJECT));
       break;
     case POP:
-      sf->stack->nitems--;
+      f->stack->nitems--;
       break;
     case SEND:
-      tr_send((char *) inst->ops[0], sf);
+      tr_send((char *) op->cmd[0], f);
       break;
     case LEAVE:
       /* TODO clear stack */
       break;
     default:
-      fprintf(stderr, "unsupported instruction: %d\n", inst->code);
+      fprintf(stderr, "unsupported instruction: %d\n", op->inst);
       return TR_ERROR;
   }
   
   return TR_OK;
 }
 
-int tr_exec_insts(tr_inst *insts, size_t n)
+int tr_run(tr_vm *vm, tr_op *ops, size_t n)
 {
-  size_t   i;
-  tr_sf sf;
-
-  sf.sp = 0;
-  sf.stack = (tr_array *) tr_array_create(5, sizeof(OBJECT));
+  size_t     i;
+  tr_frame  *f = &vm->frames[vm->cf];
   
-  for (i = 0; i < n; ++i) {
-    tr_exec_inst(&sf, &(insts[i]));
-  }
+  f->stack  = tr_array_create(5, sizeof(OBJECT));
+  f->consts = tr_hash_new(5);
+  
+  for (i = 0; i < n; ++i)
+    tr_step(f, &(ops[i]));
   
   return TR_OK;
+}
+
+void tr_init(tr_vm *vm)
+{
+  vm->cf = 0;
 }

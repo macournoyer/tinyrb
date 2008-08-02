@@ -10,6 +10,8 @@
 
 #include "inst.h"
 
+#define TR_MAX_FRAMES 250
+
 #define TR_ERROR -1
 #define TR_OK     0
 
@@ -23,35 +25,44 @@ typedef struct tr_array {
 } tr_array;
 
 typedef struct tr_hash_entry {
-  void *k, *v;
-  unsigned int h;
-  struct tr_hash_entry *next;
+  void   *k, *v;
+  uint    h;
+  struct  tr_hash_entry *next;
 } tr_hash_entry;
 
 typedef struct tr_hash {
-  unsigned int tablelength;
+  uint            tablelength;
   tr_hash_entry **table;
-  unsigned int hash_entrycount;
-  unsigned int loadlimit;
-  unsigned int primeindex;
-  unsigned int (*hashfn) (void *k);
-  int (*eqfn) (void *k1, void *k2);
+  uint            hash_entrycount;
+  uint            loadlimit;
+  uint            primeindex;
+  uint            (*hashfn) (void *k);
+  int             (*eqfn) (void *k1, void *k2);
 } tr_hash;
 
 
-/* instruction */
-typedef struct tr_inst {
-  tr_inst_e code;
-  OBJECT    ops[5];
-} tr_inst ;
+typedef struct tr_op {
+  tr_inst_e inst;
+  OBJECT    cmd[5];
+} tr_op;
 
-/* stack frame */
-typedef struct tr_sf {
-  off_t    sp;
+typedef struct tr_frame {
   tr_array *stack;
-} tr_sf;
+  tr_hash  *consts;
+} tr_frame;
 
-int tr_exec_inst(tr_sf *sf, tr_inst *inst);
-int tr_exec_insts(tr_inst *insts, size_t n);
+typedef struct tr_vm {
+  off_t    cf; /* current frame */
+  tr_frame frames[TR_MAX_FRAMES];
+} tr_vm;
+
+void tr_init(tr_vm *vm);
+int tr_run(tr_vm *vm, tr_op *ops, size_t n);
+
+tr_hash *tr_hash_new(unsigned int minsize);
+
+tr_array *tr_array_create(uint num, size_t size);
+void *tr_array_push(tr_array *a);
+void tr_array_destroy(tr_array *a);
 
 #endif /* _TINYRB_H_ */
