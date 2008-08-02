@@ -1,8 +1,8 @@
-#include "array.h"
+#include "tinyrb.h"
 
-array_t * array_create(uint num, size_t size)
+tr_array * tr_array_create(uint num, size_t size)
 {
-  array_t *a = (array_t *) malloc(sizeof(array_t));
+  tr_array *a = (tr_array *) malloc(sizeof(tr_array));
   if (a == NULL)
     return NULL;
   
@@ -19,7 +19,7 @@ array_t * array_create(uint num, size_t size)
   return a;
 }
 
-void * array_push(array_t *a)
+void * tr_array_push(tr_array *a)
 {
   void *item;
   
@@ -45,7 +45,7 @@ void * array_push(array_t *a)
   return item;
 }
 
-void array_destroy(array_t *a)
+void tr_array_destroy(tr_array *a)
 {
   void *items;
   

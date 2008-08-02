@@ -21,7 +21,7 @@ int tr_exec_inst(tr_sf *sf, tr_inst *inst)
       /* TODO reset stack */
       break;
     case PUTSTRING:
-      ptr = array_push(sf->stack);
+      ptr = (void *) tr_array_push(sf->stack);
       memcpy(ptr, (void *) inst->ops[0], sizeof(OBJECT));
       break;
     case POP:
@@ -35,10 +35,10 @@ int tr_exec_inst(tr_sf *sf, tr_inst *inst)
       break;
     default:
       fprintf(stderr, "unsupported instruction: %d\n", inst->code);
-      return TRB_ERROR;
+      return TR_ERROR;
   }
   
-  return TRB_OK;
+  return TR_OK;
 }
 
 int tr_exec_insts(tr_inst *insts, size_t n)
@@ -47,11 +47,11 @@ int tr_exec_insts(tr_inst *insts, size_t n)
   tr_sf sf;
 
   sf.sp = 0;
-  sf.stack = array_create(5, sizeof(OBJECT));
+  sf.stack = (tr_array *) tr_array_create(5, sizeof(OBJECT));
   
   for (i = 0; i < n; ++i) {
     tr_exec_inst(&sf, &(insts[i]));
   }
   
-  return TRB_OK;
+  return TR_OK;
 }
