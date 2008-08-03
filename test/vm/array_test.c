@@ -1,7 +1,7 @@
 #include "../test.h"
 #include "tinyrb.h"
 
-TEST_INIT();
+TEST_INIT;
 
 void test_push(void)
 {
@@ -41,12 +41,7 @@ void test_push_grow_array(void)
   tr_array_destroy(a);
 }
 
-int main(int argc, char const *argv[])
-{
-  TEST_START();
-  
+TEST_START;
   test_push();
   test_push_grow_array();
-  
-  TEST_END();
-}
+TEST_END;

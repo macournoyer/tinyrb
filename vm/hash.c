@@ -124,7 +124,7 @@ unsigned int tr_hash_count(tr_hash *h)
     return h->hash_entrycount;
 }
 
-int tr_hash_insert(tr_hash *h, void *k, void *v)
+int tr_hash_set(tr_hash *h, void *k, void *v)
 {
     /* This method allows duplicate keys - but they shouldn't be used */
     unsigned int index;
@@ -148,7 +148,7 @@ int tr_hash_insert(tr_hash *h, void *k, void *v)
     return -1;
 }
 
-void *tr_hash_search(tr_hash *h, void *k)
+void *tr_hash_get(tr_hash *h, void *k)
 {
     tr_hash_entry *e;
     unsigned int tr_hashvalue, index;

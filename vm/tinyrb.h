@@ -58,7 +58,7 @@ typedef union tr_obj {
 
 typedef struct tr_op {
   tr_inst_e inst;
-  OBJ    cmd[5];
+  OBJ       cmd[5];
 } tr_op;
 
 typedef struct tr_frame {
@@ -75,7 +75,8 @@ void tr_init(tr_vm *vm);
 int tr_run(tr_vm *vm, tr_op *ops, size_t n);
 
 tr_hash *tr_hash_new(unsigned int minsize);
-int tr_hash_insert(tr_hash *h, void *k, void *v);
+int tr_hash_set(tr_hash *h, void *k, void *v);
+void *tr_hash_get(tr_hash *h, void *k);
 
 tr_array *tr_array_create(uint num, size_t size);
 void *tr_array_push(tr_array *a);

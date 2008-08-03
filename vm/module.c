@@ -13,7 +13,7 @@ OBJ tr_module(VM, const char *name)
   /* mod->name = name; */
   mod->type = TR_MODULE;
   
-  tr_hash_insert(f->consts, (void *) name, (void *) mod);
+  tr_hash_set(f->consts, (void *) name, (void *) mod);
   
   return (OBJ) mod;
 }

@@ -1,15 +1,16 @@
 #include <stdio.h>
 
-#define TEST_INIT() \
+#define TEST_INIT \
   static int assertions; \
   static int failures
 
-#define TEST_START() \
+#define TEST_START \
+  int main(int argc, char const *argv[]) { \
   printf("== %s\n", argv[0])
 
-#define TEST_END() \
+#define TEST_END \
   printf("== %d assertions, %d success, %d failures\n", assertions, assertions - failures, failures); \
-  if (failures > 0) { return -1; } else { return 0; }
+  if (failures > 0) { return -1; } else { return 0; } }
 
 #define assert_equal(expected, actual) \
   assertions++; \
