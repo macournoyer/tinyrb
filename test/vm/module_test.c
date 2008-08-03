@@ -25,13 +25,14 @@ void test_def(void)
 {
   tr_vm      vm;
   tr_module *mod;
+  OBJ        argv[0];
   
   tr_init(&vm);
   mod = (tr_module *) tr_module_new(&vm, "Cat");
   
   tr_def(&vm, (OBJ) mod, "lol", lol, 0);
   
-  assert_equal(TR_TRUE, tr_call(&vm, (OBJ) mod, "lol"));
+  assert_equal(TR_TRUE, tr_call(&vm, (OBJ) mod, "lol", 0, argv));
 }
 
 TEST_START;

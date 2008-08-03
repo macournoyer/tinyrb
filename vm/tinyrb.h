@@ -99,8 +99,9 @@ int tr_hash_set(tr_hash *h, void *k, void *v);
 void *tr_hash_get(tr_hash *h, void *k);
 
 /* array */
-tr_array *tr_array_create(uint num, size_t size);
+tr_array *tr_array_new(uint num, size_t size);
 void *tr_array_push(tr_array *a);
+void *tr_array_pop(tr_array *a);
 void tr_array_destroy(tr_array *a);
 
 /* module */

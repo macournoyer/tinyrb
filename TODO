@@ -1,2 +1,3 @@
+- tr_array should contain pointers not values
 - Implement string interning for SYMBOL (http://en.wikipedia.org/wiki/String_intern_pool)
 - Remove tr_frame?? locals and consts are relative to module/class

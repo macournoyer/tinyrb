@@ -3,45 +3,43 @@
 static void tr_send(VM, const char *method)
 {
   tr_frame *f    = CUR_FRAME;
-  int       argc = 1; /* TODO guess from stack size */
+  int       argc;
   OBJ      *argv = tr_malloc(sizeof(OBJ) * argc);
   
-  /* TODO support multiple args */
-  /* HACK Kernel hardcoded omgomg!!!! */
-  OBJ c   = (OBJ) tr_hash_get(f->consts, "Kernel");
-  OBJ arg = (OBJ) f->stack->items + sizeof(OBJ);
+  OBJ  arg = (OBJ) tr_array_pop(f->stack);
+  OBJ  *c  = (OBJ *) tr_array_pop(f->stack);
   
+  /* TODO support multiple args */
+  argc    = 1;
   argv[0] = arg;
-
-  tr_call(vm, c, method, argc, argv);
+  
+  tr_call(vm, *c, method, argc, argv);
 }
 
 int tr_step(VM, tr_op *op)
 {
   tr_frame *f = CUR_FRAME;
-  void     *ptr, *c;
+  void     *c;
   
   switch (op->inst) {
     case GETCONSTANT:
       c = tr_hash_get(f->consts, (void *) op->cmd[0]);
-      ptr = tr_array_push(f->stack);
-      memcpy(ptr, c, sizeof(OBJ));
+      memcpy(tr_array_push(f->stack), &c, sizeof(OBJ));
       break;
     case PUTNIL:
-      /* TODO reset stack */
+      c = (void *) TR_NIL; /* huh? should be a pointer? */
+      memcpy(tr_array_push(f->stack), &c, sizeof(OBJ));
       break;
     case PUTSTRING:
-      ptr = tr_array_push(f->stack);
-      memcpy(ptr, (void *) op->cmd[0], sizeof(OBJ));
+      memcpy(tr_array_push(f->stack), (void *) op->cmd[0], sizeof(OBJ));
       break;
     case POP:
-      f->stack->nitems--;
+      tr_array_pop(f->stack);
       break;
     case SEND:
       tr_send(vm, (char *) op->cmd[0]);
       break;
     case LEAVE:
-      /* TODO clear stack */
       break;
     default:
       tr_log("unsupported instruction: %d\n", op->inst);
@@ -53,7 +51,7 @@ int tr_step(VM, tr_op *op)
 
 static void tr_init_frame(tr_frame *f)
 {
-  f->stack  = tr_array_create(5, sizeof(OBJ));
+  f->stack  = tr_array_new(5, sizeof(OBJ));
   f->consts = tr_hash_new();
 }
 

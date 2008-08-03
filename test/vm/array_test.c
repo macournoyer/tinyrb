@@ -3,12 +3,20 @@
 
 TEST_INIT;
 
-void test_push(void)
+void array_dump(tr_array *a)
+{
+  size_t  i;
+  
+  for (i = 0; i < a->nitems; ++i)
+    printf("[%d] %s\n", i, (char *) a->items + i * a->size);
+}
+
+void test_push()
 {
   tr_array *a;
-  char    *c;
+  char     *c;
   
-  a = tr_array_create(10, sizeof(char));
+  a = tr_array_new(10, sizeof(char));
   
   c = tr_array_push(a);
   
@@ -23,11 +31,11 @@ void test_push(void)
   tr_array_destroy(a);
 }
 
-void test_push_grow_array(void)
+void test_push_grow_array()
 {
   tr_array *a;
   
-  a = tr_array_create(2, sizeof(char));
+  a = tr_array_new(2, sizeof(char));
   
   tr_array_push(a);
   tr_array_push(a);
@@ -41,7 +49,25 @@ void test_push_grow_array(void)
   tr_array_destroy(a);
 }
 
+void test_pop()
+{
+  tr_array *a;
+  char     *c;
+  
+  a = tr_array_new(2, sizeof(c));
+  
+  c = tr_array_push(a); strcpy(c, "1");
+  c = tr_array_push(a); strcpy(c, "2");
+  
+  assert_str_equal("2", (char *) tr_array_pop(a));
+  assert_str_equal("1", (char *) tr_array_pop(a));
+  assert_equal(NULL, tr_array_pop(a));
+  
+  tr_array_destroy(a);
+}
+
 TEST_START;
   test_push();
   test_push_grow_array();
+  test_pop();
 TEST_END;

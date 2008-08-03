@@ -1,6 +1,6 @@
 #include "tinyrb.h"
 
-tr_array * tr_array_create(uint num, size_t size)
+tr_array * tr_array_new(uint num, size_t size)
 {
   tr_array *a = (tr_array *) malloc(sizeof(tr_array));
   if (a == NULL)
@@ -43,6 +43,14 @@ void * tr_array_push(tr_array *a)
   a->nitems++;
   
   return item;
+}
+
+void *tr_array_pop(tr_array *a)
+{
+  if (a->nitems == 0)
+    return NULL;
+  
+  return (void *) a->items + a->size * --a->nitems;
 }
 
 void tr_array_destroy(tr_array *a)
