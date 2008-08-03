@@ -38,10 +38,10 @@ iseq.to_a.last.each do |inst|
   Array(inst[1]).each_with_index do |op, i|
     case op
     when Symbol
-      operands[i] = %Q{(OBJECT) "#{op}"}
+      operands[i] = %Q{(OBJ) "#{op}"}
     when NilClass
     else
-      operands[i] = "(OBJECT) #{op.inspect}"
+      operands[i] = "(OBJ) #{op.inspect}"
     end
   end
   puts "  { #{opcode}, { #{operands.join(', ')} } },"

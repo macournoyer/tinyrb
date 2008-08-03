@@ -3,7 +3,7 @@
 static tr_send(const char *method, tr_frame *f)
 {
   /* TODO support multiple args */
-  OBJECT arg = (OBJECT) f->stack->items;
+  OBJ arg = (OBJ) f->stack->items;
   
   /* HACK yeah ok... this is just proof of concept */
   if (strcmp(method, "puts") == 0)
@@ -24,7 +24,7 @@ int tr_step(tr_frame *f, tr_op *op)
       break;
     case PUTSTRING:
       ptr = tr_array_push(f->stack);
-      memcpy(ptr, (void *) op->cmd[0], sizeof(OBJECT));
+      memcpy(ptr, (void *) op->cmd[0], sizeof(OBJ));
       break;
     case POP:
       f->stack->nitems--;
@@ -43,12 +43,12 @@ int tr_step(tr_frame *f, tr_op *op)
   return TR_OK;
 }
 
-int tr_run(tr_vm *vm, tr_op *ops, size_t n)
+int tr_run(VM, tr_op *ops, size_t n)
 {
   size_t     i;
-  tr_frame  *f = &vm->frames[vm->cf];
+  tr_frame  *f = CUR_FRAME;
   
-  f->stack  = tr_array_create(5, sizeof(OBJECT));
+  f->stack  = tr_array_create(5, sizeof(OBJ));
   f->consts = tr_hash_new(5);
   
   for (i = 0; i < n; ++i)
@@ -57,7 +57,7 @@ int tr_run(tr_vm *vm, tr_op *ops, size_t n)
   return TR_OK;
 }
 
-void tr_init(tr_vm *vm)
+void tr_init(VM)
 {
   vm->cf = 0;
 }
