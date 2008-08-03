@@ -1,24 +1,32 @@
 #include "tinyrb.h"
 
-static tr_send(const char *method, tr_frame *f)
+static void tr_send(VM, const char *method)
 {
-  /* TODO support multiple args */
-  OBJ arg = (OBJ) f->stack->items;
+  tr_frame *f    = CUR_FRAME;
+  int       argc = 1; /* TODO guess from stack size */
+  OBJ      *argv = tr_malloc(sizeof(OBJ) * argc);
   
-  /* HACK yeah ok... this is just proof of concept */
-  if (strcmp(method, "puts") == 0)
-    printf("%s\n", arg);
-  else if (strcmp(method, "print") == 0)
-    printf("%s", arg);
+  /* TODO support multiple args */
+  /* HACK Kernel hardcoded omgomg!!!! */
+  OBJ c   = (OBJ) tr_hash_get(f->consts, "Kernel");
+  OBJ arg = (OBJ) f->stack->items + sizeof(OBJ);
+  
+  argv[0] = arg;
+
+  tr_call(vm, c, method, argc, argv);
 }
 
-int tr_step(tr_frame *f, tr_op *op)
+int tr_step(VM, tr_op *op)
 {
-  void *ptr;
+  tr_frame *f = CUR_FRAME;
+  void     *ptr, *c;
   
   switch (op->inst) {
-    /* case GETCONSTANT:
-      break; */
+    case GETCONSTANT:
+      c = tr_hash_get(f->consts, (void *) op->cmd[0]);
+      ptr = tr_array_push(f->stack);
+      memcpy(ptr, c, sizeof(OBJ));
+      break;
     case PUTNIL:
       /* TODO reset stack */
       break;
@@ -30,7 +38,7 @@ int tr_step(tr_frame *f, tr_op *op)
       f->stack->nitems--;
       break;
     case SEND:
-      tr_send((char *) op->cmd[0], f);
+      tr_send(vm, (char *) op->cmd[0]);
       break;
     case LEAVE:
       /* TODO clear stack */
@@ -58,7 +66,7 @@ int tr_run(VM, tr_op *ops, size_t n)
     tr_init_frame(f);
   
   for (i = 0; i < n; ++i)
-    tr_step(f, &(ops[i]));
+    tr_step(vm, &(ops[i]));
   
   return TR_OK;
 }
@@ -74,4 +82,5 @@ void tr_init(VM)
     vm->frames[i].consts = NULL;
   }
   tr_init_frame(CUR_FRAME);
+  tr_builtins_add(vm);
 }

@@ -21,10 +21,10 @@
 #define TR_OK     0
 
 #define VM            tr_vm *vm
-#define CUR_FRAME     &vm->frames[vm->cf]
+#define CUR_FRAME     (&vm->frames[vm->cf])
 #define tr_malloc(s)  malloc(s)
 #define tr_free(p)    free(p)
-#define tr_log(m,...) fprintf(stderr, m, __VA_ARGS__);
+#define tr_log(m,...) fprintf(stderr, m, __VA_ARGS__)
 
 typedef unsigned long OBJ;
 typedef char *        SYM;
@@ -104,7 +104,9 @@ void *tr_array_push(tr_array *a);
 void tr_array_destroy(tr_array *a);
 
 /* module */
+OBJ tr_call(VM, OBJ obj, const char *method, int argc, OBJ argv[]);
 void tr_def(VM, OBJ mod, const char *name, OBJ (*func)(), int argc);
 OBJ tr_module_new(VM, const char *name);
+void tr_builtins_add(VM);
 
 #endif /* _TINYRB_H_ */
