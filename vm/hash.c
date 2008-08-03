@@ -240,7 +240,7 @@ static int str_keys_equal_fn(void *key1, void *key2)
   return strcmp((char *) key1, (char *) key2) == 0;
 }
 
-tr_hash *tr_hash_new(unsigned int minsize)
+tr_hash *tr_hash_new()
 {
-  return tr_hash_create(minsize, hash_from_str_key_fn, str_keys_equal_fn);
+  return tr_hash_create(10, hash_from_str_key_fn, str_keys_equal_fn);
 }

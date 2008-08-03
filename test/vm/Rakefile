@@ -1,13 +1,16 @@
 load "../../tasks/compile.rake"
 
+EXCLUDE_OBJ = ["../../vm/main.o"]
+
 Dir["*_test.c"].each do |file|
   exec   = file.ext("")
   tested = file.gsub("_test.c", "")
-  
+
   # Create an executable for each _test.c file
-  compile_test_tasks exec, "../../vm/#{tested}"
+  compile_test_tasks exec, "../../vm", EXCLUDE_OBJ
 end
 
-task :compile_src do
+task :before_compile do
+  # Build tested project
   cd("../../vm") { sh "rake compile" }
 end

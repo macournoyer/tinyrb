@@ -26,14 +26,14 @@ def compile_tasks(exec)
   end
 end
 
-def compile_test_tasks(exec, tested)
-  src = "#{exec}.c"
-  obj = src.ext('o')
+def compile_test_tasks(exec, dir, exclude_obj=[])
+  src        = "#{exec}.c"
+  obj        = src.ext('o')
   
   CLEAN.include(obj, exec)
   
   desc "Compile tests"
-  task :compile => [:compile_src, exec]
+  task :compile => [:before_compile, exec]
   
   desc "Run tests (default)"
   task :test => :compile do
@@ -42,10 +42,11 @@ def compile_test_tasks(exec, tested)
   task :default => :test
   
   file obj => src do |t|
-    sh "#{CC} #{CFLAGS} -DDEBUG -I#{File.dirname(tested)} -c -o #{obj} #{src}"
+    sh "#{CC} #{CFLAGS} -DDEBUG -I#{dir} -c -o #{obj} #{src}"
   end
   
   file exec => obj do |t|
-    sh "#{CC} #{LDFLAGS} -o #{exec} #{obj} #{tested}.o"
+    tested_obj = FileList["#{dir}/*.o"] - exclude_obj
+    sh "#{CC} #{LDFLAGS} -o #{exec} #{obj} #{tested_obj}"
   end
 end

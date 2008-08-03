@@ -36,11 +36,17 @@ int tr_step(tr_frame *f, tr_op *op)
       /* TODO clear stack */
       break;
     default:
-      fprintf(stderr, "unsupported instruction: %d\n", op->inst);
+      tr_log("unsupported instruction: %d\n", op->inst);
       return TR_ERROR;
   }
   
   return TR_OK;
+}
+
+static void tr_init_frame(tr_frame *f)
+{
+  f->stack  = tr_array_create(5, sizeof(OBJ));
+  f->consts = tr_hash_new();
 }
 
 int tr_run(VM, tr_op *ops, size_t n)
@@ -48,8 +54,8 @@ int tr_run(VM, tr_op *ops, size_t n)
   size_t     i;
   tr_frame  *f = CUR_FRAME;
   
-  f->stack  = tr_array_create(5, sizeof(OBJ));
-  f->consts = tr_hash_new(5);
+  if (f->stack == NULL)
+    tr_init_frame(f);
   
   for (i = 0; i < n; ++i)
     tr_step(f, &(ops[i]));
@@ -59,5 +65,13 @@ int tr_run(VM, tr_op *ops, size_t n)
 
 void tr_init(VM)
 {
+  size_t i;
+  
   vm->cf = 0;
+  
+  for (i = 0; i < TR_MAX_FRAMES; ++i) {
+    vm->frames[i].stack  = NULL;
+    vm->frames[i].consts = NULL;
+  }
+  tr_init_frame(CUR_FRAME);
 }

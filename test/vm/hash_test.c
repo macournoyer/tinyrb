@@ -8,7 +8,7 @@ void test_set(void)
   tr_hash *h;
   char    *k = "key", *v = "val";
   
-  h = tr_hash_new(5);
+  h = tr_hash_new();
   
   tr_hash_set(h, (void*)k, (void*)v);
   
