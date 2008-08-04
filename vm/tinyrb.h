@@ -13,6 +13,7 @@
 
 #define TR_MAX_FRAMES 250
 
+/* special magic consts */
 #define TR_FALSE (OBJ) 0
 #define TR_TRUE  (OBJ) 2
 #define TR_NIL   (OBJ) 4
@@ -21,22 +22,44 @@
 #define TR_ERROR -1
 #define TR_OK     0
 
+/* conversion */
+#define TR_TYPE(o)      (((tr_obj *) o)->type)
+#define TR_CSTRING(o)   ((tr_string *) o)
+#define TR_CARRAY(o)    ((tr_array *) o)
+#define TR_CHASH(o)     ((tr_hash *) o)
+
+/* shortcuts */
+#define TR_STR(s)       TR_CSTRING(s)->ptr
 #define VM              tr_vm *vm
 #define CUR_FRAME       (&vm->frames[vm->cf])
+
+/* mem stuff */
 #define tr_malloc(s)    malloc(s)
 #define tr_realloc(c,s) realloc(c,s)
 #define tr_free(p)      free(p)
+
 #define tr_log(m,...)   fprintf(stderr, m, __VA_ARGS__)
 
 typedef unsigned long OBJ;
 
 /* objects */
-typedef enum { TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS } tr_type;
+typedef enum { TR_STRING, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS } tr_type;
+
+typedef struct tr_obj {
+  tr_type type;
+} tr_obj;
+
+typedef struct tr_string {
+  tr_type  type;
+  char    *ptr;
+  size_t   len;
+} tr_string;
 
 typedef struct tr_array {
-  size_t  count;
-  uint    nalloc;
-  OBJ    *items;
+  tr_type  type;
+  size_t   count;
+  uint     nalloc;
+  OBJ     *items;
 } tr_array;
 
 typedef struct tr_hash_entry {
@@ -46,6 +69,7 @@ typedef struct tr_hash_entry {
 } tr_hash_entry;
 
 typedef struct tr_hash {
+  tr_type         type;
   uint            tablelength;
   tr_hash_entry **table;
   uint            hash_entrycount;
@@ -68,11 +92,6 @@ typedef struct tr_method {
   int      argc;
 } tr_method;
 
-typedef union tr_obj {
-  tr_type type;
-  /* TODO union or struct cast? */
-} tr_obj;
-
 /* vm structs */
 typedef struct tr_op {
   tr_inst_e inst;
@@ -92,6 +111,9 @@ typedef struct tr_vm {
 /* vm */
 void tr_init(tr_vm *vm);
 int tr_run(tr_vm *vm, tr_op *ops, size_t n);
+
+/* string */
+OBJ tr_string_new(const char *ptr);
 
 /* hash */
 tr_hash *tr_hash_new();

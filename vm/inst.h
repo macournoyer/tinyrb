@@ -1,3 +1,4 @@
+/* based on YARV instructions, http://www.atdot.net/yarv/insnstbl.html */
 typedef enum {
   NOP = 0,
   GETLOCAL,

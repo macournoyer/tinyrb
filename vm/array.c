@@ -9,6 +9,7 @@ tr_array * tr_array_new()
   if (a == NULL)
     return NULL;
   
+  a->type   = TR_ARRAY;
   a->nalloc = TR_ARRAY_N;
   a->count  = 0;
   a->items  = tr_malloc(TR_ARRAY_N * TR_ARRAY_SIZE);

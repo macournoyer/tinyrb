@@ -1,8 +1,9 @@
 TODOs
 =====
 - Implement tr_obj and tr_str
-- Implement string interning for SYMBOL (http://en.wikipedia.org/wiki/String_intern_pool)
-- Remove tr_frame? locals and consts are relative to module/class (???)
+- Move methods to tr_obj
+- Implement string interning (http://en.wikipedia.org/wiki/String_intern_pool)
+- consts should be relative to current object
 
 Bootstrapping
 =============

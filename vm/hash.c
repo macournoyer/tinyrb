@@ -41,6 +41,7 @@ tr_hash *tr_hash_create(unsigned int minsize,
     h->table = (tr_hash_entry **)malloc(sizeof(tr_hash_entry*) * size);
     if (NULL == h->table) { free(h); return NULL; } /*oom*/
     memset(h->table, 0, size * sizeof(tr_hash_entry *));
+    h->type         = TR_HASH;
     h->tablelength  = size;
     h->primeindex   = pindex;
     h->hash_entrycount   = 0;
