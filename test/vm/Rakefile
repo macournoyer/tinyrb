@@ -3,11 +3,8 @@ load "../../tasks/compile.rake"
 EXCLUDE_OBJ = ["../../vm/main.o"]
 
 Dir["*_test.c"].each do |file|
-  exec   = file.ext("")
-  tested = file.gsub("_test.c", "")
-
   # Create an executable for each _test.c file
-  compile_test_tasks exec, "../../vm", EXCLUDE_OBJ
+  compile_test_tasks file.ext(""), "../../vm", EXCLUDE_OBJ
 end
 
 task :before_compile do

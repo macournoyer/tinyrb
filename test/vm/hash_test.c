@@ -3,18 +3,24 @@
 
 TEST_INIT;
 
-void test_set(void)
+void test_set_get()
 {
-  tr_hash *h;
-  char    *k = "key", *v = "val";
+  tr_hash *h = tr_hash_new();
+  char    *v = "val";
   
-  h = tr_hash_new();
+  tr_hash_set(h, (void*) "key", (void*)v);
   
-  tr_hash_set(h, (void*)k, (void*)v);
+  assert_equal(v, tr_hash_get(h, (void*) "key"));
+}
+
+void test_not_found()
+{
+  tr_hash *h = tr_hash_new();
   
-  assert_equal(v, tr_hash_get(h, (void*)k));
+  assert_equal(NULL, tr_hash_get(h, (void*) "key"));
 }
 
 TEST_START;
-  test_set();
+  test_set_get();
+  test_not_found();
 TEST_END;

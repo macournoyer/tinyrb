@@ -29,7 +29,6 @@
 #define tr_log(m,...)   fprintf(stderr, m, __VA_ARGS__)
 
 typedef unsigned long OBJ;
-typedef char *        SYM;
 
 /* objects */
 typedef enum { TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS } tr_type;
