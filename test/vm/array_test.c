@@ -13,9 +13,9 @@ void array_dump(tr_array *a)
 
 void test_push_pop()
 {
-  tr_array *a;
-  OBJ       c1 = (OBJ) "1";
-  OBJ       c2 = (OBJ) "2";
+  OBJ a;
+  OBJ c1 = (OBJ) "1";
+  OBJ c2 = (OBJ) "2";
   
   a = tr_array_new();
   
@@ -33,7 +33,7 @@ void test_push_pop()
 
 void test_push_special()
 {
-  tr_array *a;
+  OBJ a;
   
   a = tr_array_new();
   
@@ -46,20 +46,20 @@ void test_push_special()
 
 void test_push_grow_array()
 {
-  tr_array *a;
-  OBJ       x = (OBJ) "bai";
-  size_t    i;
+  OBJ    a;
+  OBJ    x = (OBJ) "bai";
+  size_t i;
   
   a = tr_array_new();
   
   for (i = 0; i < 5; ++i)
     tr_array_push(a, x);
   
-  assert_equal(5, a->nalloc);
+  assert_equal(5, TR_CARRAY(a)->nalloc);
   
   tr_array_push(a, x);
   
-  assert_equal(10, a->nalloc);
+  assert_equal(10, TR_CARRAY(a)->nalloc);
   
   tr_array_destroy(a);
 }

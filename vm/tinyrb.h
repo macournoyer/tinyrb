@@ -24,9 +24,10 @@
 
 /* conversion */
 #define TR_TYPE(o)      (((tr_obj *) o)->type)
-#define TR_CSTRING(o)   ((tr_string *) o)
-#define TR_CARRAY(o)    ((tr_array *) o)
-#define TR_CHASH(o)     ((tr_hash *) o)
+#define TR_CTYPE(o,e,t) (assert(TR_TYPE(o) == e), ((t *) o))
+#define TR_CSTRING(o)   TR_CTYPE(o, TR_STRING, tr_string)
+#define TR_CARRAY(o)    TR_CTYPE(o, TR_ARRAY, tr_array)
+#define TR_CHASH(o)     TR_CTYPE(o, TR_HASH, tr_hash)
 
 /* shortcuts */
 #define TR_STR(s)       TR_CSTRING(s)->ptr
@@ -99,7 +100,7 @@ typedef struct tr_op {
 } tr_op;
 
 typedef struct tr_frame {
-  tr_array *stack;
+  OBJ       stack;
   tr_hash  *consts;
 } tr_frame;
 
@@ -121,11 +122,11 @@ int tr_hash_set(tr_hash *h, void *k, void *v);
 void *tr_hash_get(tr_hash *h, void *k);
 
 /* array */
-tr_array *tr_array_new();
-void tr_array_push(tr_array *a, OBJ item);
-OBJ tr_array_pop(tr_array *a);
-size_t tr_array_count(tr_array *a);
-void tr_array_destroy(tr_array *a);
+OBJ tr_array_new();
+void tr_array_push(OBJ a, OBJ item);
+OBJ tr_array_pop(OBJ a);
+size_t tr_array_count(OBJ a);
+void tr_array_destroy(OBJ a);
 
 /* module */
 OBJ tr_call(VM, OBJ obj, const char *method, int argc, OBJ argv[]);

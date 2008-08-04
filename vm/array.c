@@ -3,11 +3,11 @@
 #define TR_ARRAY_N    5 /* items in new array */
 #define TR_ARRAY_SIZE sizeof(OBJ *)
 
-tr_array * tr_array_new()
+OBJ tr_array_new()
 {
   tr_array *a = (tr_array *) tr_malloc(sizeof(tr_array));
   if (a == NULL)
-    return NULL;
+    return TR_NIL;
   
   a->type   = TR_ARRAY;
   a->nalloc = TR_ARRAY_N;
@@ -16,15 +16,16 @@ tr_array * tr_array_new()
   
   if (a->items == NULL) {
     tr_free(a);
-    return NULL;
+    return TR_NIL;
   }
 
-  return a;
+  return (OBJ) a;
 }
 
-void tr_array_push(tr_array *a, OBJ item)
+void tr_array_push(OBJ o, OBJ item)
 {
-  OBJ *slot;
+  tr_array *a = TR_CARRAY(o);
+  OBJ      *slot;
   
   if (a->count == a->nalloc) {
     /* array is full, double the size */
@@ -46,21 +47,27 @@ void tr_array_push(tr_array *a, OBJ item)
   a->count++;
 }
 
-OBJ tr_array_pop(tr_array *a)
+OBJ tr_array_pop(OBJ o)
 {
+  tr_array *a = TR_CARRAY(o);
+  
   if (a->count == 0)
     return TR_NIL;
   
   return *((OBJ *) a->items + TR_ARRAY_SIZE * --a->count);
 }
 
-size_t tr_array_count(tr_array *a)
+size_t tr_array_count(OBJ o)
 {
+  tr_array *a = TR_CARRAY(o);
+  
   return a->count;
 }
 
-void tr_array_destroy(tr_array *a)
+void tr_array_destroy(OBJ o)
 {
+  tr_array *a = TR_CARRAY(o);
+  
   tr_free(a->items);
   tr_free(a);
 }
