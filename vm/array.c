@@ -1,37 +1,39 @@
 #include "tinyrb.h"
 
-tr_array * tr_array_new(uint num, size_t size)
+#define TR_ARRAY_N    5 /* items in new array */
+#define TR_ARRAY_SIZE sizeof(OBJ)
+
+tr_array * tr_array_new()
 {
-  tr_array *a = (tr_array *) malloc(sizeof(tr_array));
+  tr_array *a = (tr_array *) tr_malloc(sizeof(tr_array));
   if (a == NULL)
     return NULL;
   
-  a->size   = size;
-  a->nalloc = num;
-  a->nitems = 0;
-  a->items  = malloc(num * size);
+  a->nalloc = TR_ARRAY_N;
+  a->count  = 0;
+  a->items  = tr_malloc(TR_ARRAY_N * TR_ARRAY_SIZE);
   
   if (a->items == NULL) {
-    free(a);
+    tr_free(a);
     return NULL;
   }
 
   return a;
 }
 
-void * tr_array_push(tr_array *a)
+void *tr_array_push(tr_array *a)
 {
   void *item;
   
-  if (a->nitems == a->nalloc) {
+  if (a->count == a->nalloc) {
     /* array is full, double the size */
 
     void   *new;
     size_t  size;
     
-    size = a->size * a->nalloc;
+    size = TR_ARRAY_SIZE * a->nalloc;
 
-    new = realloc(a->items, 2 * size);
+    new = tr_realloc(a->items, 2 * size);
     if (new == NULL)
       return NULL;
     
@@ -39,26 +41,27 @@ void * tr_array_push(tr_array *a)
     a->nalloc *= 2;
   }
   
-  item = (u_char *) a->items + a->size * a->nitems;
-  a->nitems++;
+  item = (u_char *) a->items + TR_ARRAY_SIZE * a->count;
+  a->count++;
   
   return item;
 }
 
 void *tr_array_pop(tr_array *a)
 {
-  if (a->nitems == 0)
+  if (a->count == 0)
     return NULL;
   
-  return (void *) a->items + a->size * --a->nitems;
+  return (void *) a->items + TR_ARRAY_SIZE * --a->count;
+}
+
+size_t tr_array_count(tr_array *a)
+{
+  return a->count;
 }
 
 void tr_array_destroy(tr_array *a)
 {
-  void *items;
-  
-  items = a->items;
-  
-  free(items);
-  free(a);
+  tr_free(a->items);
+  tr_free(a);
 }

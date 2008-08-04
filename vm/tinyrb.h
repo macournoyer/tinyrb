@@ -20,11 +20,12 @@
 #define TR_ERROR -1
 #define TR_OK     0
 
-#define VM            tr_vm *vm
-#define CUR_FRAME     (&vm->frames[vm->cf])
-#define tr_malloc(s)  malloc(s)
-#define tr_free(p)    free(p)
-#define tr_log(m,...) fprintf(stderr, m, __VA_ARGS__)
+#define VM              tr_vm *vm
+#define CUR_FRAME       (&vm->frames[vm->cf])
+#define tr_malloc(s)    malloc(s)
+#define tr_realloc(c,s) realloc(c,s)
+#define tr_free(p)      free(p)
+#define tr_log(m,...)   fprintf(stderr, m, __VA_ARGS__)
 
 typedef unsigned long OBJ;
 typedef char *        SYM;
@@ -33,9 +34,8 @@ typedef char *        SYM;
 typedef enum { TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS } tr_type;
 
 typedef struct tr_array {
-  size_t  size;
+  size_t  count;
   uint    nalloc;
-  uint    nitems;
   void   *items;
 } tr_array;
 
@@ -99,9 +99,10 @@ int tr_hash_set(tr_hash *h, void *k, void *v);
 void *tr_hash_get(tr_hash *h, void *k);
 
 /* array */
-tr_array *tr_array_new(uint num, size_t size);
+tr_array *tr_array_new();
 void *tr_array_push(tr_array *a);
 void *tr_array_pop(tr_array *a);
+size_t tr_array_count(tr_array *a);
 void tr_array_destroy(tr_array *a);
 
 /* module */

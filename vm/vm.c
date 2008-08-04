@@ -51,7 +51,7 @@ int tr_step(VM, tr_op *op)
 
 static void tr_init_frame(tr_frame *f)
 {
-  f->stack  = tr_array_new(5, sizeof(OBJ));
+  f->stack  = tr_array_new();
   f->consts = tr_hash_new();
 }
 
