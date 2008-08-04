@@ -1,7 +1,7 @@
 #include "tinyrb.h"
 
 #define TR_ARRAY_N    5 /* items in new array */
-#define TR_ARRAY_SIZE sizeof(OBJ)
+#define TR_ARRAY_SIZE sizeof(OBJ *)
 
 tr_array * tr_array_new()
 {
@@ -21,9 +21,9 @@ tr_array * tr_array_new()
   return a;
 }
 
-void *tr_array_push(tr_array *a)
+void tr_array_push(tr_array *a, OBJ item)
 {
-  void *item;
+  OBJ *slot;
   
   if (a->count == a->nalloc) {
     /* array is full, double the size */
@@ -34,25 +34,23 @@ void *tr_array_push(tr_array *a)
     size = TR_ARRAY_SIZE * a->nalloc;
 
     new = tr_realloc(a->items, 2 * size);
-    if (new == NULL)
-      return NULL;
+    assert(new);
     
     a->items = new;
     a->nalloc *= 2;
   }
   
-  item = (u_char *) a->items + TR_ARRAY_SIZE * a->count;
+  slot = (OBJ *) a->items + TR_ARRAY_SIZE * a->count;
+  memcpy((void *) slot, &item, sizeof(OBJ *));
   a->count++;
-  
-  return item;
 }
 
-void *tr_array_pop(tr_array *a)
+OBJ tr_array_pop(tr_array *a)
 {
   if (a->count == 0)
-    return NULL;
+    return TR_NIL;
   
-  return (void *) a->items + TR_ARRAY_SIZE * --a->count;
+  return *((OBJ *) a->items + TR_ARRAY_SIZE * --a->count);
 }
 
 size_t tr_array_count(tr_array *a)

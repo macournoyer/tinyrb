@@ -6,32 +6,29 @@ static void tr_send(VM, const char *method)
   int       argc;
   OBJ      *argv = tr_malloc(sizeof(OBJ) * argc);
   
-  OBJ  arg = (OBJ) tr_array_pop(f->stack);
-  OBJ  *c  = (OBJ *) tr_array_pop(f->stack);
+  OBJ  arg = tr_array_pop(f->stack);
+  OBJ  c   = tr_array_pop(f->stack);
   
   /* TODO support multiple args */
   argc    = 1;
   argv[0] = arg;
   
-  tr_call(vm, *c, method, argc, argv);
+  tr_call(vm, c, method, argc, argv);
 }
 
 int tr_step(VM, tr_op *op)
 {
   tr_frame *f = CUR_FRAME;
-  void     *c;
   
   switch (op->inst) {
     case GETCONSTANT:
-      c = tr_hash_get(f->consts, (void *) op->cmd[0]);
-      memcpy(tr_array_push(f->stack), &c, sizeof(OBJ));
+      tr_array_push(f->stack, (OBJ) tr_hash_get(f->consts, (void *) op->cmd[0]));
       break;
     case PUTNIL:
-      c = (void *) TR_NIL; /* huh? should be a pointer? */
-      memcpy(tr_array_push(f->stack), &c, sizeof(OBJ));
+      tr_array_push(f->stack, TR_NIL);
       break;
     case PUTSTRING:
-      memcpy(tr_array_push(f->stack), (void *) op->cmd[0], sizeof(OBJ));
+      tr_array_push(f->stack, op->cmd[0]);
       break;
     case POP:
       tr_array_pop(f->stack);

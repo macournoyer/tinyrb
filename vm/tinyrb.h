@@ -1,6 +1,7 @@
 #ifndef _TINYRB_H_
 #define _TINYRB_H_
 
+#include <assert.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -36,7 +37,7 @@ typedef enum { TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS } tr_type;
 typedef struct tr_array {
   size_t  count;
   uint    nalloc;
-  void   *items;
+  OBJ    *items;
 } tr_array;
 
 typedef struct tr_hash_entry {
@@ -100,8 +101,8 @@ void *tr_hash_get(tr_hash *h, void *k);
 
 /* array */
 tr_array *tr_array_new();
-void *tr_array_push(tr_array *a);
-void *tr_array_pop(tr_array *a);
+void tr_array_push(tr_array *a, OBJ item);
+OBJ tr_array_pop(tr_array *a);
 size_t tr_array_count(tr_array *a);
 void tr_array_destroy(tr_array *a);
 
