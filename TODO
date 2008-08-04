@@ -1,3 +1,23 @@
+TODOs
+=====
 - Implement tr_obj and tr_str
 - Implement string interning for SYMBOL (http://en.wikipedia.org/wiki/String_intern_pool)
 - Remove tr_frame? locals and consts are relative to module/class (???)
+
+Bootstrapping
+=============
+1) Builder parser and opcode emitter in Ruby
+2) Pass parser and emitter through itself
+3) inject opcode in vm and compile it
+
+Stuff needed to bootstrap:
+- Array, Hash, String
+- Regexp (?)
+- def
+- Kernel.load
+
+Stupid ideas
+============
+- Use preprocess macros to turn "class Someting < Base" in "Something.new(Base)"
+- Use preprocess macros to turn "def method" in "define_method(:method) do"
+

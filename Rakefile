@@ -18,3 +18,8 @@ task :test do
   rake "test/vm", :test
 end
 task :default => :test
+
+desc "Compute size of codebase"
+task :size do
+  puts "%0.2fK" % (Dir["vm/*.{c,rb,h}"].inject(0) { |sum, f| sum += File.size(f) } / 1024.0)
+end

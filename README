@@ -1,28 +1,28 @@
 = TinyRb
 
 My lame attempt to copy tinypy and create tiny Ruby VM.
+I'm not a VM or language expert so expect the worst from this.
 
 == Getting started
 
 You need Ruby 1.9 installed as `ruby19` script (or change in vm/Rakefile).
 Nothing interesting to do for now. To build the VM:
 
- cd vm
  rake
- ./vm
+ ./vm/vm
 
 == Goals
 
-- Learn inner working of the language we all love
-- Keep it small so lots of people can understand it
-- Fully bootstrapped
+- Keep it small so lots of people can understand it (< 64K)
+- Bootstrap (parer, emitter, etc in Ruby)
+- Base on YARV instruction sequences (but use less)
 - Have fun!
 
 == VM Bootstrap tactic
 
- boot.rb =(YARV instructions)=> boot.c =(gcc+vm.c)=> tinyrb => rich & famous
+ boot.rb =(YARV opcode)=> boot.c =(gcc+vm.c)=> tinyrb => rich & famous
 
-???
+See TODO
 
 == Credits
 Inspired by:
