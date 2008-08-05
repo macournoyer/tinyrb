@@ -32,7 +32,7 @@ void test_def(void)
   
   tr_def(&vm, (OBJ) mod, "lol", lol, 0);
   
-  assert_equal(TR_TRUE, tr_call(&vm, (OBJ) mod, "lol", 0, argv));
+  assert_equal(TR_TRUE, tr_send(&vm, (OBJ) mod, tr_intern("lol"), 0, argv));
 }
 
 TEST_START;

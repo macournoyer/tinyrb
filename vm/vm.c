@@ -1,6 +1,6 @@
 #include "tinyrb.h"
 
-static void tr_send(VM, const char *method)
+static void tr_op_send(VM, const char *method)
 {
   tr_frame *f    = CUR_FRAME;
   int       argc;
@@ -13,7 +13,7 @@ static void tr_send(VM, const char *method)
   argc    = 1;
   argv[0] = arg;
   
-  tr_call(vm, c, method, argc, argv);
+  tr_send(vm, c, tr_intern(method), argc, argv);
 }
 
 int tr_step(VM, tr_op *op)
@@ -28,13 +28,13 @@ int tr_step(VM, tr_op *op)
       tr_array_push(f->stack, TR_NIL);
       break;
     case PUTSTRING:
-      tr_array_push(f->stack, op->cmd[0]);
+      tr_array_push(f->stack, tr_string_new(op->cmd[0]));
       break;
     case POP:
       tr_array_pop(f->stack);
       break;
     case SEND:
-      tr_send(vm, (char *) op->cmd[0]);
+      tr_op_send(vm, op->cmd[0]);
       break;
     case LEAVE:
       break;

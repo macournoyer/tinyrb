@@ -11,3 +11,9 @@ OBJ tr_string_new(const char *ptr)
   
   return (OBJ) str;
 }
+
+OBJ tr_intern(const char *ptr)
+{
+  /* TODO */
+  return tr_string_new(ptr);
+}

@@ -1,17 +1,16 @@
 #include "tinyrb.h"
 
-OBJ tr_call(VM, OBJ obj, const char *method, int argc, OBJ argv[])
+OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
 {
   tr_module *mod = (tr_module *) obj;
   /* TODO look in imethods */
-  tr_method *met = (tr_method *) tr_hash_get(mod->methods, (void *) method);
-  
+  tr_method *met = (tr_method *) tr_hash_get(mod->methods, (void *) TR_STR(message));
   
   if (met) {
     /* TODO handle multiple args */
     return met->func(argv[0]);
   } else {
-    tr_log("method not found: %s\n", method);
+    tr_log("method not found: %s\n", TR_STR(message));
     return TR_UNDEF;
   }
 }
@@ -45,7 +44,7 @@ OBJ tr_module_new(VM, const char *name)
 
 static OBJ tr_kernel_puts(OBJ txt)
 {
-  puts((char *) txt);
+  puts(TR_STR(txt));
   
   return TR_NIL;
 }

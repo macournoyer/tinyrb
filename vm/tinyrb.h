@@ -30,7 +30,7 @@
 #define TR_CHASH(o)     TR_CTYPE(o, TR_HASH, tr_hash)
 
 /* shortcuts */
-#define TR_STR(s)       TR_CSTRING(s)->ptr
+#define TR_STR(s)       (TR_CSTRING(s)->ptr)
 #define VM              tr_vm *vm
 #define CUR_FRAME       (&vm->frames[vm->cf])
 
@@ -115,6 +115,7 @@ int tr_run(tr_vm *vm, tr_op *ops, size_t n);
 
 /* string */
 OBJ tr_string_new(const char *ptr);
+OBJ tr_intern(const char *ptr);
 
 /* hash */
 tr_hash *tr_hash_new();
@@ -129,7 +130,7 @@ size_t tr_array_count(OBJ a);
 void tr_array_destroy(OBJ a);
 
 /* module */
-OBJ tr_call(VM, OBJ obj, const char *method, int argc, OBJ argv[]);
+OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[]);
 void tr_def(VM, OBJ mod, const char *name, OBJ (*func)(), int argc);
 OBJ tr_module_new(VM, const char *name);
 void tr_builtins_add(VM);
