@@ -16,34 +16,36 @@ static void tr_op_send(VM, const char *method)
   tr_send(vm, c, tr_intern(method), argc, argv);
 }
 
-int tr_step(VM, tr_op *op)
+void tr_step(VM, tr_op *ops, size_t n)
 {
   tr_frame *f = CUR_FRAME;
+  tr_op    *op;
+  size_t    i;
   
-  switch (op->inst) {
-    case GETCONSTANT:
-      tr_array_push(f->stack, (OBJ) tr_hash_get(f->consts, (void *) op->cmd[0]));
-      break;
-    case PUTNIL:
-      tr_array_push(f->stack, TR_NIL);
-      break;
-    case PUTSTRING:
-      tr_array_push(f->stack, tr_string_new(op->cmd[0]));
-      break;
-    case POP:
-      tr_array_pop(f->stack);
-      break;
-    case SEND:
-      tr_op_send(vm, op->cmd[0]);
-      break;
-    case LEAVE:
-      break;
-    default:
-      tr_log("unsupported instruction: %d\n", op->inst);
-      return TR_ERROR;
+  for (i = 0; i < n; ++i) {
+    op = &ops[i];
+    switch (op->inst) {
+      case GETCONSTANT:
+        tr_array_push(f->stack, (OBJ) tr_hash_get(f->consts, (void *) op->cmd[0]));
+        break;
+      case PUTNIL:
+        tr_array_push(f->stack, TR_NIL);
+        break;
+      case PUTSTRING:
+        tr_array_push(f->stack, tr_string_new((char *) op->cmd[0]));
+        break;
+      case POP:
+        tr_array_pop(f->stack);
+        break;
+      case SEND:
+        tr_op_send(vm, (char *) op->cmd[0]);
+        break;
+      case LEAVE:
+        return;
+      default:
+        tr_log("unsupported instruction: %d\n", op->inst);
+    }
   }
-  
-  return TR_OK;
 }
 
 static void tr_init_frame(tr_frame *f)
@@ -54,14 +56,12 @@ static void tr_init_frame(tr_frame *f)
 
 int tr_run(VM, tr_op *ops, size_t n)
 {
-  size_t     i;
   tr_frame  *f = CUR_FRAME;
   
-  if (f->stack == NULL)
+  if (f->stack == TR_NIL)
     tr_init_frame(f);
   
-  for (i = 0; i < n; ++i)
-    tr_step(vm, &(ops[i]));
+  tr_step(vm, ops, n);
   
   return TR_OK;
 }
@@ -73,7 +73,7 @@ void tr_init(VM)
   vm->cf = 0;
   
   for (i = 0; i < TR_MAX_FRAMES; ++i) {
-    vm->frames[i].stack  = NULL;
+    vm->frames[i].stack  = TR_NIL;
     vm->frames[i].consts = NULL;
   }
   tr_init_frame(CUR_FRAME);

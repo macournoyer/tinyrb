@@ -1,6 +1,7 @@
 TODOs
 =====
-- Implement tr_obj and tr_str
+- Convert all tr_hash args to OBJ
+- Hash depending on type in tr_hash
 - Move methods to tr_obj
 - Implement string interning (http://en.wikipedia.org/wiki/String_intern_pool)
 - consts should be relative to current object

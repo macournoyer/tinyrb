@@ -31,10 +31,18 @@ puts '#include "tinyrb.h"'
 puts
 puts "tr_op tr_#{name}_insts[] = {"
 
+# TODO clean this crap!
 iseq.to_a.last.each do |inst|
   next if inst.is_a?(Fixnum)
+  
+  if inst.is_a?(Symbol) # label
+    puts %Q{  { LABEL, { "#{inst}", 0, 0, 0, 0 } }, }
+    next
+  end
+  
   opcode   = inst[0].to_s.upcase
   operands = [].fill(0, 0, 5)
+  
   Array(inst[1]).each_with_index do |op, i|
     case op
     when Symbol
