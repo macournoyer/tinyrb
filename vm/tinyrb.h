@@ -46,18 +46,24 @@
 typedef unsigned long OBJ;
 typedef enum { TR_STRING = 0, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS, TR_METHOD } tr_type;
 
+#define ACTS_AS_TR_OBJ /* lol! */ \
+  tr_type type; \
+  OBJ     methods; \
+  OBJ     class; \
+  OBJ     metaclass; \
+
 typedef struct tr_obj {
-  tr_type type;
+  ACTS_AS_TR_OBJ;
 } tr_obj;
 
 typedef struct tr_string {
-  tr_type  type;
+  ACTS_AS_TR_OBJ;
   char    *ptr;
   size_t   len;
 } tr_string;
 
 typedef struct tr_array {
-  tr_type  type;
+  ACTS_AS_TR_OBJ;
   size_t   count;
   uint     nalloc;
   OBJ     *items;
@@ -70,7 +76,7 @@ typedef struct tr_hash_entry {
 } tr_hash_entry;
 
 typedef struct tr_hash {
-  tr_type         type;
+  ACTS_AS_TR_OBJ;
   uint            tablelength;
   tr_hash_entry **table;
   uint            hash_entrycount;
@@ -79,14 +85,12 @@ typedef struct tr_hash {
 } tr_hash;
 
 typedef struct tr_module {
-  tr_type type;
+  ACTS_AS_TR_OBJ;
   OBJ     name;
-  OBJ     methods;
-  OBJ     imethods;
 } tr_module;
 
 typedef struct tr_method {
-  tr_type  type;
+  ACTS_AS_TR_OBJ;
   OBJ      name;
   OBJ    (*func)();
   int      argc;

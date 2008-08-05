@@ -3,8 +3,7 @@
 OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
 {
   tr_module *mod = (tr_module *) obj;
-  /* TODO look in imethods */
-  OBJ met = tr_hash_get(mod->methods, message);
+  OBJ        met = tr_hash_get(mod->methods, message);
   
   if (met != TR_NIL) {
     /* TODO handle multiple args */
@@ -36,7 +35,6 @@ OBJ tr_module_new(VM, const char *name)
   mod->type     = TR_MODULE;
   mod->name     = tr_intern(name);
   mod->methods  = tr_hash_new();
-  mod->imethods = tr_hash_new();
   
   tr_hash_set(f->consts, mod->name, (OBJ) mod);
   
