@@ -76,8 +76,6 @@ typedef struct tr_hash {
   uint            hash_entrycount;
   uint            loadlimit;
   uint            primeindex;
-  uint            (*hashfn) (void *k);
-  int             (*eqfn) (void *k1, void *k2);
 } tr_hash;
 
 typedef struct tr_module {

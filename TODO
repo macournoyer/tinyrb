@@ -1,10 +1,14 @@
-TODOs
-=====
+TODOs (by priority)
+===================
 - Convert all tr_hash args to OBJ
 - Hash depending on type in tr_hash
 - Move methods to tr_obj
+- Implement local var (SET/GETLOCAL)
+- Implement basic if (JUMP/LABEL)
+- Implement tr_class (inheritance!)
+- Implement module `include`
 - Implement string interning (http://en.wikipedia.org/wiki/String_intern_pool)
-- consts should be relative to current object
+- consts should be relative to current object (???)
 
 Bootstrapping
 =============

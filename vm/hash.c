@@ -18,6 +18,8 @@ static const u_int primes[] = {
 const u_int prime_table_length = sizeof(primes)/sizeof(primes[0]);
 const float max_load_factor = 0.65;
 
+#define HASH_MINSIZE 10
+
 #define freekey(X) free(X)
 
 static inline u_int tr_hash_index_for(u_int tablelength, u_int tr_hashvalue)
@@ -25,16 +27,37 @@ static inline u_int tr_hash_index_for(u_int tablelength, u_int tr_hashvalue)
   return (tr_hashvalue % tablelength);
 };
 
-tr_hash *tr_hash_create(u_int minsize, u_int (*tr_hashf) (void*), int (*eqf) (void*,void*))
+static u_int tr_hash_from_key(void *k)
+{
+  char          *str = (char *) k;
+  unsigned long  tr_hash = 5381;
+  int            c;
+  
+  while (c = *str++)
+    tr_hash = ((tr_hash << 5) + tr_hash) + c; /* hash * 33 + c */
+  
+  return tr_hash;
+}
+
+static int tr_hash_keys_compare(void *key1, void *key2)
+{
+  return strcmp((char *) key1, (char *) key2) == 0;
+}
+
+tr_hash *tr_hash_new()
 {
   tr_hash *h;
   u_int    pindex, size = primes[0];
   
   /* Check requested hash isn't too large */
-  if (minsize > (1u << 30)) return NULL;
+  assert(HASH_MINSIZE > (1u << 30));
+  
   /* Enforce size as prime */
   for (pindex=0; pindex < prime_table_length; pindex++) {
-      if (primes[pindex] > minsize) { size = primes[pindex]; break; }
+    if (primes[pindex] > HASH_MINSIZE) {
+      size = primes[pindex];
+      break;
+    }
   }
   
   h = (tr_hash *) tr_malloc(sizeof(tr_hash));
@@ -52,8 +75,6 @@ tr_hash *tr_hash_create(u_int minsize, u_int (*tr_hashf) (void*), int (*eqf) (vo
   h->tablelength     = size;
   h->primeindex      = pindex;
   h->hash_entrycount = 0;
-  h->hashfn          = tr_hashf;
-  h->eqfn            = eqf;
   h->loadlimit       = (u_int) ceil(size * max_load_factor);
   
   return h;
@@ -63,7 +84,7 @@ u_int tr_hashcode(tr_hash *h, void *k)
 {
   /* Aim to protect against poor tr_hash functions by adding logic here
    * - logic taken from java 1.4 tr_hash source */
-  u_int i = h->hashfn(k);
+  u_int i = tr_hash_from_key(k);
   i += ~(i << 9);
   i ^=  ((i >> 14) | (i << 18)); /* >>> */
   i +=  (i << 4);
@@ -178,7 +199,7 @@ void *tr_hash_get(tr_hash *h, void *k)
   
   while (NULL != e) {
     /* Check tr_hash value to short circuit heavier comparison */
-    if ((tr_hashvalue == e->h) && (h->eqfn(k, e->k)))
+    if ((tr_hashvalue == e->h) && (tr_hash_keys_compare(k, e->k)))
       return e->v;
     e = e->next;
   }
@@ -203,7 +224,7 @@ void *tr_hash_remove(tr_hash *h, void *k)
   
   while (NULL != e) {
     /* Check tr_hash value to short circuit heavier comparison */
-    if ((tr_hashvalue == e->h) && (h->eqfn(k, e->k))) {
+    if ((tr_hashvalue == e->h) && (tr_hash_keys_compare(k, e->k))) {
       *pE = e->next;
       h->hash_entrycount--;
       v = e->v;
@@ -249,26 +270,4 @@ void tr_hash_destroy(tr_hash *h, int free_values)
   
   tr_free(h->table);
   tr_free(h);
-}
-
-static u_int hash_from_str_key_fn(void *k)
-{
-  char          *str = (char *) k;
-  unsigned long  tr_hash = 5381;
-  int            c;
-  
-  while (c = *str++)
-    tr_hash = ((tr_hash << 5) + tr_hash) + c; /* tr_hash * 33 + c */
-  
-  return tr_hash;
-}
-
-static int str_keys_equal_fn(void *key1, void *key2)
-{
-  return strcmp((char *) key1, (char *) key2) == 0;
-}
-
-tr_hash *tr_hash_new()
-{
-  return tr_hash_create(10, hash_from_str_key_fn, str_keys_equal_fn);
 }
