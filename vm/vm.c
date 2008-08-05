@@ -26,7 +26,7 @@ void tr_step(VM, tr_op *ops, size_t n)
     op = &ops[i];
     switch (op->inst) {
       case GETCONSTANT:
-        tr_array_push(f->stack, (OBJ) tr_hash_get(f->consts, (void *) op->cmd[0]));
+        tr_array_push(f->stack, tr_hash_get(f->consts, tr_intern((char *) op->cmd[0])));
         break;
       case PUTNIL:
         tr_array_push(f->stack, TR_NIL);
@@ -43,7 +43,7 @@ void tr_step(VM, tr_op *ops, size_t n)
       case LEAVE:
         return;
       default:
-        tr_log("unsupported instruction: %d\n", op->inst);
+        tr_log("unsupported instruction: %d", op->inst);
     }
   }
 }
@@ -74,7 +74,7 @@ void tr_init(VM)
   
   for (i = 0; i < TR_MAX_FRAMES; ++i) {
     vm->frames[i].stack  = TR_NIL;
-    vm->frames[i].consts = NULL;
+    vm->frames[i].consts = TR_NIL;
   }
   tr_init_frame(CUR_FRAME);
   tr_builtins_add(vm);

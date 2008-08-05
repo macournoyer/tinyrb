@@ -3,19 +3,11 @@
 
 TEST_INIT;
 
-void array_dump(tr_array *a)
-{
-  size_t  i;
-  
-  for (i = 0; i < tr_array_count(a); ++i)
-    printf("[%d] %s\n", i, (char *) a->items + i * sizeof(OBJ));
-}
-
 void test_push_pop()
 {
   OBJ a;
-  OBJ c1 = (OBJ) "1";
-  OBJ c2 = (OBJ) "2";
+  OBJ c1 = tr_string_new("1");
+  OBJ c2 = tr_string_new("2");
   
   a = tr_array_new();
   
@@ -47,7 +39,7 @@ void test_push_special()
 void test_push_grow_array()
 {
   OBJ    a;
-  OBJ    x = (OBJ) "bai";
+  OBJ    x = tr_string_new("bai");
   size_t i;
   
   a = tr_array_new();

@@ -28,6 +28,7 @@
 #define TR_CSTRING(o)   TR_CTYPE(o, TR_STRING, tr_string)
 #define TR_CARRAY(o)    TR_CTYPE(o, TR_ARRAY, tr_array)
 #define TR_CHASH(o)     TR_CTYPE(o, TR_HASH, tr_hash)
+#define TR_CMETHOD(o)   TR_CTYPE(o, TR_METHOD, tr_method)
 
 /* shortcuts */
 #define TR_STR(s)       (TR_CSTRING(s)->ptr)
@@ -37,14 +38,13 @@
 /* mem stuff */
 #define tr_malloc(s)    malloc(s)
 #define tr_realloc(c,s) realloc(c,s)
-#define tr_free(p)      free(p)
+#define tr_free(p)      free((void *) (p))
 
-#define tr_log(m,...)   fprintf(stderr, m, __VA_ARGS__)
-
-typedef unsigned long OBJ;
+#define tr_log(m,...)   fprintf(stderr, m "\n", __VA_ARGS__)
 
 /* objects */
-typedef enum { TR_STRING, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS } tr_type;
+typedef unsigned long OBJ;
+typedef enum { TR_STRING = 0, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS, TR_METHOD } tr_type;
 
 typedef struct tr_obj {
   tr_type type;
@@ -64,7 +64,7 @@ typedef struct tr_array {
 } tr_array;
 
 typedef struct tr_hash_entry {
-  void   *k, *v;
+  OBJ     k, v;
   uint    h;
   struct  tr_hash_entry *next;
 } tr_hash_entry;
@@ -79,14 +79,15 @@ typedef struct tr_hash {
 } tr_hash;
 
 typedef struct tr_module {
-  tr_type  type;
-  char    *name;
-  tr_hash *methods;
-  tr_hash *imethods;
+  tr_type type;
+  OBJ     name;
+  OBJ     methods;
+  OBJ     imethods;
 } tr_module;
 
 typedef struct tr_method {
-  char    *name;
+  tr_type  type;
+  OBJ      name;
   OBJ    (*func)();
   int      argc;
 } tr_method;
@@ -98,8 +99,8 @@ typedef struct tr_op {
 } tr_op;
 
 typedef struct tr_frame {
-  OBJ       stack;
-  tr_hash  *consts;
+  OBJ  stack;
+  OBJ  consts;
 } tr_frame;
 
 typedef struct tr_vm {
@@ -116,9 +117,12 @@ OBJ tr_string_new(const char *ptr);
 OBJ tr_intern(const char *ptr);
 
 /* hash */
-tr_hash *tr_hash_new();
-int tr_hash_set(tr_hash *h, void *k, void *v);
-void *tr_hash_get(tr_hash *h, void *k);
+OBJ tr_hash_new();
+OBJ tr_hash_set(OBJ h, OBJ k, OBJ v);
+OBJ tr_hash_get(OBJ h, OBJ k);
+size_t tr_hash_count(OBJ h);
+OBJ tr_hash_delete(OBJ h, OBJ k);
+OBJ tr_hash_clear(OBJ h);
 
 /* array */
 OBJ tr_array_new();

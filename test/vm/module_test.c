@@ -11,7 +11,7 @@ void test_new(void)
   tr_init(&vm);
   mod = (tr_module *) tr_module_new(&vm, "Lolcat");
   
-  assert_str_equal("Lolcat", mod->name);
+  assert_str_equal("Lolcat", TR_STR(mod->name));
   assert_equal(TR_MODULE, mod->type);
   assert_equal(TR_MODULE, ((tr_obj *) mod)->type);
 }
@@ -23,16 +23,16 @@ static OBJ lol()
 
 void test_def(void)
 {
-  tr_vm      vm;
-  tr_module *mod;
-  OBJ        argv[0];
+  tr_vm  vm;
+  OBJ    mod;
+  OBJ    argv[0];
   
   tr_init(&vm);
-  mod = (tr_module *) tr_module_new(&vm, "Cat");
+  mod = tr_module_new(&vm, "Cat");
   
-  tr_def(&vm, (OBJ) mod, "lol", lol, 0);
+  tr_def(&vm, mod, "lol", lol, 0);
   
-  assert_equal(TR_TRUE, tr_send(&vm, (OBJ) mod, tr_intern("lol"), 0, argv));
+  assert_equal(TR_TRUE, tr_send(&vm, mod, tr_intern("lol"), 0, argv));
 }
 
 TEST_START;

@@ -5,19 +5,19 @@ TEST_INIT;
 
 void test_set_get()
 {
-  tr_hash *h = tr_hash_new();
-  char    *v = "val";
+  OBJ h = tr_hash_new();
+  OBJ v = tr_string_new("val");
   
-  tr_hash_set(h, (void*) "key", (void*)v);
+  tr_hash_set(h, tr_intern("key"), v);
   
-  assert_equal(v, tr_hash_get(h, (void*) "key"));
+  assert_equal(v, tr_hash_get(h, tr_intern("key")));
 }
 
 void test_not_found()
 {
-  tr_hash *h = tr_hash_new();
+  OBJ h = tr_hash_new();
   
-  assert_equal(NULL, tr_hash_get(h, (void*) "key"));
+  assert_equal(TR_NIL, tr_hash_get(h, tr_intern("ceiling cat")));
 }
 
 TEST_START;

@@ -18,18 +18,14 @@ static const u_int primes[] = {
 const u_int prime_table_length = sizeof(primes)/sizeof(primes[0]);
 const float max_load_factor = 0.65;
 
-#define HASH_MINSIZE 10
+#define HASH_MINSIZE    10
+#define HASH_INDEX(v,l) ((v) % (l))
 
-#define freekey(X) free(X)
+#define freekey(X) tr_free(X)
 
-static inline u_int tr_hash_index_for(u_int tablelength, u_int tr_hashvalue)
+static u_int tr_hashcode_string(OBJ v)
 {
-  return (tr_hashvalue % tablelength);
-};
-
-static u_int tr_hash_from_key(void *k)
-{
-  char          *str = (char *) k;
+  char          *str = TR_STR(v);
   unsigned long  tr_hash = 5381;
   int            c;
   
@@ -39,18 +35,40 @@ static u_int tr_hash_from_key(void *k)
   return tr_hash;
 }
 
-static int tr_hash_keys_compare(void *key1, void *key2)
+static u_int tr_hashcode(tr_hash *h, OBJ v)
 {
-  return strcmp((char *) key1, (char *) key2) == 0;
+  u_int i;
+  
+  switch (TR_TYPE(v)) {
+    case TR_STRING: i = tr_hashcode_string(v); break;
+    default:
+      tr_log("no hash method for type: %d", TR_TYPE(v));
+      i = (u_int) v;
+  }
+  
+  /* Aim to protect against poor tr_hash functions by adding logic here
+   * - logic taken from java 1.4 hash source */
+  i += ~(i << 9);
+  i ^=  ((i >> 14) | (i << 18)); /* >>> */
+  i +=  (i << 4);
+  i ^=  ((i >> 10) | (i << 22)); /* >>> */
+  
+  return i;
 }
 
-tr_hash *tr_hash_new()
+static int tr_hash_keys_compare(OBJ key1, OBJ key2)
+{
+  switch (TR_TYPE(key1)) {
+    case TR_STRING: return strcmp((char *) key1, (char *) key2) == 0;
+  }
+  tr_log("don't know how to compare key of type: %d: ", TR_TYPE(key1));
+  return 0;
+}
+
+OBJ tr_hash_new()
 {
   tr_hash *h;
   u_int    pindex, size = primes[0];
-  
-  /* Check requested hash isn't too large */
-  assert(HASH_MINSIZE > (1u << 30));
   
   /* Enforce size as prime */
   for (pindex=0; pindex < prime_table_length; pindex++) {
@@ -62,12 +80,12 @@ tr_hash *tr_hash_new()
   
   h = (tr_hash *) tr_malloc(sizeof(tr_hash));
   if (NULL == h)
-    return NULL; /*oom*/
+    return TR_NIL; /*oom*/
     
   h->table = (tr_hash_entry **) tr_malloc(sizeof(tr_hash_entry*) * size);
   if (NULL == h->table) {
     tr_free(h);
-    return NULL;
+    return TR_NIL;
   } /*oom*/
   
   memset(h->table, 0, size * sizeof(tr_hash_entry *));
@@ -77,19 +95,7 @@ tr_hash *tr_hash_new()
   h->hash_entrycount = 0;
   h->loadlimit       = (u_int) ceil(size * max_load_factor);
   
-  return h;
-}
-
-u_int tr_hashcode(tr_hash *h, void *k)
-{
-  /* Aim to protect against poor tr_hash functions by adding logic here
-   * - logic taken from java 1.4 tr_hash source */
-  u_int i = tr_hash_from_key(k);
-  i += ~(i << 9);
-  i ^=  ((i >> 14) | (i << 18)); /* >>> */
-  i +=  (i << 4);
-  i ^=  ((i >> 10) | (i << 22)); /* >>> */
-  return i;
+  return (OBJ) h;
 }
 
 static int tr_hash_expand(tr_hash *h)
@@ -114,7 +120,7 @@ static int tr_hash_expand(tr_hash *h)
     for (i = 0; i < h->tablelength; i++) {
       while (NULL != (e = h->table[i])) {
         h->table[i] = e->next;
-        index = tr_hash_index_for(newsize,e->h);
+        index = HASH_INDEX(newsize,e->h);
         e->next = newtable[index];
         newtable[index] = e;
       }
@@ -135,7 +141,7 @@ static int tr_hash_expand(tr_hash *h)
     
     for (i = 0; i < h->tablelength; i++) {
       for (pE = &(newtable[i]), e = *pE; e != NULL; e = *pE) {
-        index = tr_hash_index_for(newsize,e->h);
+        index = HASH_INDEX(newsize,e->h);
         
         if (index == i) {
           pE              = &(e->next);
@@ -153,14 +159,15 @@ static int tr_hash_expand(tr_hash *h)
   return -1;
 }
 
-u_int tr_hash_count(tr_hash *h)
+size_t tr_hash_count(OBJ h)
 {
-  return h->hash_entrycount;
+  return (size_t) TR_CHASH(h)->hash_entrycount;
 }
 
-int tr_hash_set(tr_hash *h, void *k, void *v)
+OBJ tr_hash_set(OBJ o, OBJ k, OBJ v)
 {
   /* This method allows duplicate keys - but they shouldn't be used */
+  tr_hash       *h = TR_CHASH(o);
   u_int          index;
   tr_hash_entry *e;
   
@@ -175,56 +182,58 @@ int tr_hash_set(tr_hash *h, void *k, void *v)
   e = (tr_hash_entry *) tr_malloc(sizeof(tr_hash_entry));
   if (NULL == e) {
     --(h->hash_entrycount);
-    return 0;
+    return TR_NIL;
   } /*oom*/
   
-  e->h    = tr_hashcode(h,k);
-  index   = tr_hash_index_for(h->tablelength,e->h);
+  e->h    = tr_hashcode(h, k);
+  index   = HASH_INDEX(h->tablelength, e->h);
   e->k    = k;
   e->v    = v;
   e->next = h->table[index];
   h->table[index] = e;
   
-  return -1;
+  return v;
 }
 
-void *tr_hash_get(tr_hash *h, void *k)
+OBJ tr_hash_get(OBJ o, OBJ k)
 {
+  tr_hash       *h = TR_CHASH(o);
   tr_hash_entry *e;
-  u_int          tr_hashvalue, index;
+  u_int          hashvalue, index;
   
-  tr_hashvalue = tr_hashcode(h,k);
-  index = tr_hash_index_for(h->tablelength,tr_hashvalue);
-  e = h->table[index];
+  hashvalue = tr_hashcode(h, k);
+  index     = HASH_INDEX(h->tablelength, hashvalue);
+  e         = h->table[index];
   
   while (NULL != e) {
     /* Check tr_hash value to short circuit heavier comparison */
-    if ((tr_hashvalue == e->h) && (tr_hash_keys_compare(k, e->k)))
+    if ((hashvalue == e->h) && (tr_hash_keys_compare(k, e->k)))
       return e->v;
     e = e->next;
   }
   
-  return NULL;
+  return TR_NIL;
 }
 
-void *tr_hash_remove(tr_hash *h, void *k)
+OBJ tr_hash_delete(OBJ o, OBJ k)
 {
   /* TODO: consider compacting the table when the load factor drops enough,
    *       or provide a 'compact' method. */
 
+  tr_hash        *h = TR_CHASH(o);
   tr_hash_entry  *e;
   tr_hash_entry **pE;
-  void           *v;
-  u_int           tr_hashvalue, index;
+  OBJ             v;
+  u_int           hashvalue, index;
 
-  tr_hashvalue = tr_hashcode(h,k);
-  index        = tr_hash_index_for(h->tablelength,tr_hashcode(h,k));
-  pE           = &(h->table[index]);
-  e            = *pE;
+  hashvalue = tr_hashcode(h, k);
+  index     = HASH_INDEX(h->tablelength, tr_hashcode(h, k));
+  pE        = &(h->table[index]);
+  e         = *pE;
   
   while (NULL != e) {
-    /* Check tr_hash value to short circuit heavier comparison */
-    if ((tr_hashvalue == e->h) && (tr_hash_keys_compare(k, e->k))) {
+    /* Check hash value to short circuit heavier comparison */
+    if ((hashvalue == e->h) && (tr_hash_keys_compare(k, e->k))) {
       *pE = e->next;
       h->hash_entrycount--;
       v = e->v;
@@ -236,38 +245,28 @@ void *tr_hash_remove(tr_hash *h, void *k)
     e  = e->next;
   }
   
-  return NULL;
+  return TR_NIL;
 }
 
-void tr_hash_destroy(tr_hash *h, int free_values)
+OBJ tr_hash_clear(OBJ o)
 {
+  tr_hash        *h = TR_CHASH(o);
   u_int           i;
   tr_hash_entry  *e, *f;
   tr_hash_entry **table = h->table;
   
-  if (free_values) {
-    for (i = 0; i < h->tablelength; i++) {
-      e = table[i];
-      while (NULL != e) {
-        f = e;
-        e = e->next;
-        freekey(f->k);
-        tr_free(f->v);
-        tr_free(f); 
-      }
-    }
-  } else {
-    for (i = 0; i < h->tablelength; i++) {
-      e = table[i];
-      while (NULL != e) {
-        f = e;
-        e = e->next;
-        freekey(f->k);
-        tr_free(f);
-      }
+  for (i = 0; i < h->tablelength; i++) {
+    e = table[i];
+    while (NULL != e) {
+      f = e;
+      e = e->next;
+      freekey(f->k);
+      tr_free(f);
     }
   }
   
   tr_free(h->table);
   tr_free(h);
+  
+  return TR_NIL;
 }
