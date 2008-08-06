@@ -2,7 +2,7 @@
 
 OBJ tr_string_new(const char *ptr)
 {
-  tr_string *str = tr_malloc(sizeof(tr_string));
+  tr_string *str = (tr_string *) tr_malloc(sizeof(tr_string));
   
   str->type = TR_STRING;
   str->len  = strlen(ptr);

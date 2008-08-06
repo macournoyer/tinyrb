@@ -27,6 +27,7 @@
 #define TR_CTYPE(o,e,t) (assert(TR_TYPE(o) == e), ((t *) o))
 #define TR_COBJ(o)      ((tr_obj *) o)
 #define TR_CSTRING(o)   TR_CTYPE(o, TR_STRING, tr_string)
+#define TR_CFIXNUM(o)   TR_CTYPE(o, TR_FIXNUM, tr_fixnum)
 #define TR_CARRAY(o)    TR_CTYPE(o, TR_ARRAY, tr_array)
 #define TR_CHASH(o)     TR_CTYPE(o, TR_HASH, tr_hash)
 #define TR_CCLASS(o)    TR_CTYPE(o, TR_CLASS, tr_class)
@@ -34,6 +35,7 @@
 
 /* shortcuts */
 #define TR_STR(s)       (TR_CSTRING(s)->ptr)
+#define TR_FIX(n)       (TR_CFIXNUM(n)->val)
 #define VM              tr_vm *vm
 #define CUR_FRAME       (&vm->frames[vm->cf])
 
@@ -51,7 +53,7 @@
 
 /* objects */
 typedef unsigned long OBJ;
-typedef enum { TR_STRING = 0, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS, TR_METHOD, TR_OBJECT } tr_type;
+typedef enum { TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS, TR_METHOD, TR_OBJECT } tr_type;
 
 /* TODO puts specific type instead of OBJ??? */
 
@@ -77,6 +79,11 @@ typedef struct tr_string {
   char    *ptr;
   size_t   len;
 } tr_string;
+
+typedef struct tr_fixnum {
+  ACTS_AS_TR_OBJ;
+  int   val;
+} tr_fixnum;
 
 typedef struct tr_array {
   ACTS_AS_TR_OBJ;
@@ -139,6 +146,9 @@ OBJ tr_new(OBJ class);
 /* string */
 OBJ tr_string_new(const char *ptr);
 OBJ tr_intern(const char *ptr);
+
+/* fixnum */
+OBJ tr_fixnum_new(int val);
 
 /* hash */
 OBJ tr_hash_new();

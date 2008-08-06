@@ -41,6 +41,7 @@ static u_int tr_hashcode(tr_hash *h, OBJ v)
   
   switch (TR_TYPE(v)) {
     case TR_STRING: i = tr_hashcode_string(v); break;
+    case TR_FIXNUM: i = TR_FIX(v); break;
     default:
       tr_log("no hash method for type: %d", TR_TYPE(v));
       i = (u_int) v;
@@ -60,6 +61,7 @@ static int tr_hash_keys_compare(OBJ key1, OBJ key2)
 {
   switch (TR_TYPE(key1)) {
     case TR_STRING: return strcmp((char *) key1, (char *) key2) == 0;
+    case TR_FIXNUM: return TR_FIX(key1) == TR_FIX(key2);
   }
   tr_log("don't know how to compare key of type: %d: ", TR_TYPE(key1));
   return 0;
