@@ -5,7 +5,8 @@ TEST_INIT;
 
 void test_str()
 {
-  OBJ        o = tr_string_new("ohaie");
+  SETUP_VM;
+  OBJ        o = tr_string_new(vm, "ohaie");
   tr_string *s = TR_CSTRING(o);
   
   assert_equal(TR_STRING, s->type);

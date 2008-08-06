@@ -67,7 +67,7 @@ static int tr_hash_keys_compare(OBJ key1, OBJ key2)
   return 0;
 }
 
-OBJ tr_hash_new()
+OBJ tr_hash_new(VM)
 {
   tr_hash *h;
   u_int    pindex, size = primes[0];
@@ -161,12 +161,12 @@ static int tr_hash_expand(tr_hash *h)
   return -1;
 }
 
-size_t tr_hash_count(OBJ h)
+size_t tr_hash_count(VM, OBJ h)
 {
   return (size_t) TR_CHASH(h)->hash_entrycount;
 }
 
-OBJ tr_hash_set(OBJ o, OBJ k, OBJ v)
+OBJ tr_hash_set(VM, OBJ o, OBJ k, OBJ v)
 {
   /* This method allows duplicate keys - but they shouldn't be used */
   tr_hash       *h = TR_CHASH(o);
@@ -197,7 +197,7 @@ OBJ tr_hash_set(OBJ o, OBJ k, OBJ v)
   return v;
 }
 
-OBJ tr_hash_get(OBJ o, OBJ k)
+OBJ tr_hash_get(VM, OBJ o, OBJ k)
 {
   tr_hash       *h = TR_CHASH(o);
   tr_hash_entry *e;
@@ -217,7 +217,7 @@ OBJ tr_hash_get(OBJ o, OBJ k)
   return TR_NIL;
 }
 
-OBJ tr_hash_delete(OBJ o, OBJ k)
+OBJ tr_hash_delete(VM, OBJ o, OBJ k)
 {
   /* TODO: consider compacting the table when the load factor drops enough,
    *       or provide a 'compact' method. */
@@ -250,7 +250,7 @@ OBJ tr_hash_delete(OBJ o, OBJ k)
   return TR_NIL;
 }
 
-OBJ tr_hash_clear(OBJ o)
+OBJ tr_hash_clear(VM, OBJ o)
 {
   tr_hash        *h = TR_CHASH(o);
   u_int           i;

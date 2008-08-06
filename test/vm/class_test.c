@@ -3,7 +3,7 @@
 
 TEST_INIT;
 
-static OBJ lol()
+static OBJ lol(VM)
 {
   return TR_TRUE;
 }
@@ -12,46 +12,40 @@ static OBJ cat_new(VM)
 {
   OBJ c = tr_class_new(vm, "Cat", TR_NIL);
   
-  tr_def(c, "def", lol, 0);
-  tr_metadef(c, "metadef", lol, 0);
+  tr_def(vm, c, "def", lol, 0);
+  tr_metadef(vm, c, "metadef", lol, 0);
   
   return c;
 }
 
 void test_send_to_class()
 {
-  tr_vm  vm;
+  SETUP_VM;
   OBJ    obj;
   OBJ    argv[0];
   
-  tr_init(&vm);
+  obj = tr_new(vm, cat_new(vm));
   
-  obj = tr_new(cat_new(&vm));
-  
-  assert_equal(TR_TRUE, tr_send(obj, tr_intern("def"), 0, argv));
+  assert_equal(TR_TRUE, tr_send(vm, obj, tr_intern(vm, "def"), 0, argv));
 }
 
 void test_send_to_metaclass()
 {
-  tr_vm  vm;
+  SETUP_VM;
   OBJ    obj;
   OBJ    argv[0];
   
-  tr_init(&vm);
+  obj = cat_new(vm);
   
-  obj = cat_new(&vm);
-  
-  assert_equal(TR_TRUE, tr_send(obj, tr_intern("metadef"), 0, argv));
+  assert_equal(TR_TRUE, tr_send(vm, obj, tr_intern(vm, "metadef"), 0, argv));
 }
 
 void test_send_not_found()
 {
-  tr_vm  vm;
+  SETUP_VM;
   OBJ    argv[0];
   
-  tr_init(&vm);
-  
-  assert_equal(TR_UNDEF, tr_send(cat_new(&vm), tr_intern("not_found"), 0, argv));  
+  assert_equal(TR_UNDEF, tr_send(vm, cat_new(vm), tr_intern(vm, "not_found"), 0, argv));  
 }
 
 TEST_START;

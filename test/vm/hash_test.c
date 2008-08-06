@@ -5,29 +5,32 @@ TEST_INIT;
 
 void test_set_get_string()
 {
-  OBJ h = tr_hash_new();
-  OBJ v = tr_string_new("val");
+  SETUP_VM;
+  OBJ h = tr_hash_new(vm);
+  OBJ v = tr_string_new(vm, "val");
   
-  tr_hash_set(h, tr_intern("key"), v);
+  tr_hash_set(vm, h, tr_intern(vm, "key"), v);
   
-  assert_equal(v, tr_hash_get(h, tr_intern("key")));
+  assert_equal(v, tr_hash_get(vm, h, tr_intern(vm, "key")));
 }
 
 void test_set_get_fixnum()
 {
-  OBJ h = tr_hash_new();
-  OBJ v = tr_string_new("val");
+  SETUP_VM;
+  OBJ h = tr_hash_new(vm);
+  OBJ v = tr_string_new(vm, "val");
   
-  tr_hash_set(h, tr_fixnum_new(123), v);
+  tr_hash_set(vm, h, tr_fixnum_new(vm, 123), v);
   
-  assert_equal(v, tr_hash_get(h, tr_fixnum_new(123)));
+  assert_equal(v, tr_hash_get(vm, h, tr_fixnum_new(vm, 123)));
 }
 
 void test_not_found()
 {
-  OBJ h = tr_hash_new();
+  SETUP_VM;
+  OBJ h = tr_hash_new(vm);
   
-  assert_equal(TR_NIL, tr_hash_get(h, tr_intern("ceiling cat")));
+  assert_equal(TR_NIL, tr_hash_get(vm, h, tr_intern(vm, "ceiling cat")));
 }
 
 TEST_START;

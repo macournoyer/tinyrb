@@ -1,2 +1,3 @@
 a = "aie"
-Kernel.puts a
+b = 1
+Kernel.puts "oh" # + a

@@ -1,19 +1,19 @@
 #include "tinyrb.h"
 
-static OBJ tr_op_send(VM, const char *method)
+static OBJ tr_vm_send(VM, const char *method)
 {
   tr_frame *f    = CUR_FRAME;
   int       argc;
   OBJ      *argv = tr_malloc(sizeof(OBJ) * argc);
   
-  OBJ  arg = tr_array_pop(f->stack);
-  OBJ  obj = tr_array_pop(f->stack);
+  OBJ  arg = tr_array_pop(vm, f->stack);
+  OBJ  obj = tr_array_pop(vm, f->stack);
   
   /* TODO support multiple args */
   argc    = 1;
   argv[0] = arg;
   
-  return tr_send(obj, tr_intern(method), argc, argv);
+  return tr_send(vm, obj, tr_intern(vm, method), argc, argv);
 }
 
 void tr_step(VM, tr_op *ops, size_t n)
@@ -26,25 +26,29 @@ void tr_step(VM, tr_op *ops, size_t n)
     op = &ops[i];
     switch (op->inst) {
       case GETLOCAL:
-        tr_array_push(f->stack, tr_hash_get(f->locals, tr_fixnum_new((int) op->cmd[0])));
+        tr_array_push(vm, f->stack, tr_hash_get(vm, f->locals, tr_fixnum_new(vm, (int) op->cmd[0])));
         break;
       case SETLOCAL:
-        tr_hash_set(f->locals, tr_fixnum_new((int) op->cmd[0]), tr_array_pop(f->stack));
+        tr_hash_set(vm, f->locals, tr_fixnum_new(vm, (int) op->cmd[0]), tr_array_pop(vm, f->stack));
         break;
       case GETCONSTANT:
-        tr_array_push(f->stack, tr_hash_get(f->consts, tr_intern((char *) op->cmd[0])));
+        tr_array_push(vm, f->stack, tr_hash_get(vm, f->consts, tr_intern(vm, (char *) op->cmd[0])));
         break;
       case PUTNIL:
-        tr_array_push(f->stack, TR_NIL);
+        tr_array_push(vm, f->stack, TR_NIL);
         break;
       case PUTSTRING:
-        tr_array_push(f->stack, tr_string_new((char *) op->cmd[0]));
+        tr_array_push(vm, f->stack, tr_string_new(vm, (char *) op->cmd[0]));
+        break;
+      case PUTOBJECT:
+        /* TODO can be other then fixnum probly */
+        tr_array_push(vm, f->stack, tr_fixnum_new(vm, (int) op->cmd[0]));
         break;
       case POP:
-        tr_array_pop(f->stack);
+        tr_array_pop(vm, f->stack);
         break;
       case SEND:
-        tr_array_push(f->stack, tr_op_send(vm, (char *) op->cmd[0]));
+        tr_array_push(vm, f->stack, tr_vm_send(vm, (char *) op->cmd[0]));
         break;
       case LEAVE:
         return;
@@ -54,11 +58,11 @@ void tr_step(VM, tr_op *ops, size_t n)
   }
 }
 
-static void tr_init_frame(tr_frame *f)
+static void tr_init_frame(VM, tr_frame *f)
 {
-  f->stack  = tr_array_new();
-  f->consts = tr_hash_new();
-  f->locals = tr_hash_new();
+  f->stack  = tr_array_new(vm);
+  f->consts = tr_hash_new(vm);
+  f->locals = tr_hash_new(vm);
 }
 
 int tr_run(VM, tr_op *ops, size_t n)
@@ -66,7 +70,7 @@ int tr_run(VM, tr_op *ops, size_t n)
   tr_frame  *f = CUR_FRAME;
   
   if (f->stack == TR_NIL)
-    tr_init_frame(f);
+    tr_init_frame(vm, f);
   
   tr_step(vm, ops, n);
   
@@ -84,7 +88,7 @@ static tr_define_builtins(VM)
   TR_COBJ(module)->class =
   TR_COBJ(class)->class  = TR_CCLASS(class);
   
-  tr_kernel(vm);
+  tr_kernel_init(vm);
 }
 
 void tr_init(VM)
@@ -97,6 +101,6 @@ void tr_init(VM)
     vm->frames[i].stack  = TR_NIL;
     vm->frames[i].consts = TR_NIL;
   }
-  tr_init_frame(CUR_FRAME);
+  tr_init_frame(vm, CUR_FRAME);
   tr_define_builtins(vm);
 }

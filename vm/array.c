@@ -3,7 +3,7 @@
 #define TR_ARRAY_N    5 /* items in new array */
 #define TR_ARRAY_SIZE sizeof(OBJ *)
 
-OBJ tr_array_new()
+OBJ tr_array_new(VM)
 {
   tr_array *a = (tr_array *) tr_malloc(sizeof(tr_array));
   if (a == NULL)
@@ -22,7 +22,7 @@ OBJ tr_array_new()
   return (OBJ) a;
 }
 
-void tr_array_push(OBJ o, OBJ item)
+void tr_array_push(VM, OBJ o, OBJ item)
 {
   tr_array *a = TR_CARRAY(o);
   OBJ      *slot;
@@ -47,7 +47,7 @@ void tr_array_push(OBJ o, OBJ item)
   a->count++;
 }
 
-OBJ tr_array_pop(OBJ o)
+OBJ tr_array_pop(VM, OBJ o)
 {
   tr_array *a = TR_CARRAY(o);
   
@@ -57,14 +57,14 @@ OBJ tr_array_pop(OBJ o)
   return *((OBJ *) a->items + TR_ARRAY_SIZE * --a->count);
 }
 
-size_t tr_array_count(OBJ o)
+size_t tr_array_count(VM, OBJ o)
 {
   tr_array *a = TR_CARRAY(o);
   
   return a->count;
 }
 
-void tr_array_destroy(OBJ o)
+void tr_array_destroy(VM, OBJ o)
 {
   tr_array *a = TR_CARRAY(o);
   

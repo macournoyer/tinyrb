@@ -138,32 +138,37 @@ int tr_run(tr_vm *vm, tr_op *ops, size_t n);
 /* class */
 void tr_const_set(VM, const char *name, OBJ obj);
 OBJ tr_const_get(VM, const char *name);
-OBJ tr_send(OBJ obj, OBJ message, int argc, OBJ argv[]);
-OBJ tr_def(OBJ obj, const char *name, OBJ (*func)(), int argc);
-OBJ tr_metadef(OBJ obj, const char *name, OBJ (*func)(), int argc);
+OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[]);
+OBJ tr_def(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
+OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_class_new(VM, const char* name, OBJ super);
-OBJ tr_new(OBJ class);
+void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class);
+OBJ tr_new(VM, OBJ class);
 
 /* string */
-OBJ tr_string_new(const char *ptr);
-OBJ tr_intern(const char *ptr);
+OBJ tr_string_new(VM, const char *ptr);
+OBJ tr_intern(VM, const char *ptr);
+OBJ tr_string_init(VM);
 
 /* fixnum */
-OBJ tr_fixnum_new(int val);
+OBJ tr_fixnum_new(VM, int val);
 
 /* hash */
-OBJ tr_hash_new();
-OBJ tr_hash_set(OBJ h, OBJ k, OBJ v);
-OBJ tr_hash_get(OBJ h, OBJ k);
-size_t tr_hash_count(OBJ h);
-OBJ tr_hash_delete(OBJ h, OBJ k);
-OBJ tr_hash_clear(OBJ h);
+OBJ tr_hash_new(VM);
+OBJ tr_hash_set(VM, OBJ h, OBJ k, OBJ v);
+OBJ tr_hash_get(VM, OBJ h, OBJ k);
+size_t tr_hash_count(VM, OBJ h);
+OBJ tr_hash_delete(VM, OBJ h, OBJ k);
+OBJ tr_hash_clear(VM, OBJ h);
 
 /* array */
-OBJ tr_array_new();
-void tr_array_push(OBJ a, OBJ item);
-OBJ tr_array_pop(OBJ a);
-size_t tr_array_count(OBJ a);
-void tr_array_destroy(OBJ a);
+OBJ tr_array_new(VM);
+void tr_array_push(VM, OBJ a, OBJ item);
+OBJ tr_array_pop(VM, OBJ a);
+size_t tr_array_count(VM, OBJ a);
+void tr_array_destroy(VM, OBJ a);
+
+/* misc init */
+OBJ tr_kernel_init(VM);
 
 #endif /* _TINYRB_H_ */

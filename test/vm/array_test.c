@@ -5,55 +5,58 @@ TEST_INIT;
 
 void test_push_pop()
 {
+  SETUP_VM;
   OBJ a;
-  OBJ c1 = tr_string_new("1");
-  OBJ c2 = tr_string_new("2");
+  OBJ c1 = tr_string_new(vm, "1");
+  OBJ c2 = tr_string_new(vm, "2");
   
-  a = tr_array_new();
+  a = tr_array_new(vm);
   
-  tr_array_push(a, c1);
-  tr_array_push(a, c2);
+  tr_array_push(vm, a, c1);
+  tr_array_push(vm, a, c2);
   
-  assert_equal(2, tr_array_count(a));
+  assert_equal(2, tr_array_count(vm, a));
   
-  assert_equal(c2, tr_array_pop(a));
-  assert_equal(c1, tr_array_pop(a));
-  assert_equal(TR_NIL, tr_array_pop(a));
+  assert_equal(c2, tr_array_pop(vm, a));
+  assert_equal(c1, tr_array_pop(vm, a));
+  assert_equal(TR_NIL, tr_array_pop(vm, a));
   
-  tr_array_destroy(a);
+  tr_array_destroy(vm, a);
 }
 
 void test_push_special()
 {
+  SETUP_VM;
   OBJ a;
   
-  a = tr_array_new();
+  a = tr_array_new(vm);
   
-  tr_array_push(a, TR_TRUE);
+  tr_array_push(vm, a, TR_TRUE);
   
-  assert_equal(TR_TRUE, tr_array_pop(a));
+  assert_equal(TR_TRUE, tr_array_pop(vm, a));
   
-  tr_array_destroy(a);
+  tr_array_destroy(vm, a);
 }
 
 void test_push_grow_array()
 {
+  SETUP_VM;
   OBJ    a;
-  OBJ    x = tr_string_new("bai");
+  OBJ    x = tr_string_new(vm, "bai");
   size_t i;
   
-  a = tr_array_new();
+  a = tr_array_new(vm);
   
   for (i = 0; i < 5; ++i)
-    tr_array_push(a, x);
+    tr_array_push(vm, a, x);
   
   assert_equal(5, TR_CARRAY(a)->nalloc);
   
-  tr_array_push(a, x);
+  tr_array_push(vm, a, x);
   
   assert_equal(10, TR_CARRAY(a)->nalloc);
   
-  tr_array_destroy(a);
+  tr_array_destroy(vm, a);
 }
 
 TEST_START;
