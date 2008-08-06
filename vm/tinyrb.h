@@ -148,7 +148,7 @@ OBJ tr_new(VM, OBJ class);
 /* string */
 OBJ tr_string_new(VM, const char *ptr);
 OBJ tr_intern(VM, const char *ptr);
-OBJ tr_string_init(VM);
+void tr_string_init(VM);
 
 /* fixnum */
 OBJ tr_fixnum_new(VM, int val);
@@ -169,6 +169,6 @@ size_t tr_array_count(VM, OBJ a);
 void tr_array_destroy(VM, OBJ a);
 
 /* misc init */
-OBJ tr_kernel_init(VM);
+void tr_kernel_init(VM);
 
 #endif /* _TINYRB_H_ */

@@ -89,6 +89,7 @@ static tr_define_builtins(VM)
   TR_COBJ(class)->class  = TR_CCLASS(class);
   
   tr_kernel_init(vm);
+  tr_string_init(vm);
 }
 
 void tr_init(VM)

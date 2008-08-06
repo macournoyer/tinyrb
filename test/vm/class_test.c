@@ -3,9 +3,14 @@
 
 TEST_INIT;
 
-static OBJ lol(VM)
+static OBJ lol(VM, OBJ self)
 {
   return TR_TRUE;
+}
+
+static OBJ return_other(VM, OBJ self, OBJ other)
+{
+  return other;
 }
 
 static OBJ cat_new(VM)
@@ -14,6 +19,7 @@ static OBJ cat_new(VM)
   
   tr_def(vm, c, "def", lol, 0);
   tr_metadef(vm, c, "metadef", lol, 0);
+  tr_metadef(vm, c, "args", return_other, 1);
   
   return c;
 }
@@ -45,11 +51,20 @@ void test_send_not_found()
   SETUP_VM;
   OBJ    argv[0];
   
-  assert_equal(TR_UNDEF, tr_send(vm, cat_new(vm), tr_intern(vm, "not_found"), 0, argv));  
+  assert_equal(TR_UNDEF, tr_send(vm, cat_new(vm), tr_intern(vm, "not_found"), 0, argv));
+}
+
+void test_send_multi_args()
+{
+  SETUP_VM;
+  OBJ    argv[] = { TR_FALSE };
+  
+  assert_equal(TR_FALSE, tr_send(vm, cat_new(vm), tr_intern(vm, "args"), 1, argv));
 }
 
 TEST_START;
   test_send_to_class();
   test_send_to_metaclass();
   test_send_not_found();
+  test_send_multi_args();
 TEST_END;

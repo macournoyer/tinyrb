@@ -36,8 +36,16 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
   OBJ met = tr_lookup_method(vm, obj, message);
   
   if (met != TR_NIL) {
-    /* TODO handle multiple args & check argc */
-    return TR_CMETHOD(met)->func(vm, argv[0]);
+    tr_method *m = TR_CMETHOD(met);
+    
+    if (m->argc != argc) {
+      tr_log("wrong number of arguments: %d for %d", argc, m->argc);
+      return TR_UNDEF;
+    }
+        
+    /* HACK better way to have variable num of args? */
+    return m->func(vm, obj, argv[0], argv[1], argv[2], argv[3], argv[4],
+                            argv[5], argv[6], argv[7], argv[8], argv[9]);
   } else {
     tr_log("method not found: %s", TR_STR(message));
     return TR_UNDEF;
