@@ -1,1 +1,1 @@
-Kernel.puts "aie!"
+Kernel.puts "aie"

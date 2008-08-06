@@ -1,19 +1,19 @@
 #include "tinyrb.h"
 
-static void tr_op_send(VM, const char *method)
+static OBJ tr_op_send(VM, const char *method)
 {
   tr_frame *f    = CUR_FRAME;
   int       argc;
   OBJ      *argv = tr_malloc(sizeof(OBJ) * argc);
   
   OBJ  arg = tr_array_pop(f->stack);
-  OBJ  c   = tr_array_pop(f->stack);
+  OBJ  obj = tr_array_pop(f->stack);
   
   /* TODO support multiple args */
   argc    = 1;
   argv[0] = arg;
   
-  tr_send(vm, c, tr_intern(method), argc, argv);
+  return tr_send(obj, tr_intern(method), argc, argv);
 }
 
 void tr_step(VM, tr_op *ops, size_t n)
@@ -38,7 +38,7 @@ void tr_step(VM, tr_op *ops, size_t n)
         tr_array_pop(f->stack);
         break;
       case SEND:
-        tr_op_send(vm, (char *) op->cmd[0]);
+        tr_array_push(f->stack, tr_op_send(vm, (char *) op->cmd[0]));
         break;
       case LEAVE:
         return;
@@ -66,6 +66,20 @@ int tr_run(VM, tr_op *ops, size_t n)
   return TR_OK;
 }
 
+static tr_define_builtins(VM)
+{
+  OBJ object = tr_const_get(vm, "Object"); /* TODO */
+  OBJ module = tr_class_new(vm, "Module", object);
+  OBJ class  = tr_class_new(vm, "Class", module);
+  
+  /* Since Class was not defined yet, have to do it manually */
+  /* TR_COBJ(object)->class = */
+  TR_COBJ(module)->class =
+  TR_COBJ(class)->class  = TR_CCLASS(class);
+  
+  tr_kernel(vm);
+}
+
 void tr_init(VM)
 {
   size_t i;
@@ -77,5 +91,5 @@ void tr_init(VM)
     vm->frames[i].consts = TR_NIL;
   }
   tr_init_frame(CUR_FRAME);
-  tr_builtins_add(vm);
+  tr_define_builtins(vm);
 }

@@ -1,7 +1,7 @@
 require 'rake/clean'
 
 CC      = "gcc"
-CFLAGS  = "-fno-common -g -O2 -pipe"
+CFLAGS  = "-fno-common -g -O2 -pipe -DDEBUG"
 LDFLAGS = "-L."
 
 def compile_tasks(exec)

@@ -41,15 +41,15 @@ iseq.to_a.last.each do |inst|
   end
   
   opcode   = inst[0].to_s.upcase
-  operands = [].fill(0, 0, 5)
+  operands = [].fill("NULL", 0, 5)
   
   Array(inst[1]).each_with_index do |op, i|
     case op
     when Symbol
-      operands[i] = %Q{(OBJ) "#{op}"}
+      operands[i] = %Q{(void *) "#{op}"}
     when NilClass
     else
-      operands[i] = "(OBJ) #{op.inspect}"
+      operands[i] = "(void *) #{op.inspect}"
     end
   end
   puts "  { #{opcode}, { #{operands.join(', ')} } },"
