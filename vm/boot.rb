@@ -1,1 +1,2 @@
-Kernel.puts "aie"
+a = "aie"
+Kernel.puts a

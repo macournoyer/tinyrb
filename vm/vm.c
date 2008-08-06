@@ -25,6 +25,12 @@ void tr_step(VM, tr_op *ops, size_t n)
   for (i = 0; i < n; ++i) {
     op = &ops[i];
     switch (op->inst) {
+      case GETLOCAL:
+        tr_array_push(f->stack, tr_hash_get(f->locals, tr_fixnum_new((int) op->cmd[0])));
+        break;
+      case SETLOCAL:
+        tr_hash_set(f->locals, tr_fixnum_new((int) op->cmd[0]), tr_array_pop(f->stack));
+        break;
       case GETCONSTANT:
         tr_array_push(f->stack, tr_hash_get(f->consts, tr_intern((char *) op->cmd[0])));
         break;
@@ -52,6 +58,7 @@ static void tr_init_frame(tr_frame *f)
 {
   f->stack  = tr_array_new();
   f->consts = tr_hash_new();
+  f->locals = tr_hash_new();
 }
 
 int tr_run(VM, tr_op *ops, size_t n)

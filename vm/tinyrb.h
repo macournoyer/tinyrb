@@ -123,6 +123,7 @@ typedef struct tr_op {
 typedef struct tr_frame {
   OBJ  stack;
   OBJ  consts;
+  OBJ  locals;
 } tr_frame;
 
 typedef struct tr_vm {
