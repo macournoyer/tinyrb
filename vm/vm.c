@@ -90,6 +90,7 @@ static tr_define_builtins(VM)
   
   tr_kernel_init(vm);
   tr_string_init(vm);
+  tr_fixnum_init(vm);
 }
 
 void tr_init(VM)

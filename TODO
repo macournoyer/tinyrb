@@ -1,8 +1,5 @@
 TODOs (by priority)
 ===================
-- Hash depending on type in tr_hash
-- Move methods to tr_obj
-- Implement local var (SET/GETLOCAL)
 - Implement basic if (JUMP/LABEL)
 - Implement tr_class (inheritance!)
 - Implement module `include`

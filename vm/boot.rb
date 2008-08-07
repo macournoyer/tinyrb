@@ -1,4 +1,4 @@
 a = "oh"
-b = "aie"
-c = a + b
-Kernel.puts c
+a += "aie"
+# a += 1.to_s
+Kernel.puts a
