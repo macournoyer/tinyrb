@@ -38,8 +38,6 @@ static OBJ tr_lookup_method(VM, OBJ obj, OBJ name)
 
 OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
 {
-  tr_log("tr_send: %s, obj=%d, argc=%d", TR_STR(message), TR_TYPE(obj), argc);
-  
   OBJ met = tr_lookup_method(vm, obj, message);
   
   if (met != TR_NIL) {
