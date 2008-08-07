@@ -7,7 +7,12 @@ void tr_const_set(VM, const char *name, OBJ obj)
 
 OBJ tr_const_get(VM, const char *name)
 {
-  return tr_hash_get(vm, CUR_FRAME->consts, tr_intern(vm, name));
+  OBJ c = tr_hash_get(vm, CUR_FRAME->consts, tr_intern(vm, name));
+  
+  if (c == TR_NIL)
+    tr_raise(vm, "Constant not found: %s", name);
+  
+  return c;
 }
 
 static OBJ tr_lookup_method(VM, OBJ obj, OBJ name)
@@ -100,8 +105,9 @@ OBJ tr_class_new(VM, const char* name, OBJ super)
   c->super     = (tr_class *) super;
   c->ivars     = tr_hash_new(vm);
   c->methods   = tr_hash_new(vm);
-  c->class     = (tr_class *) tr_const_get(vm, "Class");
   c->metaclass = tr_metaclass_new(vm);
+  if (strcmp(name, "Class") != 0) /* HACK */
+    c->class   = (tr_class *) tr_const_get(vm, "Class");
   
   tr_const_set(vm, name, (OBJ) c);
   

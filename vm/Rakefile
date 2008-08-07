@@ -11,6 +11,6 @@ file "boot.h" => ["boot.rb", "compile.rb"] do |t|
 end
 
 # File dependencies
-file 'main.o' => %w( main.c vm.h )
+file 'main.o' => %w( main.c vm.h boot.h )
 file 'vm.h' => "boot.h"
-file 'vm.o' => %w( inst.h vm.h vm.c )
+file 'vm.o' => %w( inst.h vm.h vm.c boot.h )

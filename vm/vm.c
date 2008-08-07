@@ -65,6 +65,17 @@ static void tr_init_frame(VM, tr_frame *f)
   f->locals = tr_hash_new(vm);
 }
 
+void tr_raise(VM, const char *msg, ...)
+{
+  va_list args;
+  va_start(args, msg);
+  fprintf(stderr, "Exception: ");
+  vfprintf(stderr, msg, args);
+  fprintf(stderr, "\n");
+  va_end(args);
+  exit(-1);
+}
+
 int tr_run(VM, tr_op *ops, size_t n)
 {
   tr_frame  *f = CUR_FRAME;
@@ -79,14 +90,15 @@ int tr_run(VM, tr_op *ops, size_t n)
 
 static tr_define_builtins(VM)
 {
-  OBJ object = tr_const_get(vm, "Object"); /* TODO */
+  OBJ class  = tr_class_new(vm, "Class", TR_NIL);
+  OBJ object = tr_class_new(vm, "Object", TR_NIL);
   OBJ module = tr_class_new(vm, "Module", object);
-  OBJ class  = tr_class_new(vm, "Class", module);
   
   /* Since Class was not defined yet, have to do it manually */
-  /* TR_COBJ(object)->class = */
-  TR_COBJ(module)->class =
-  TR_COBJ(class)->class  = TR_CCLASS(class);
+  TR_CCLASS(class)->super  = TR_CCLASS(module);
+  TR_COBJ(object)->class   =
+  TR_COBJ(module)->class   =
+  TR_COBJ(class)->class    = TR_CCLASS(class);
   
   tr_kernel_init(vm);
   tr_string_init(vm);

@@ -134,6 +134,7 @@ typedef struct tr_vm {
 /* vm */
 void tr_init(tr_vm *vm);
 int tr_run(tr_vm *vm, tr_op *ops, size_t n);
+void tr_raise(VM, const char *msg, ...);
 
 /* class */
 void tr_const_set(VM, const char *name, OBJ obj);
