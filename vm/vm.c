@@ -19,6 +19,14 @@ void tr_step(VM, tr_op *ops, size_t n)
   tr_frame *f = CUR_FRAME;
   tr_op    *op;
   size_t    i;
+  OBJ       label2i = tr_hash_new(vm);
+  
+  /* store labels=>i mapping for later jumping */
+  for (i = 0; i < n; ++i) {
+    op = &ops[i];
+    if (op->inst == LABEL)
+      tr_hash_set(vm, label2i, tr_intern(vm, op->cmd[0]), (OBJ) i);
+  }
   
   for (i = 0; i < n; ++i) {
     op = &ops[i];
@@ -47,6 +55,9 @@ void tr_step(VM, tr_op *ops, size_t n)
         break;
       case SEND:
         tr_array_push(vm, f->stack, tr_vm_send(vm, (char *) op->cmd[0], (int) op->cmd[1]));
+        break;
+      case JUMP:
+        i = (int) tr_hash_get(vm, label2i, tr_intern(vm, op->cmd[0]));
         break;
       case LEAVE:
         return;

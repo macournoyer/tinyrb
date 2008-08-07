@@ -54,5 +54,8 @@ typedef enum {
   THROW,
   JUMP,
   BRANCHIF,
-  BRANCHUNLESS
+  BRANCHUNLESS,
+  
+  /* my own lil instructions */
+  LABEL
 } tr_inst_e;

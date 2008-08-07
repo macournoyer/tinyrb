@@ -36,7 +36,7 @@ iseq.to_a.last.each do |inst|
   next if inst.is_a?(Fixnum)
   
   if inst.is_a?(Symbol) # label
-    puts %Q{  { LABEL, { "#{inst}", 0, 0, 0, 0 } }, }
+    puts %Q{  { LABEL, { (void *) "#{inst}", NULL, NULL, NULL, NULL } }, }
     next
   end
   
