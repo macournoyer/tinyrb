@@ -43,7 +43,7 @@ iseq.to_a.last.each do |inst|
   opcode   = inst[0].to_s.upcase
   operands = [].fill("NULL", 0, 5)
   
-  Array(inst[1]).each_with_index do |op, i|
+  Array(inst[1..-1]).each_with_index do |op, i|
     case op
     when Symbol
       operands[i] = %Q{(void *) "#{op}"}

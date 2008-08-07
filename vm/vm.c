@@ -1,17 +1,15 @@
 #include "tinyrb.h"
 
-static OBJ tr_vm_send(VM, const char *method)
+static OBJ tr_vm_send(VM, const char *method, int argc)
 {
   tr_frame *f    = CUR_FRAME;
-  int       argc;
+  size_t    i;
   OBJ      *argv = tr_malloc(sizeof(OBJ) * argc);
+  OBJ       obj;
   
-  OBJ  arg = tr_array_pop(vm, f->stack);
-  OBJ  obj = tr_array_pop(vm, f->stack);
-  
-  /* TODO support multiple args */
-  argc    = 1;
-  argv[0] = arg;
+  for(i = 0; i < argc; ++i)
+    argv[i] = tr_array_pop(vm, f->stack);
+  obj = tr_array_pop(vm, f->stack);
   
   return tr_send(vm, obj, tr_intern(vm, method), argc, argv);
 }
@@ -32,7 +30,7 @@ void tr_step(VM, tr_op *ops, size_t n)
         tr_hash_set(vm, f->locals, tr_fixnum_new(vm, (int) op->cmd[0]), tr_array_pop(vm, f->stack));
         break;
       case GETCONSTANT:
-        tr_array_push(vm, f->stack, tr_hash_get(vm, f->consts, tr_intern(vm, (char *) op->cmd[0])));
+        tr_array_push(vm, f->stack, tr_const_get(vm, (char *) op->cmd[0]));
         break;
       case PUTNIL:
         tr_array_push(vm, f->stack, TR_NIL);
@@ -48,7 +46,7 @@ void tr_step(VM, tr_op *ops, size_t n)
         tr_array_pop(vm, f->stack);
         break;
       case SEND:
-        tr_array_push(vm, f->stack, tr_vm_send(vm, (char *) op->cmd[0]));
+        tr_array_push(vm, f->stack, tr_vm_send(vm, (char *) op->cmd[0], (int) op->cmd[1]));
         break;
       case LEAVE:
         return;

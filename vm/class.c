@@ -38,22 +38,21 @@ static OBJ tr_lookup_method(VM, OBJ obj, OBJ name)
 
 OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
 {
+  tr_log("tr_send: %s, obj=%d, argc=%d", TR_STR(message), TR_TYPE(obj), argc);
+  
   OBJ met = tr_lookup_method(vm, obj, message);
   
   if (met != TR_NIL) {
     tr_method *m = TR_CMETHOD(met);
     
-    if (m->argc != argc) {
-      tr_log("wrong number of arguments: %d for %d", argc, m->argc);
-      return TR_UNDEF;
-    }
+    if (m->argc != argc)
+      tr_raise(vm ,"wrong number of arguments: %d for %d", argc, m->argc);
         
     /* HACK better way to have variable num of args? */
     return m->func(vm, obj, argv[0], argv[1], argv[2], argv[3], argv[4],
                             argv[5], argv[6], argv[7], argv[8], argv[9]);
   } else {
-    tr_log("method not found: %s", TR_STR(message));
-    return TR_UNDEF;
+    tr_raise(vm, "method not found: %s", TR_STR(message));
   }
 }
 
