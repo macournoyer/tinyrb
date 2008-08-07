@@ -1,8 +1,5 @@
 TODOs (by priority)
 ===================
-- Implement tp_raise using http://en.wikipedia.org/wiki/Longjmp
-- Implement basic if (JUMP/LABEL)
-- Implement tr_class (inheritance!)
 - Implement module `include`
 - Implement string interning (http://en.wikipedia.org/wiki/String_intern_pool)
 - consts should be relative to current object (???)

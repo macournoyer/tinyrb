@@ -17,6 +17,13 @@ static OBJ tr_vm_send(VM, const char *method, int argc)
   return tr_send(vm, obj, tr_intern(vm, method), argc, argv);
 }
 
+static int tr_vm_branch(VM, int b, OBJ val)
+{
+  if (b)
+    return val != TR_NIL && val != TR_FALSE; /* if */
+  return val == TR_NIL || val == TR_FALSE;   /* unless */
+}
+
 #define STACK_PUSH(o)  tr_array_push(vm, f->stack, (o))
 #define STACK_POP()    tr_array_pop(vm, f->stack)
 #define JUMP_TO(label) ip = (int) tr_hash_get(vm, label2ip, tr_intern(vm, label));
@@ -27,7 +34,6 @@ void tr_step(VM, tr_op *ops, size_t n)
   tr_op    *op;
   size_t    ip;
   OBJ       label2ip = tr_hash_new(vm);
-  OBJ       val;
   
   /* store labels=>ip mapping for later jumping */
   for (ip = 0; ip < n; ++ip) {
@@ -83,13 +89,11 @@ void tr_step(VM, tr_op *ops, size_t n)
         JUMP_TO(op->cmd[0]);
         break;
       case BRANCHUNLESS:
-        val = tr_array_pop(vm, f->stack);
-        if (val == TR_NIL || val == TR_FALSE)
+        if (tr_vm_branch(vm, 0, STACK_POP()))
           JUMP_TO(op->cmd[0]);
         break;
       case BRANCHIF:
-        val = tr_array_pop(vm, f->stack);
-        if (val != TR_NIL && val != TR_FALSE)
+        if (tr_vm_branch(vm, 1, STACK_POP()))
           JUMP_TO(op->cmd[0]);
         break;
       
