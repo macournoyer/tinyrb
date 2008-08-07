@@ -103,7 +103,14 @@ OBJ tr_class_new(VM, const char* name, OBJ super)
   return (OBJ) c;
 }
 
+static OBJ tr_class_name(VM, OBJ self)
+{
+  return (OBJ) TR_CCLASS(self)->name;
+}
+
 void tr_class_init(VM)
 {
   OBJ class = tr_class_new(vm, "Class", TR_NIL);
+  
+  tr_def(vm, class, "name", tr_class_name, 0);
 }

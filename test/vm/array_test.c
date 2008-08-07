@@ -18,6 +18,7 @@ void test_push_pop()
   assert_equal(2, tr_array_count(vm, a));
   
   assert_equal(c2, tr_array_pop(vm, a));
+  assert_equal(c1, tr_array_last(vm, a));
   assert_equal(c1, tr_array_pop(vm, a));
   assert_equal(TR_NIL, tr_array_pop(vm, a));
   

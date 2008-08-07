@@ -34,9 +34,15 @@ static OBJ tr_string_concat(VM, OBJ self, OBJ str2)
   return str;
 }
 
+static OBJ tr_string_self(VM, OBJ self)
+{
+  return self;
+}
+
 void tr_string_init(VM)
 {
   OBJ class = tr_class_new(vm, "String", tr_const_get(vm, "Object"));
   
   tr_def(vm, class, "+", tr_string_concat, 1);
+  tr_def(vm, class, "to_s", tr_string_self, 0);
 }

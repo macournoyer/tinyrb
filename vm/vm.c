@@ -76,6 +76,9 @@ void tr_step(VM, tr_op *ops, size_t n)
       case POP:
         STACK_POP();
         break;
+      case DUP:
+        STACK_PUSH(tr_array_last(vm, f->stack));
+        break;
       
       /* method */
       case SEND:
@@ -96,9 +99,11 @@ void tr_step(VM, tr_op *ops, size_t n)
         if (tr_vm_branch(vm, 1, STACK_POP()))
           JUMP_TO(op->cmd[0]);
         break;
+      case LABEL:
+        break;
       
       default:
-        tr_log("unsupported instruction: %d", op->inst);
+        tr_log("unsupported instruction: %d (ip=%d)", op->inst, ip);
     }
   }
 }

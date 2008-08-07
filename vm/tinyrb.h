@@ -169,6 +169,7 @@ OBJ tr_hash_clear(VM, OBJ h);
 OBJ tr_array_new(VM);
 void tr_array_push(VM, OBJ a, OBJ item);
 OBJ tr_array_pop(VM, OBJ a);
+OBJ tr_array_last(VM, OBJ o);
 size_t tr_array_count(VM, OBJ a);
 void tr_array_destroy(VM, OBJ a);
 

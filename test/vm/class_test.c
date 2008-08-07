@@ -46,14 +46,6 @@ void test_send_to_metaclass()
   assert_equal(TR_TRUE, tr_send(vm, obj, tr_intern(vm, "metadef"), 0, argv));
 }
 
-void test_send_not_found()
-{
-  SETUP_VM;
-  OBJ    argv[0];
-  
-  assert_equal(TR_UNDEF, tr_send(vm, cat_new(vm), tr_intern(vm, "not_found"), 0, argv));
-}
-
 void test_send_multi_args()
 {
   SETUP_VM;
@@ -65,6 +57,5 @@ void test_send_multi_args()
 TEST_START;
   test_send_to_class();
   test_send_to_metaclass();
-  test_send_not_found();
   test_send_multi_args();
 TEST_END;

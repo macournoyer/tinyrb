@@ -1,6 +1,6 @@
 #include "tinyrb.h"
 
-#define TR_ARRAY_N    5 /* items in new array */
+#define TR_ARRAY_N    50 /* items in new array */
 #define TR_ARRAY_SIZE sizeof(OBJ *)
 
 OBJ tr_array_new(VM)
@@ -47,14 +47,22 @@ void tr_array_push(VM, OBJ o, OBJ item)
   a->count++;
 }
 
-OBJ tr_array_pop(VM, OBJ o)
+OBJ tr_array_pop(VM, OBJ a)
+{
+  OBJ obj = tr_array_last(vm, a);
+  if (obj != TR_NIL)
+    TR_CARRAY(a)->count--;
+  return obj;
+}
+
+OBJ tr_array_last(VM, OBJ o)
 {
   tr_array *a = TR_CARRAY(o);
   
   if (a->count == 0)
     return TR_NIL;
   
-  return *((OBJ *) a->items + TR_ARRAY_SIZE * --a->count);
+  return *((OBJ *) a->items + TR_ARRAY_SIZE * (a->count - 1));
 }
 
 size_t tr_array_count(VM, OBJ o)
