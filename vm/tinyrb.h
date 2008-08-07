@@ -124,6 +124,7 @@ typedef struct tr_frame {
   OBJ  stack;
   OBJ  consts;
   OBJ  locals;
+  OBJ  cur_obj;
 } tr_frame;
 
 typedef struct tr_vm {

@@ -21,5 +21,5 @@ task :default => :test
 
 desc "Compute size of codebase"
 task :size do
-  puts "%0.2fK" % (Dir["vm/*.{c,rb,h}"].inject(0) { |sum, f| sum += File.size(f) } / 1024.0)
+  puts "%0.2fK" % (Dir["{parser,vm}/**.{c,rb,h}"].inject(0) { |sum, f| sum += File.size(f) } / 1024.0)
 end

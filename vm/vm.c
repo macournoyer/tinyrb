@@ -11,56 +11,88 @@ static OBJ tr_vm_send(VM, const char *method, int argc)
     argv[i] = tr_array_pop(vm, f->stack);
   obj = tr_array_pop(vm, f->stack);
   
+  if (obj == TR_NIL)
+    obj = CUR_FRAME->cur_obj;
+  
   return tr_send(vm, obj, tr_intern(vm, method), argc, argv);
 }
+
+#define STACK_PUSH(o)  tr_array_push(vm, f->stack, (o))
+#define STACK_POP()    tr_array_pop(vm, f->stack)
+#define JUMP_TO(label) ip = (int) tr_hash_get(vm, label2ip, tr_intern(vm, label));
 
 void tr_step(VM, tr_op *ops, size_t n)
 {
   tr_frame *f = CUR_FRAME;
   tr_op    *op;
-  size_t    i;
-  OBJ       label2i = tr_hash_new(vm);
+  size_t    ip;
+  OBJ       label2ip = tr_hash_new(vm);
+  OBJ       val;
   
-  /* store labels=>i mapping for later jumping */
-  for (i = 0; i < n; ++i) {
-    op = &ops[i];
+  /* store labels=>ip mapping for later jumping */
+  for (ip = 0; ip < n; ++ip) {
+    op = &ops[ip];
     if (op->inst == LABEL)
-      tr_hash_set(vm, label2i, tr_intern(vm, op->cmd[0]), (OBJ) i);
+      tr_hash_set(vm, label2ip, tr_intern(vm, op->cmd[0]), (OBJ) ip);
   }
   
-  for (i = 0; i < n; ++i) {
-    op = &ops[i];
+  for (ip = 0; ip < n; ++ip) {
+    op = &ops[ip];
     switch (op->inst) {
+      /* nop */
+      case NOP:
+        break;
+      
+      /* variable */
       case GETLOCAL:
-        tr_array_push(vm, f->stack, tr_hash_get(vm, f->locals, tr_fixnum_new(vm, (int) op->cmd[0])));
+        STACK_PUSH(tr_hash_get(vm, f->locals, tr_fixnum_new(vm, (int) op->cmd[0])));
         break;
       case SETLOCAL:
-        tr_hash_set(vm, f->locals, tr_fixnum_new(vm, (int) op->cmd[0]), tr_array_pop(vm, f->stack));
+        tr_hash_set(vm, f->locals, tr_fixnum_new(vm, (int) op->cmd[0]), STACK_POP());
         break;
       case GETCONSTANT:
-        tr_array_push(vm, f->stack, tr_const_get(vm, (char *) op->cmd[0]));
+        STACK_PUSH(tr_const_get(vm, (char *) op->cmd[0]));
         break;
+      
+      /* put */
       case PUTNIL:
-        tr_array_push(vm, f->stack, TR_NIL);
+        STACK_PUSH(TR_NIL);
         break;
       case PUTSTRING:
-        tr_array_push(vm, f->stack, tr_string_new(vm, (char *) op->cmd[0]));
+        STACK_PUSH(tr_string_new(vm, (char *) op->cmd[0]));
         break;
       case PUTOBJECT:
         /* TODO can be other then fixnum probly */
-        tr_array_push(vm, f->stack, tr_fixnum_new(vm, (int) op->cmd[0]));
+        STACK_PUSH(tr_fixnum_new(vm, (int) op->cmd[0]));
         break;
+      
+      /* stack */
       case POP:
-        tr_array_pop(vm, f->stack);
+        STACK_POP();
         break;
+      
+      /* method */
       case SEND:
-        tr_array_push(vm, f->stack, tr_vm_send(vm, (char *) op->cmd[0], (int) op->cmd[1]));
-        break;
-      case JUMP:
-        i = (int) tr_hash_get(vm, label2i, tr_intern(vm, op->cmd[0]));
+        STACK_PUSH(tr_vm_send(vm, (char *) op->cmd[0], (int) op->cmd[1]));
         break;
       case LEAVE:
         return;
+      
+      /* jump */
+      case JUMP:
+        JUMP_TO(op->cmd[0]);
+        break;
+      case BRANCHUNLESS:
+        val = tr_array_pop(vm, f->stack);
+        if (val == TR_NIL || val == TR_FALSE)
+          JUMP_TO(op->cmd[0]);
+        break;
+      case BRANCHIF:
+        val = tr_array_pop(vm, f->stack);
+        if (val != TR_NIL && val != TR_FALSE)
+          JUMP_TO(op->cmd[0]);
+        break;
+      
       default:
         tr_log("unsupported instruction: %d", op->inst);
     }
@@ -104,8 +136,11 @@ int tr_run(VM, tr_op *ops, size_t n)
 {
   tr_frame  *f = CUR_FRAME;
   
-  if (f->stack == TR_NIL)
+  if (f->stack == TR_NIL) {
     tr_init_frame(vm, f);
+    /* TODO default cur_obj should be Object when Module.include is implemented */
+    f->cur_obj = tr_new(vm, tr_const_get(vm, "Kernel"));    
+  }
   
   tr_step(vm, ops, n);
   
