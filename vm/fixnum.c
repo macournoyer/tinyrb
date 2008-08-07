@@ -12,11 +12,8 @@ OBJ tr_fixnum_new(VM, int val)
 
 static OBJ tr_fixnum_to_s(VM, OBJ self)
 {
-  OBJ str = tr_string_new(vm, "");
-  
-  /* TODO grow mem */
+  OBJ str = tr_string_new(vm, "2147483647"); /* HACK should compute len of int instead */
   sprintf(TR_STR(str), "%d", TR_FIX(self));
-  
   return str;
 }
 

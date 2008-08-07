@@ -85,6 +85,21 @@ void tr_raise(VM, const char *msg, ...)
   exit(-1);
 }
 
+void tr_const_set(VM, const char *name, OBJ obj)
+{
+  tr_hash_set(vm, CUR_FRAME->consts, tr_intern(vm, name), obj);
+}
+
+OBJ tr_const_get(VM, const char *name)
+{
+  OBJ c = tr_hash_get(vm, CUR_FRAME->consts, tr_intern(vm, name));
+  
+  if (c == TR_NIL)
+    tr_raise(vm, "Constant not found: %s", name);
+  
+  return c;
+}
+
 int tr_run(VM, tr_op *ops, size_t n)
 {
   tr_frame  *f = CUR_FRAME;
@@ -99,9 +114,12 @@ int tr_run(VM, tr_op *ops, size_t n)
 
 static tr_define_builtins(VM)
 {
-  OBJ class  = tr_class_new(vm, "Class", TR_NIL);
-  OBJ object = tr_class_new(vm, "Object", TR_NIL);
-  OBJ module = tr_class_new(vm, "Module", object);
+  tr_class_init(vm);
+  tr_object_init(vm);
+  
+  OBJ class  = tr_const_get(vm, "Class");
+  OBJ object = tr_const_get(vm, "Object");
+  OBJ module = tr_class_new(vm, "Module", tr_const_get(vm, "Object"));
   
   /* Since Class was not defined yet, have to do it manually */
   TR_CCLASS(class)->super  = TR_CCLASS(module);

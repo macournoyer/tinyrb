@@ -1,20 +1,5 @@
 #include "tinyrb.h"
 
-void tr_const_set(VM, const char *name, OBJ obj)
-{
-  tr_hash_set(vm, CUR_FRAME->consts, tr_intern(vm, name), obj);
-}
-
-OBJ tr_const_get(VM, const char *name)
-{
-  OBJ c = tr_hash_get(vm, CUR_FRAME->consts, tr_intern(vm, name));
-  
-  if (c == TR_NIL)
-    tr_raise(vm, "Constant not found: %s", name);
-  
-  return c;
-}
-
 static OBJ tr_lookup_method(VM, OBJ obj, OBJ name)
 {
   OBJ met;
@@ -29,7 +14,14 @@ static OBJ tr_lookup_method(VM, OBJ obj, OBJ name)
   if (met != TR_NIL)
     return met;
   
-  /* TODO decend class->super */
+  /* decend class->super */
+  tr_class *class = TR_COBJ(obj)->class->super;
+  while (TR_NIL != (OBJ) class) {
+    met = tr_hash_get(vm, class->methods, name);
+    if (met != TR_NIL)
+      return met;
+    class = class->super;
+  }
   
   /* method not found */
   /* TODO call method_missing */
@@ -78,7 +70,7 @@ OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc)
   return tr_class_def(vm, TR_COBJ(obj)->metaclass, name, func, argc);
 }
 
-static tr_class *tr_metaclass_new(VM)
+OBJ tr_metaclass_new(VM)
 {
   tr_class *c = (tr_class *) tr_malloc(sizeof(tr_class));
   
@@ -90,7 +82,7 @@ static tr_class *tr_metaclass_new(VM)
   c->class     = (tr_class *) TR_NIL;
   c->metaclass = (tr_class *) TR_NIL;
   
-  return c;
+  return (OBJ) c;
 }
 
 OBJ tr_class_new(VM, const char* name, OBJ super)
@@ -102,7 +94,7 @@ OBJ tr_class_new(VM, const char* name, OBJ super)
   c->super     = (tr_class *) super;
   c->ivars     = tr_hash_new(vm);
   c->methods   = tr_hash_new(vm);
-  c->metaclass = tr_metaclass_new(vm);
+  c->metaclass = (tr_class *) tr_metaclass_new(vm);
   if (strcmp(name, "Class") != 0) /* HACK */
     c->class   = (tr_class *) tr_const_get(vm, "Class");
   
@@ -111,20 +103,7 @@ OBJ tr_class_new(VM, const char* name, OBJ super)
   return (OBJ) c;
 }
 
-void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class)
+void tr_class_init(VM)
 {
-  tr_obj *o = TR_COBJ(obj);
-  
-  o->type      = type;
-  o->ivars     = tr_hash_new(vm);
-  o->class     = TR_CCLASS(class);
-  o->metaclass = tr_metaclass_new(vm);
-}
-
-OBJ tr_new(VM, OBJ class)
-{
-  tr_obj *obj = (tr_obj *) tr_malloc(sizeof(tr_obj));
-  tr_obj_init(vm, TR_OBJECT, (OBJ) obj, class);
-  
-  return (OBJ) obj;
+  OBJ class = tr_class_new(vm, "Class", TR_NIL);
 }

@@ -28,7 +28,7 @@ static OBJ tr_string_concat(VM, OBJ self, OBJ str2)
 {
   OBJ str = tr_string_new(vm, TR_STR(self));
   
-  /* TODO grow mem */
+  TR_STR(str) = tr_realloc(TR_STR(str), TR_CSTRING(str)->len + TR_CSTRING(str2)->len);
   strcat(TR_STR(str), TR_STR(str2));
   
   return str;

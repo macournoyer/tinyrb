@@ -143,6 +143,9 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[]);
 OBJ tr_def(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_class_new(VM, const char* name, OBJ super);
+OBJ tr_metaclass_new(VM);
+
+/* object */
 void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class);
 OBJ tr_new(VM, OBJ class);
 
@@ -169,6 +172,8 @@ size_t tr_array_count(VM, OBJ a);
 void tr_array_destroy(VM, OBJ a);
 
 /* misc init */
+void tr_class_init(VM);
+void tr_object_init(VM);
 void tr_kernel_init(VM);
 void tr_string_init(VM);
 void tr_fixnum_init(VM);
