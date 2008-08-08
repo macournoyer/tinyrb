@@ -2,6 +2,7 @@
 
 #define TR_ARRAY_N    50 /* items in new array */
 #define TR_ARRAY_SIZE sizeof(OBJ *)
+#define OBJ_AT(a,i)   *((OBJ *) (a)->items + TR_ARRAY_SIZE * (i))
 
 OBJ tr_array_new(VM)
 {
@@ -9,7 +10,7 @@ OBJ tr_array_new(VM)
   if (a == NULL)
     return TR_NIL;
   
-  a->type   = TR_ARRAY;
+  tr_obj_init(vm, TR_ARRAY, (OBJ) a, tr_const_get(vm, "Array"));
   a->nalloc = TR_ARRAY_N;
   a->count  = 0;
   a->items  = tr_malloc(TR_ARRAY_N * TR_ARRAY_SIZE);
@@ -22,9 +23,9 @@ OBJ tr_array_new(VM)
   return (OBJ) a;
 }
 
-void tr_array_push(VM, OBJ o, OBJ item)
+void tr_array_push(VM, OBJ self, OBJ item)
 {
-  tr_array *a = TR_CARRAY(o);
+  tr_array *a = TR_CARRAY(self);
   OBJ      *slot;
   
   if (a->count == a->nalloc) {
@@ -47,35 +48,60 @@ void tr_array_push(VM, OBJ o, OBJ item)
   a->count++;
 }
 
-OBJ tr_array_pop(VM, OBJ a)
+OBJ tr_array_pop(VM, OBJ self)
 {
-  OBJ obj = tr_array_last(vm, a);
-  if (obj != TR_NIL)
+  tr_array *a   = TR_CARRAY(self);
+  OBJ       obj = tr_array_last(vm, self);
+
+  if (a->count > 0)
     TR_CARRAY(a)->count--;
+
   return obj;
 }
 
-OBJ tr_array_last(VM, OBJ o)
+OBJ tr_array_last(VM, OBJ self)
 {
-  tr_array *a = TR_CARRAY(o);
+  tr_array *a = TR_CARRAY(self);
   
   if (a->count == 0)
     return TR_NIL;
   
-  return *((OBJ *) a->items + TR_ARRAY_SIZE * (a->count - 1));
+  return OBJ_AT(a, a->count - 1);
 }
 
-size_t tr_array_count(VM, OBJ o)
+OBJ tr_array_count(VM, OBJ self)
 {
-  tr_array *a = TR_CARRAY(o);
+  tr_array *a = TR_CARRAY(self);
   
-  return a->count;
+  return tr_fixnum_new(vm, a->count);
 }
 
-void tr_array_destroy(VM, OBJ o)
+void tr_array_destroy(VM, OBJ self)
 {
-  tr_array *a = TR_CARRAY(o);
+  tr_array *a = TR_CARRAY(self);
   
   tr_free(a->items);
   tr_free(a);
 }
+
+static OBJ tr_array_at(VM, OBJ self, OBJ posi)
+{
+  tr_array *a = TR_CARRAY(self);
+  int       i = TR_FIX(posi);
+  
+  if (i >= a->count)
+    return TR_NIL;
+  
+  return OBJ_AT(a, i);
+}
+
+void tr_array_init(VM)
+{
+  OBJ class = tr_class_new(vm, "Array", tr_const_get(vm, "Object"));
+  
+  tr_def(vm, class, "[]", tr_array_at, 1);
+  tr_def(vm, class, "last", tr_array_last, 0);
+  tr_def(vm, class, "count", tr_array_count, 0);
+  tr_def(vm, class, "size", tr_array_count, 0);
+}
+

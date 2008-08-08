@@ -15,12 +15,27 @@ void test_push_pop()
   tr_array_push(vm, a, c1);
   tr_array_push(vm, a, c2);
   
-  assert_equal(2, tr_array_count(vm, a));
+  assert_equal(2, TR_FIX(tr_array_count(vm, a)));
   
   assert_equal(c2, tr_array_pop(vm, a));
   assert_equal(c1, tr_array_last(vm, a));
   assert_equal(c1, tr_array_pop(vm, a));
   assert_equal(TR_NIL, tr_array_pop(vm, a));
+  
+  tr_array_destroy(vm, a);
+}
+
+void test_pop_nil()
+{
+  SETUP_VM;
+  OBJ a;
+  
+  a = tr_array_new(vm);
+  
+  tr_array_push(vm, a, TR_NIL);
+  tr_array_pop(vm, a);
+  
+  assert_equal(0, TR_FIX(tr_array_count(vm, a)));
   
   tr_array_destroy(vm, a);
 }
@@ -48,20 +63,21 @@ void test_push_grow_array()
   
   a = tr_array_new(vm);
   
-  for (i = 0; i < 5; ++i)
+  for (i = 0; i < 50; ++i)
     tr_array_push(vm, a, x);
   
-  assert_equal(5, TR_CARRAY(a)->nalloc);
+  assert_equal(50, TR_CARRAY(a)->nalloc);
   
   tr_array_push(vm, a, x);
   
-  assert_equal(10, TR_CARRAY(a)->nalloc);
+  assert_equal(100, TR_CARRAY(a)->nalloc);
   
   tr_array_destroy(vm, a);
 }
 
 TEST_START;
   test_push_pop();
+  test_pop_nil();
   test_push_grow_array();
   test_push_special();
 TEST_END;

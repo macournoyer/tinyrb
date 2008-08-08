@@ -1,5 +1,7 @@
 #include "tinyrb.h"
 
+/* #define TRACE_STACK */
+
 static OBJ tr_vm_send(VM, const char *method, int argc)
 {
   tr_frame *f    = CUR_FRAME;
@@ -24,6 +26,18 @@ static int tr_vm_branch(VM, int b, OBJ val)
   return val == TR_NIL || val == TR_FALSE;   /* unless */
 }
 
+static void tr_dump_stack(VM)
+{
+  size_t    i;
+  tr_array *a = TR_CARRAY(CUR_FRAME->stack);
+  OBJ      *o;
+  
+  for (i = 0; i < a->count; ++i) {
+    o = (OBJ *) a->items + i * sizeof(OBJ *);
+    printf("    [%d] %p\n", i, *o);
+  }
+}
+
 #define STACK_PUSH(o)  tr_array_push(vm, f->stack, (o))
 #define STACK_POP()    tr_array_pop(vm, f->stack)
 #define JUMP_TO(label) ip = (int) tr_hash_get(vm, label2ip, tr_intern(vm, label));
@@ -44,6 +58,14 @@ void tr_step(VM, tr_op *ops, size_t n)
   
   for (ip = 0; ip < n; ++ip) {
     op = &ops[ip];
+    
+    #ifdef TRACE_STACK
+    if ((int) op->cmd[0] > 100)
+      printf("[%d] %d, %s, %d, %d\n", ip, op->inst, op->cmd[0], op->cmd[1], op->cmd[2]);
+    else
+      printf("[%d] %d, %d, %d, %d\n", ip, op->inst, op->cmd[0], op->cmd[1], op->cmd[2]);
+    #endif
+    
     switch (op->inst) {
       /* nop */
       case NOP:
@@ -57,7 +79,12 @@ void tr_step(VM, tr_op *ops, size_t n)
         tr_hash_set(vm, f->locals, tr_fixnum_new(vm, (int) op->cmd[0]), STACK_POP());
         break;
       case GETCONSTANT:
+        STACK_POP(); /* TODO class */
         STACK_PUSH(tr_const_get(vm, (char *) op->cmd[0]));
+        break;
+      case NEWARRAY:
+        /* TODO init items argc = op->cmd[0] */
+        STACK_PUSH(tr_array_new(vm));
         break;
       
       /* put */
@@ -105,6 +132,10 @@ void tr_step(VM, tr_op *ops, size_t n)
       default:
         tr_log("unsupported instruction: %d (ip=%d)", op->inst, ip);
     }
+    
+    #ifdef TRACE_STACK
+    tr_dump_stack(vm);
+    #endif
   }
 }
 
@@ -174,11 +205,13 @@ static tr_define_builtins(VM)
   tr_kernel_init(vm);
   tr_string_init(vm);
   tr_fixnum_init(vm);
+  tr_array_init(vm);
 }
 
-void tr_init(VM)
+void tr_init(VM, int argc, char const *argv[])
 {
-  size_t i;
+  size_t    i;
+  tr_frame *f;
   
   vm->cf = 0;
   
@@ -186,6 +219,18 @@ void tr_init(VM)
     vm->frames[i].stack  = TR_NIL;
     vm->frames[i].consts = TR_NIL;
   }
-  tr_init_frame(vm, CUR_FRAME);
+  
+  f = CUR_FRAME;
+  f->consts = tr_hash_new(vm);
+  f->locals = tr_hash_new(vm);
+  
   tr_define_builtins(vm);
+  
+  f->stack  = tr_array_new(vm);
+  
+  /* init argv */
+  OBJ argv_ary = tr_array_new(vm);
+  for(i = 0; i < argc; ++i)
+    tr_array_push(vm, argv_ary, tr_string_new(vm, argv[i]));
+  tr_const_set(vm, "ARGV", argv_ary);
 }

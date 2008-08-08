@@ -23,7 +23,7 @@ static OBJ tr_object_inspect(VM, OBJ self)
   OBJ str = tr_string_new(vm, "#<Object:0x000000>");
   
   /* TODO buffer overflow!!! */
-  sprintf(TR_STR(str), "#<%s:0x%d>", TR_STR(TR_COBJ(self)->class->name), (int) self);
+  sprintf(TR_STR(str), "#<%s:%p>", TR_STR(TR_COBJ(self)->class->name), (int) self);
   return str;
 }
 

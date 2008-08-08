@@ -25,4 +25,4 @@
 #define assert_str_equal(expected, actual) \
   _assert(strcmp(expected, actual) == 0, "%s expected but was %s", expected, actual)
 
-#define SETUP_VM tr_vm _vm; tr_vm *vm = &_vm; tr_init(vm);
+#define SETUP_VM tr_vm _vm; tr_vm *vm = &_vm; char const *__vm_argv[0]; tr_init(vm, 0, __vm_argv);

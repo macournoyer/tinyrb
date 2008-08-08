@@ -133,8 +133,8 @@ typedef struct tr_vm {
 } tr_vm;
 
 /* vm */
-void tr_init(tr_vm *vm);
-int tr_run(tr_vm *vm, tr_op *ops, size_t n);
+void tr_init(VM, int argc, char const *argv[]);
+int tr_run(VM, tr_op *ops, size_t n);
 void tr_raise(VM, const char *msg, ...);
 
 /* class */
@@ -170,8 +170,9 @@ OBJ tr_array_new(VM);
 void tr_array_push(VM, OBJ a, OBJ item);
 OBJ tr_array_pop(VM, OBJ a);
 OBJ tr_array_last(VM, OBJ o);
-size_t tr_array_count(VM, OBJ a);
+OBJ tr_array_count(VM, OBJ a);
 void tr_array_destroy(VM, OBJ a);
+void tr_array_init(VM);
 
 /* misc init */
 void tr_class_init(VM);
