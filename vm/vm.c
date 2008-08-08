@@ -13,8 +13,8 @@ static OBJ tr_vm_send(VM, const char *method, int argc)
     argv[i] = tr_array_pop(vm, f->stack);
   obj = tr_array_pop(vm, f->stack);
   
-  if (obj == TR_NIL)
-    obj = CUR_FRAME->cur_obj;
+  /* if (obj == TR_NIL)
+    obj = CUR_FRAME->cur_obj; */
   
   return tr_send(vm, obj, tr_intern(vm, method), argc, argv);
 }
@@ -95,8 +95,14 @@ void tr_step(VM, tr_op *ops, size_t n)
         STACK_PUSH(tr_string_new(vm, (char *) op->cmd[0]));
         break;
       case PUTOBJECT:
-        /* TODO can be other then fixnum probly */
-        STACK_PUSH(tr_fixnum_new(vm, (int) op->cmd[0]));
+        switch ((OBJ) op->cmd[1]) {
+          case TR_SPECIAL:
+            STACK_PUSH(tr_special_get(vm, (OBJ) op->cmd[0]));
+            break;
+          case TR_FIXNUM:
+            STACK_PUSH(tr_fixnum_new(vm, (int) op->cmd[0]));
+            break;
+        }
         break;
       
       /* stack */
@@ -157,22 +163,7 @@ void tr_raise(VM, const char *msg, ...)
   exit(-1);
 }
 
-void tr_const_set(VM, const char *name, OBJ obj)
-{
-  tr_hash_set(vm, CUR_FRAME->consts, tr_intern(vm, name), obj);
-}
-
-OBJ tr_const_get(VM, const char *name)
-{
-  OBJ c = tr_hash_get(vm, CUR_FRAME->consts, tr_intern(vm, name));
-  
-  if (c == TR_NIL)
-    tr_raise(vm, "Constant not found: %s", name);
-  
-  return c;
-}
-
-int tr_run(VM, tr_op *ops, size_t n)
+void tr_run(VM, tr_op *ops, size_t n)
 {
   tr_frame  *f = CUR_FRAME;
   
@@ -183,8 +174,6 @@ int tr_run(VM, tr_op *ops, size_t n)
   }
   
   tr_step(vm, ops, n);
-  
-  return TR_OK;
 }
 
 static tr_define_builtins(VM)
@@ -206,6 +195,7 @@ static tr_define_builtins(VM)
   tr_string_init(vm);
   tr_fixnum_init(vm);
   tr_array_init(vm);
+  tr_special_init(vm);
 }
 
 void tr_init(VM, int argc, char const *argv[])

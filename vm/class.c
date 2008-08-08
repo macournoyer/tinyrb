@@ -32,6 +32,7 @@ static OBJ tr_lookup_method(VM, OBJ obj, OBJ name)
 
 OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
 {
+             obj = tr_special_get(vm, obj);
   OBJ        met = tr_lookup_method(vm, obj, message);
   tr_method *m   = TR_CMETHOD(met);
   

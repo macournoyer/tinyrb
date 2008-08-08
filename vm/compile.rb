@@ -48,10 +48,25 @@ iseq.to_a.last.each do |inst|
     when Symbol
       operands[i] = %Q{(void *) "#{op}"}
     when NilClass
+      operands[i] = %Q{(void *) TR_NIL}
+    when TrueClass
+      operands[i] = %Q{(void *) TR_TRUE}
+    when FalseClass
+      operands[i] = %Q{(void *) TR_FALSE}
     else
       operands[i] = "(void *) #{op.inspect}"
     end
   end
+  
+  if opcode == "PUTOBJECT"
+    operands[1] = "(void *) "
+    if inst[1].class == Fixnum
+      operands[1] << "TR_FIXNUM"
+    else
+      operands[1] << "TR_SPECIAL"
+    end
+  end
+  
   puts "  { #{opcode}, { #{operands.join(', ')} } },"
 end
 

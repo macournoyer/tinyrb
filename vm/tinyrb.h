@@ -19,13 +19,10 @@
 #define TR_NIL   ((OBJ) 4)
 #define TR_UNDEF ((OBJ) 6)
 
-#define TR_ERROR -1
-#define TR_OK     0
-
 /* conversion */
-#define TR_TYPE(o)      (((tr_obj *) o)->type)
-#define TR_CTYPE(o,e,t) (assert(TR_TYPE(o) == e), ((t *) o))
-#define TR_COBJ(o)      ((tr_obj *) o)
+#define TR_TYPE(o)      (TR_COBJ(o)->type)
+#define TR_CTYPE(o,e,t) (assert(((OBJ) o) > TR_UNDEF && TR_TYPE(o) == e), ((t *) o))
+#define TR_COBJ(o)      (assert(((OBJ) o) > TR_UNDEF), (tr_obj *) o)
 #define TR_CSTRING(o)   TR_CTYPE(o, TR_STRING, tr_string)
 #define TR_CFIXNUM(o)   TR_CTYPE(o, TR_FIXNUM, tr_fixnum)
 #define TR_CARRAY(o)    TR_CTYPE(o, TR_ARRAY, tr_array)
@@ -53,7 +50,7 @@
 
 /* objects */
 typedef unsigned long OBJ;
-typedef enum { TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS, TR_METHOD, TR_OBJECT } tr_type;
+typedef enum { TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS, TR_METHOD, TR_OBJECT, TR_SPECIAL } tr_type;
 
 /* TODO puts specific type instead of OBJ??? */
 
@@ -134,12 +131,10 @@ typedef struct tr_vm {
 
 /* vm */
 void tr_init(VM, int argc, char const *argv[]);
-int tr_run(VM, tr_op *ops, size_t n);
+void tr_run(VM, tr_op *ops, size_t n);
 void tr_raise(VM, const char *msg, ...);
 
 /* class */
-void tr_const_set(VM, const char *name, OBJ obj);
-OBJ tr_const_get(VM, const char *name);
 OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[]);
 OBJ tr_def(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
@@ -147,6 +142,9 @@ OBJ tr_class_new(VM, const char* name, OBJ super);
 OBJ tr_metaclass_new(VM);
 
 /* object */
+void tr_const_set(VM, const char *name, OBJ obj);
+OBJ tr_const_get(VM, const char *name);
+OBJ tr_special_get(VM, OBJ obj);
 void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class);
 OBJ tr_new(VM, OBJ class);
 OBJ tr_object_inspect(VM, OBJ self);
@@ -177,6 +175,7 @@ void tr_array_destroy(VM, OBJ a);
 void tr_array_init(VM);
 
 /* misc init */
+void tr_special_init(VM);
 void tr_class_init(VM);
 void tr_object_init(VM);
 void tr_kernel_init(VM);

@@ -6,4 +6,4 @@ if a
   Kernel.puts "a = " + a
 end
 Kernel.puts "prog name: " + ARGV.last
-Kernel.raise a
+Kernel.raise true.to_s
