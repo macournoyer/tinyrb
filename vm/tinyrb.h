@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "inst.h"
 
@@ -50,7 +51,8 @@
 
 /* objects */
 typedef unsigned long OBJ;
-typedef enum { TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS, TR_METHOD, TR_OBJECT, TR_SPECIAL } tr_type;
+typedef enum { TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE,
+               TR_CLASS, TR_IO, TR_METHOD, TR_OBJECT, TR_SPECIAL } tr_type;
 
 /* TODO puts specific type instead of OBJ??? */
 
@@ -103,6 +105,11 @@ typedef struct tr_hash {
   uint            loadlimit;
   uint            primeindex;
 } tr_hash;
+
+typedef struct tr_io {
+  ACTS_AS_TR_OBJ;
+  int  fd;
+} tr_io;
 
 typedef struct tr_method {
   ACTS_AS_TR_OBJ;
@@ -174,6 +181,9 @@ OBJ tr_array_count(VM, OBJ a);
 void tr_array_destroy(VM, OBJ a);
 void tr_array_init(VM);
 
+/* io */
+OBJ tr_io_new(VM, int fd);
+
 /* misc init */
 void tr_special_init(VM);
 void tr_class_init(VM);
@@ -181,5 +191,6 @@ void tr_object_init(VM);
 void tr_kernel_init(VM);
 void tr_string_init(VM);
 void tr_fixnum_init(VM);
+void tr_io_init(VM);
 
 #endif /* _TINYRB_H_ */

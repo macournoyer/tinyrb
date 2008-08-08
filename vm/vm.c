@@ -195,6 +195,7 @@ static tr_define_builtins(VM)
   tr_string_init(vm);
   tr_fixnum_init(vm);
   tr_array_init(vm);
+  tr_io_init(vm);
   tr_special_init(vm);
 }
 

@@ -6,4 +6,6 @@ if a
   Kernel.puts "a = " + a
 end
 Kernel.puts "prog name: " + ARGV.last
+Kernel.puts "type a key:"
+Kernel.puts STDIN.read(1)
 Kernel.raise true.to_s
