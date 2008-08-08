@@ -149,10 +149,12 @@ OBJ tr_metaclass_new(VM);
 /* object */
 void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class);
 OBJ tr_new(VM, OBJ class);
+OBJ tr_object_inspect(VM, OBJ self);
 
 /* string */
 OBJ tr_string_new(VM, const char *ptr);
 OBJ tr_intern(VM, const char *ptr);
+OBJ tr_string_concat(VM, OBJ self, OBJ str2);
 
 /* fixnum */
 OBJ tr_fixnum_new(VM, int val);

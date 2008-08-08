@@ -24,7 +24,7 @@ OBJ tr_intern(VM, const char *ptr)
   return (OBJ) str;
 }
 
-static OBJ tr_string_concat(VM, OBJ self, OBJ str2)
+OBJ tr_string_concat(VM, OBJ self, OBJ str2)
 {
   OBJ str = tr_string_new(vm, TR_STR(self));
   

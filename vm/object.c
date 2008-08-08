@@ -18,7 +18,7 @@ OBJ tr_new(VM, OBJ class)
   return (OBJ) obj;
 }
 
-static OBJ tr_object_inspect(VM, OBJ self)
+OBJ tr_object_inspect(VM, OBJ self)
 {
   OBJ str = tr_string_new(vm, "#<Object:0x000000>");
   

@@ -25,25 +25,22 @@ static OBJ tr_lookup_method(VM, OBJ obj, OBJ name)
   
   /* method not found */
   /* TODO call method_missing */
+  tr_raise(vm, "method not found: %s on %s", TR_STR(name), TR_STR(tr_object_inspect(vm, obj)));
+  
   return TR_NIL;
 }
 
 OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
 {
-  OBJ met = tr_lookup_method(vm, obj, message);
+  OBJ        met = tr_lookup_method(vm, obj, message);
+  tr_method *m   = TR_CMETHOD(met);
   
-  if (met != TR_NIL) {
-    tr_method *m = TR_CMETHOD(met);
-    
-    if (m->argc != argc)
-      tr_raise(vm ,"wrong number of arguments: %d for %d", argc, m->argc);
-        
-    /* HACK better way to have variable num of args? */
-    return m->func(vm, obj, argv[0], argv[1], argv[2], argv[3], argv[4],
-                            argv[5], argv[6], argv[7], argv[8], argv[9]);
-  } else {
-    tr_raise(vm, "method not found: %s", TR_STR(message));
-  }
+  if (m->argc != argc)
+    tr_raise(vm ,"wrong number of arguments: %d for %d", argc, m->argc);
+      
+  /* HACK better way to have variable num of args? */
+  return m->func(vm, obj, argv[0], argv[1], argv[2], argv[3], argv[4],
+                          argv[5], argv[6], argv[7], argv[8], argv[9]);
 }
 
 static OBJ tr_class_def(VM, tr_class *class, const char *name, OBJ (*func)(), int argc)
