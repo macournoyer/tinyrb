@@ -55,6 +55,7 @@ OBJ tr_run(VM, tr_op *ops, size_t n)
   
   for (ip = 0; ip < n; ++ip) {
     op = &ops[ip];
+    f->line = op->line;
     
     #ifdef TRACE_STACK
     if ((int) op->cmd[0] > 100)
@@ -126,6 +127,16 @@ OBJ tr_run(VM, tr_op *ops, size_t n)
                        (int) op->cmd[3]);    /* nops */
         break;
       
+      /* class */
+      case DEFINECLASS:
+        tr_class_define(vm, (char *) op->cmd[0],  /* name */
+                            STACK_POP(),          /* cbase */
+                            STACK_POP(),          /* super */
+                            (tr_op *) op->cmd[1], /* ops */
+                            (int) op->cmd[2],     /* define_type */
+                            (int) op->cmd[3]);    /* nops */
+        break;
+      
       /* jump */
       case JUMP:
         JUMP_TO(op->cmd[0]);
@@ -158,11 +169,12 @@ void tr_raise(VM, const char *msg, ...)
   fprintf(stderr, "Exception: ");
   vfprintf(stderr, msg, args);
   fprintf(stderr, "\n");
+  fprintf(stderr, "     from (?):%d\n", CUR_FRAME->line);
   va_end(args);
   exit(-1);
 }
 
-void tr_next_frame(VM, OBJ obj)
+void tr_next_frame(VM, OBJ obj, OBJ class)
 {
   vm->cf ++;
   #ifdef TRACE_STACK
@@ -175,7 +187,7 @@ void tr_next_frame(VM, OBJ obj)
   f->stack  = tr_array_new(vm);
   f->locals = tr_hash_new(vm);
   f->self   = obj;
-  f->class  = (OBJ) TR_COBJ(f->self)->class;
+  f->class  = class;
 }
 
 void tr_prev_frame(VM)

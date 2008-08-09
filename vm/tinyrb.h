@@ -133,6 +133,7 @@ typedef struct tr_frame {
   OBJ  locals;
   OBJ  self;
   OBJ  class;
+  uint line; /* cur line num */
 } tr_frame;
 
 typedef struct tr_vm {
@@ -144,7 +145,7 @@ typedef struct tr_vm {
 void tr_init(VM, int argc, char const *argv[]);
 OBJ tr_run(VM, tr_op *ops, size_t n);
 void tr_raise(VM, const char *msg, ...);
-void tr_next_frame(VM, OBJ obj);
+void tr_next_frame(VM, OBJ obj, OBJ class);
 void tr_prev_frame(VM);
 
 /* class */
@@ -153,6 +154,7 @@ OBJ tr_def(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_ops_def(VM, OBJ class, const char *name, tr_op *ops, int nops);
 OBJ tr_class_new(VM, const char* name, OBJ super);
+OBJ tr_class_define(VM, const char* name, OBJ cbase, OBJ super, tr_op *ops, int define_type, int nops);
 OBJ tr_metaclass_new(VM);
 
 /* object */

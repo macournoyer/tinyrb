@@ -48,7 +48,7 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
     size_t i;
     OBJ    ret;
     
-    tr_next_frame(vm, obj);
+    tr_next_frame(vm, obj, (OBJ) TR_COBJ(obj)->class);
     
     /* move method args to locals */
     for (i = 0; i < argc; ++i)
@@ -136,6 +136,17 @@ OBJ tr_class_new(VM, const char* name, OBJ super)
   return (OBJ) c;
 }
 
+OBJ tr_class_define(VM, const char* name, OBJ cbase, OBJ super, tr_op *ops, int define_type, int nops)
+{
+  OBJ class = tr_class_new(vm, name, super == TR_NIL ? tr_const_get(vm, "Object") : super);
+  
+  tr_next_frame(vm, class, class);
+  OBJ ret = tr_run(vm, ops, nops);
+  tr_prev_frame(vm);
+  
+  return ret;
+}
+
 static OBJ tr_class_name(VM, OBJ self)
 {
   return (OBJ) TR_CCLASS(self)->name;
@@ -146,4 +157,5 @@ void tr_class_init(VM)
   OBJ class = tr_class_new(vm, "Class", TR_NIL);
   
   tr_def(vm, class, "name", tr_class_name, 0);
+  tr_def(vm, class, "new", tr_new, 0);
 }

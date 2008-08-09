@@ -41,10 +41,14 @@ void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class)
 
 OBJ tr_new(VM, OBJ class)
 {
-  tr_obj *obj = (tr_obj *) tr_malloc(sizeof(tr_obj));
-  tr_obj_init(vm, TR_OBJECT, (OBJ) obj, class);
+  OBJ obj = (OBJ) tr_malloc(sizeof(tr_obj));
+  OBJ argv[0]; /* TODO */
+
+  tr_obj_init(vm, TR_OBJECT, obj, class);
   
-  return (OBJ) obj;
+  tr_send(vm, obj, tr_intern(vm, "initialize"), 0, argv);
+  
+  return obj;
 }
 
 OBJ tr_object_inspect(VM, OBJ self)
@@ -61,6 +65,11 @@ static OBJ tr_object_class(VM, OBJ self)
   return (OBJ) TR_COBJ(self)->class;
 }
 
+static OBJ tr_object_nop(VM, OBJ self)
+{
+  return self;
+}
+
 void tr_object_init(VM)
 {
   OBJ object = tr_class_new(vm, "Object", TR_NIL);
@@ -68,6 +77,7 @@ void tr_object_init(VM)
   tr_def(vm, object, "inspect", tr_object_inspect, 0);
   tr_def(vm, object, "to_s", tr_object_inspect, 0);
   tr_def(vm, object, "class", tr_object_class, 0);
+  tr_def(vm, object, "initialize", tr_object_nop, -1);
 }
 
 /* special objects (true, false, nil) */

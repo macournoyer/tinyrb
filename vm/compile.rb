@@ -45,6 +45,9 @@ class InstructionConverter
     convert :definemethod do |cmds|
       op :definemethod, cmds[0], cmds[1], cmds[2], cmds[1].last.size-1
     end
+    convert :defineclass do |cmds|
+      op :defineclass, cmds[0], cmds[1], cmds[2], cmds[1].last.size-1
+    end
   end
   
   def convert(code, &block)

@@ -15,19 +15,15 @@ def tokenize(string)
       tokens << [:msg, c]
       i += 1
     elsif c[0] >= ?0 && c[0] <= ?9
-      tokens << [:number, c.to_i]
+      tokens << [:lit, c.to_i]
       i += 1
     elsif c[0] >= ?a && c[0] <= ?z
       str = tok_name(string, i, len)
-      tokens << [:name, str]
+      tokens << [:var, str]
       i += str.size
     elsif c == '"'
       str = tok_string(string, i, len)
-      tokens << [:dstring, str]
-      i += str.size + 2
-    elsif c == "'"
-      str = tok_string(string, i, len)
-      tokens << [:string, str]
+      tokens << [:str, str]
       i += str.size + 2
     elsif c == "."
       tokens << [:dot, nil]
@@ -55,9 +51,16 @@ def tok_name(str, i, l)
   str[s,i-s]
 end
 
-puts tokenize(<<-EOS).inspect
+code = <<-EOS
   a = "0"
   x = 1
   puts "allo"
   obj.hi
 EOS
+
+puts tokenize(code).inspect
+
+# puts "=" * 80
+# require "rubygems"
+# require "parse_tree"
+# puts ParseTree.translate(code).inspect
