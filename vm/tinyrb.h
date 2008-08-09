@@ -113,13 +113,16 @@ typedef struct tr_io {
 
 typedef struct tr_method {
   ACTS_AS_TR_OBJ;
-  OBJ      name;
-  OBJ    (*func)();
-  int      argc;
+  OBJ           name;
+  OBJ         (*func)();
+  int           argc;
+  struct tr_op *ops;
+  size_t        nops;
 } tr_method;
 
 /* vm structs */
 typedef struct tr_op {
+  uint      line;
   tr_inst_e inst;
   void     *cmd[5];
 } tr_op;
@@ -128,7 +131,8 @@ typedef struct tr_frame {
   OBJ  stack;
   OBJ  consts;
   OBJ  locals;
-  OBJ  cur_obj;
+  OBJ  self;
+  OBJ  class;
 } tr_frame;
 
 typedef struct tr_vm {
@@ -138,13 +142,14 @@ typedef struct tr_vm {
 
 /* vm */
 void tr_init(VM, int argc, char const *argv[]);
-void tr_run(VM, tr_op *ops, size_t n);
+void tr_run(VM, tr_op *ops, size_t n, OBJ obj);
 void tr_raise(VM, const char *msg, ...);
 
 /* class */
 OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[]);
 OBJ tr_def(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
+OBJ tr_ops_def(VM, OBJ class, const char *name, tr_op *ops, int nops);
 OBJ tr_class_new(VM, const char* name, OBJ super);
 OBJ tr_metaclass_new(VM);
 

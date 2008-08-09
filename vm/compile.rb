@@ -42,6 +42,9 @@ class InstructionConverter
     convert :putobject do |cmds|
       op :putobject, cmds[0], cmds[0].is_a?(Fixnum) ? "TR_FIXNUM" : "TR_SPECIAL"
     end
+    convert :definemethod do |cmds|
+      op :definemethod, cmds[0], cmds[1], cmds[2], cmds[1].last.size-1
+    end
   end
   
   def convert(code, &block)

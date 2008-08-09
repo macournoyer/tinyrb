@@ -36,12 +36,19 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
   OBJ        met = tr_lookup_method(vm, obj, message);
   tr_method *m   = TR_CMETHOD(met);
   
-  if (m->argc != argc)
-    tr_raise(vm ,"wrong number of arguments: %d for %d", argc, m->argc);
-      
-  /* HACK better way to have variable num of args? */
-  return m->func(vm, obj, argv[0], argv[1], argv[2], argv[3], argv[4],
-                          argv[5], argv[6], argv[7], argv[8], argv[9]);
+  if (m->func) {
+    if (m->argc != argc)
+      tr_raise(vm ,"wrong number of arguments: %d for %d", argc, m->argc);
+    
+    /* HACK better way to have variable num of args? */
+    return m->func(vm, obj, argv[0], argv[1], argv[2], argv[3], argv[4],
+                            argv[5], argv[6], argv[7], argv[8], argv[9]);
+  } else {
+    vm->cf ++;
+    tr_run(vm, m->ops, m->nops, obj);
+    /* TODO handle return value */
+    return TR_NIL;
+  }
 }
 
 static OBJ tr_class_def(VM, tr_class *class, const char *name, OBJ (*func)(), int argc)
@@ -51,6 +58,7 @@ static OBJ tr_class_def(VM, tr_class *class, const char *name, OBJ (*func)(), in
   met->type = TR_METHOD;
   met->name = tr_intern(vm, name);
   met->func = func;
+  met->ops  = NULL;
   met->argc = argc;
   
   tr_hash_set(vm, class->methods, met->name, (OBJ) met);
@@ -66,6 +74,22 @@ OBJ tr_def(VM, OBJ obj, const char *name, OBJ (*func)(), int argc)
 OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc)
 {
   return tr_class_def(vm, TR_COBJ(obj)->metaclass, name, func, argc);
+}
+
+OBJ tr_ops_def(VM, OBJ class, const char *name, tr_op *ops, int nops)
+{
+  tr_method *met = (tr_method *) tr_malloc(sizeof(tr_method));
+  
+  met->type = TR_METHOD;
+  met->name = tr_intern(vm, name);
+  met->func = NULL;
+  met->ops  = ops;
+  met->nops = nops;
+  met->argc = -1;
+  
+  tr_hash_set(vm, TR_CCLASS(class)->methods, met->name, (OBJ) met);
+  
+  return TR_NIL;
 }
 
 OBJ tr_metaclass_new(VM)

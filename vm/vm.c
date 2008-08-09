@@ -104,6 +104,9 @@ void tr_step(VM, tr_op *ops, size_t n)
             break;
         }
         break;
+      case PUTSELF:
+        STACK_PUSH(f->self);
+        break;
       
       /* stack */
       case POP:
@@ -118,7 +121,14 @@ void tr_step(VM, tr_op *ops, size_t n)
         STACK_PUSH(tr_vm_send(vm, (char *) op->cmd[0], (int) op->cmd[1]));
         break;
       case LEAVE:
+        vm->cf --;
         return;
+      case DEFINEMETHOD:
+        tr_ops_def(vm, f->class,
+                       (char *) op->cmd[0],  /* name */
+                       (tr_op *) op->cmd[1], /* ops */
+                       (int) op->cmd[3]);    /* nops */
+        break;
       
       /* jump */
       case JUMP:
@@ -147,8 +157,9 @@ void tr_step(VM, tr_op *ops, size_t n)
 
 static void tr_init_frame(VM, tr_frame *f)
 {
+  /* TODO ??? f->consts = tr_hash_new(vm); */
+  f->consts = vm->frames[vm->cf-1].consts;
   f->stack  = tr_array_new(vm);
-  f->consts = tr_hash_new(vm);
   f->locals = tr_hash_new(vm);
 }
 
@@ -163,15 +174,17 @@ void tr_raise(VM, const char *msg, ...)
   exit(-1);
 }
 
-void tr_run(VM, tr_op *ops, size_t n)
+void tr_run(VM, tr_op *ops, size_t n, OBJ obj)
 {
   tr_frame  *f = CUR_FRAME;
   
-  if (f->stack == TR_NIL) {
+  if (vm->cf > 0) {
     tr_init_frame(vm, f);
-    /* TODO default cur_obj should be Object when Module.include is implemented */
-    f->cur_obj = tr_new(vm, tr_const_get(vm, "Kernel"));    
+    f->self  = obj;
   }
+  
+  if (f->self != TR_NIL)
+    f->class = (OBJ) TR_COBJ(f->self)->class;
   
   tr_step(vm, ops, n);
 }
@@ -206,18 +219,14 @@ void tr_init(VM, int argc, char const *argv[])
   
   vm->cf = 0;
   
-  for (i = 0; i < TR_MAX_FRAMES; ++i) {
-    vm->frames[i].stack  = TR_NIL;
-    vm->frames[i].consts = TR_NIL;
-  }
-  
   f = CUR_FRAME;
   f->consts = tr_hash_new(vm);
   f->locals = tr_hash_new(vm);
   
   tr_define_builtins(vm);
   
-  f->stack  = tr_array_new(vm);
+  f->stack   = tr_array_new(vm);
+  f->self    = tr_new(vm, tr_const_get(vm, "Object"));
   
   /* init argv */
   OBJ argv_ary = tr_array_new(vm);
