@@ -36,13 +36,18 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
   OBJ        met = tr_lookup_method(vm, obj, message);
   tr_method *m   = TR_CMETHOD(met);
   
+  
   if (m->func) { /* C based method */
-    if (m->argc >= 0 && m->argc != argc)
-      tr_raise(vm, "wrong number of arguments: %d for %d", argc, m->argc);
-    
-    /* HACK better way to have variable num of args? */
-    return m->func(vm, obj, argv[0], argv[1], argv[2], argv[3], argv[4],
-                            argv[5], argv[6], argv[7], argv[8], argv[9]);
+    if (m->argc == -1) { /* varargs */
+      return m->func(vm, obj, argc, argv);
+    } else {
+      if (m->argc != argc)
+        tr_raise(vm, "wrong number of arguments: %d for %d", argc, m->argc);
+      
+      /* HACK better way to have variable num of args? */
+      return m->func(vm, obj, argv[0], argv[1], argv[2], argv[3], argv[4],
+                              argv[5], argv[6], argv[7], argv[8], argv[9]);
+    }
     
   } else { /* opcode based method */
     size_t i;
@@ -157,5 +162,5 @@ void tr_class_init(VM)
   OBJ class = tr_class_new(vm, "Class", TR_NIL);
   
   tr_def(vm, class, "name", tr_class_name, 0);
-  tr_def(vm, class, "new", tr_new, 0);
+  tr_def(vm, class, "new", tr_new, -1);
 }

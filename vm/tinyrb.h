@@ -30,6 +30,7 @@
 #define TR_CHASH(o)     TR_CTYPE(o, TR_HASH, tr_hash)
 #define TR_CCLASS(o)    TR_CTYPE(o, TR_CLASS, tr_class)
 #define TR_CMETHOD(o)   TR_CTYPE(o, TR_METHOD, tr_method)
+#define TR_CBOOL(o)     ((o)?TR_TRUE:TR_FALSE);
 
 /* shortcuts */
 #define TR_STR(s)       (TR_CSTRING(s)->ptr)
@@ -160,7 +161,8 @@ void tr_const_set(VM, const char *name, OBJ obj);
 OBJ tr_const_get(VM, const char *name);
 OBJ tr_special_get(VM, OBJ obj);
 void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class);
-OBJ tr_new(VM, OBJ class);
+OBJ tr_new(VM, OBJ class, int argc, OBJ argv[]);
+OBJ tr_new2(VM, OBJ class);
 OBJ tr_object_inspect(VM, OBJ self);
 
 /* string */

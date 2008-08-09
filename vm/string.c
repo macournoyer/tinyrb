@@ -67,6 +67,12 @@ static OBJ tr_string_slice(VM, OBJ self, OBJ start, OBJ len)
   return slice;
 }
 
+static OBJ tr_string_eq(VM, OBJ self, OBJ other)
+{
+  OBJ s1 = TR_STR(self), s2 = TR_STR(other);
+  return TR_CBOOL(strcmp(s1, s2) == 0);
+}
+
 void tr_string_init(VM)
 {
   OBJ class = tr_class_new(vm, "String", tr_const_get(vm, "Object"));
@@ -75,4 +81,5 @@ void tr_string_init(VM)
   tr_def(vm, class, "to_s", tr_string_self, 0);
   tr_def(vm, class, "size", tr_string_size, 0);
   tr_def(vm, class, "[]", tr_string_slice, 2);
+  tr_def(vm, class, "==", tr_string_slice, 1);
 }

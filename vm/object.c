@@ -39,16 +39,21 @@ void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class)
   o->metaclass = (tr_class *) tr_metaclass_new(vm);
 }
 
-OBJ tr_new(VM, OBJ class)
+OBJ tr_new(VM, OBJ class, int argc, OBJ argv[])
 {
   OBJ obj = (OBJ) tr_malloc(sizeof(tr_obj));
-  OBJ argv[0]; /* TODO */
 
   tr_obj_init(vm, TR_OBJECT, obj, class);
   
-  tr_send(vm, obj, tr_intern(vm, "initialize"), 0, argv);
+  tr_send(vm, obj, tr_intern(vm, "initialize"), argc, argv);
   
   return obj;
+}
+
+OBJ tr_new2(VM, OBJ class)
+{
+  OBJ argv[0];
+  return tr_new(vm, class, 0, argv);
 }
 
 OBJ tr_object_inspect(VM, OBJ self)
@@ -103,13 +108,13 @@ void tr_special_init(VM)
   
   OBJ nilclass = tr_class_new(vm, "NilClass", objectclass);
   tr_def(vm, nilclass, "to_s", tr_nil_to_s, 0);
-  tr_const_set(vm, "NIL", tr_new(vm, nilclass));
+  tr_const_set(vm, "NIL", tr_new2(vm, nilclass));
   
   OBJ trueclass = tr_class_new(vm, "TrueClass", objectclass);
   tr_def(vm, trueclass, "to_s", tr_true_to_s, 0);
-  tr_const_set(vm, "TRUE", tr_new(vm, trueclass));
+  tr_const_set(vm, "TRUE", tr_new2(vm, trueclass));
   
   OBJ falseclass = tr_class_new(vm, "FalseClass", objectclass);
   tr_def(vm, falseclass, "to_s", tr_false_to_s, 0);
-  tr_const_set(vm, "FALSE", tr_new(vm, falseclass));  
+  tr_const_set(vm, "FALSE", tr_new2(vm, falseclass));
 }

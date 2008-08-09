@@ -249,7 +249,7 @@ void tr_init(VM, int argc, char const *argv[])
   
   f->stack   = tr_array_new(vm);
   f->class   = tr_const_get(vm, "Object");
-  f->self    = tr_new(vm, f->class);
+  f->self    = tr_new2(vm, f->class);
   f->line    = 0;
   
   /* init argv */

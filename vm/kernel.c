@@ -14,7 +14,7 @@ static OBJ tr_kernel_raise(VM, OBJ self, OBJ msg)
 
 void tr_kernel_init(VM)
 {
-  OBJ mod = tr_new(vm, tr_const_get(vm, "Module"));
+  OBJ mod = tr_new2(vm, tr_const_get(vm, "Module"));
   tr_const_set(vm, "Kernel", mod);
   
   tr_metadef(vm, mod, "puts", tr_kernel_puts, 1);

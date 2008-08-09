@@ -9,6 +9,10 @@ if a
   Kernel.puts "a is a " + a.class.name
   Kernel.puts "a = " + a
 end
+i = 0
+while i < 3
+  i += 1
+end
 
 # stdio
 Kernel.puts "prog name: " + ARGV.last
@@ -21,19 +25,19 @@ Kernel.puts "method! returned: " + method!("var")
 
 # class
 class Poop
-  def initialize
+  def initialize(answer)
     @smell = "smell"
-    @@answer = "yes"
+    @@answer = answer
   end
   def do_you_smell?
     "do you " + @smell + "? "
   end
-  def answer
-    @@answer
+  def answer(excl)
+    @@answer + excl
   end
 end
-p = Poop.new
-Kernel.puts p.do_you_smell? + p.answer
+p = Poop.new("yes")
+Kernel.puts p.do_you_smell? + p.answer("!!!")
 
 # exception
 Kernel.raise "This is not so exceptional"
