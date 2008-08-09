@@ -22,6 +22,7 @@ OBJ tr_intern(VM, const char *ptr)
   /* TODO */
   tr_string *str = (tr_string *) tr_malloc(sizeof(tr_string));
   
+  /* tr_obj_init(vm, TR_STRING, (OBJ) str, tr_const_get(vm, "Symbol")); */
   str->len  = strlen(ptr);
   str->ptr  = tr_malloc(str->len * sizeof(char));
   strcpy(str->ptr, ptr);
@@ -69,7 +70,7 @@ static OBJ tr_string_slice(VM, OBJ self, OBJ start, OBJ len)
 
 static OBJ tr_string_eq(VM, OBJ self, OBJ other)
 {
-  OBJ s1 = TR_STR(self), s2 = TR_STR(other);
+  char *s1 = TR_STR(self), *s2 = TR_STR(other);
   return TR_CBOOL(strcmp(s1, s2) == 0);
 }
 

@@ -104,15 +104,14 @@ OBJ tr_run(VM, tr_op *ops, size_t n)
       case PUTSTRING:
         STACK_PUSH(tr_string_new(vm, (char *) op->cmd[0]));
         break;
-      case PUTOBJECT:
-        switch ((OBJ) op->cmd[1]) {
-          case TR_SPECIAL:
-            STACK_PUSH(tr_special_get(vm, (OBJ) op->cmd[0]));
-            break;
-          case TR_FIXNUM:
-            STACK_PUSH(tr_fixnum_new(vm, (int) op->cmd[0]));
-            break;
-        }
+      case PUTFIXNUM:
+        STACK_PUSH(tr_fixnum_new(vm, (int) op->cmd[0]));
+        break;
+      case PUTSYMBOL:
+        STACK_PUSH(tr_intern(vm, (char *) op->cmd[0]));
+        break;
+      case PUTSPECIAL:
+        STACK_PUSH(tr_special_get(vm, (OBJ) op->cmd[0]));
         break;
       case PUTSELF:
         STACK_PUSH(f->self);

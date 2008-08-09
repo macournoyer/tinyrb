@@ -19,31 +19,31 @@ static OBJ tr_fixnum_to_s(VM, OBJ self)
 
 static OBJ tr_fixnum_add(VM, OBJ self, OBJ other)
 {
-  OBJ n1 = TR_FIX(self), n2 = TR_FIX(other);
+  int n1 = TR_FIX(self), n2 = TR_FIX(other);
   return tr_fixnum_new(vm, n1 + n2);
 }
 
 static OBJ tr_fixnum_sub(VM, OBJ self, OBJ other)
 {
-  OBJ n1 = TR_FIX(self), n2 = TR_FIX(other);
+  int n1 = TR_FIX(self), n2 = TR_FIX(other);
   return tr_fixnum_new(vm, n1 - n2);
 }
 
 static OBJ tr_fixnum_eq(VM, OBJ self, OBJ other)
 {
-  OBJ n1 = TR_FIX(self), n2 = TR_FIX(other);
+  int n1 = TR_FIX(self), n2 = TR_FIX(other);
   return TR_CBOOL(n1 == n2);
 }
 
 static OBJ tr_fixnum_lt(VM, OBJ self, OBJ other)
 {
-  OBJ n1 = TR_FIX(self), n2 = TR_FIX(other);
+  int n1 = TR_FIX(self), n2 = TR_FIX(other);
   return TR_CBOOL(n1 < n2);
 }
 
 static OBJ tr_fixnum_gt(VM, OBJ self, OBJ other)
 {
-  OBJ n1 = TR_FIX(self), n2 = TR_FIX(other);
+  int n1 = TR_FIX(self), n2 = TR_FIX(other);
   return TR_CBOOL(n1 > n2);
 }
 

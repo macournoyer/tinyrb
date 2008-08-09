@@ -40,7 +40,14 @@ class InstructionConverter
     
     # special convertions
     convert :putobject do |cmds|
-      op :putobject, cmds[0], cmds[0].is_a?(Fixnum) ? "TR_FIXNUM" : "TR_SPECIAL"
+      type = case cmds[0]
+      when Fixnum
+        op :putfixnum, cmds[0]
+      when Symbol
+        op :putsymbol, cmds[0]
+      else
+        op :putspecial, cmds[0]
+      end
     end
     convert :definemethod do |cmds|
       op :definemethod, cmds[0], cmds[1], cmds[2], cmds[1].last.size-1

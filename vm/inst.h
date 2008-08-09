@@ -18,7 +18,7 @@ typedef enum {
   PUTNIL,
   PUTSELF,
   PUTUNDEF,
-  PUTOBJECT,
+  /* PUTOBJECT, see bottom */
   PUTSTRING,
   CONCATSTRINGS,
   TOSTRING,
@@ -57,5 +57,8 @@ typedef enum {
   BRANCHUNLESS,
   
   /* my own lil instructions */
-  LABEL
+  LABEL,
+  PUTFIXNUM,
+  PUTSYMBOL,
+  PUTSPECIAL
 } tr_inst_e;
