@@ -1,6 +1,6 @@
 #include "tinyrb.h"
 
-#define TR_ARRAY_N    50 /* items in new array */
+#define TR_ARRAY_N    100 /* items in new array, TODO lower? */
 #define TR_ARRAY_SIZE sizeof(OBJ *)
 #define OBJ_AT(a,i)   *((OBJ *) (a)->items + TR_ARRAY_SIZE * (i))
 

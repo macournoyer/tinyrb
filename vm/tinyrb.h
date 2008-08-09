@@ -54,8 +54,6 @@ typedef unsigned long OBJ;
 typedef enum { TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE,
                TR_CLASS, TR_IO, TR_METHOD, TR_OBJECT, TR_SPECIAL } tr_type;
 
-/* TODO puts specific type instead of OBJ??? */
-
 #define ACTS_AS_TR_OBJ /* lol! */ \
   tr_type          type;  \
   OBJ              ivars; \

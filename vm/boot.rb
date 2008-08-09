@@ -13,7 +13,7 @@ end
 # stdio
 Kernel.puts "prog name: " + ARGV.last
 Kernel.puts "type a key:"
-Kernel.puts STDIN.read(1)
+Kernel.puts "you typed: " + STDIN.read(1)
 
 # method
 def method!(x); x end
@@ -21,11 +21,19 @@ Kernel.puts "method! returned: " + method!("var")
 
 # class
 class Poop
-  def to_s
-    "you smell"
+  def initialize
+    @smell = "smell"
+    @@answer = "yes"
+  end
+  def do_you_smell?
+    "do you " + @smell + "? "
+  end
+  def answer
+    @@answer
   end
 end
-Kernel.puts Poop.new.to_s
+p = Poop.new
+Kernel.puts p.do_you_smell? + p.answer
 
 # exception
 Kernel.raise "This is not so exceptional"

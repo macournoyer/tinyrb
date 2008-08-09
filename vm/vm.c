@@ -76,6 +76,18 @@ OBJ tr_run(VM, tr_op *ops, size_t n)
       case SETLOCAL:
         tr_hash_set(vm, f->locals, tr_fixnum_new(vm, (int) op->cmd[0]), STACK_POP());
         break;
+      case SETINSTANCEVARIABLE:
+        tr_hash_set(vm, TR_COBJ(f->self)->ivars, tr_intern(vm, (char *) op->cmd[0]), STACK_POP());
+        break;
+      case GETINSTANCEVARIABLE:
+        STACK_PUSH(tr_hash_get(vm, TR_COBJ(f->self)->ivars, tr_intern(vm, (char *) op->cmd[0])));
+        break;
+      case SETCLASSVARIABLE:
+        tr_hash_set(vm, TR_COBJ(f->class)->ivars, tr_intern(vm, (char *) op->cmd[0]), STACK_POP());
+        break;
+      case GETCLASSVARIABLE:
+        STACK_PUSH(tr_hash_get(vm, TR_COBJ(f->class)->ivars, tr_intern(vm, (char *) op->cmd[0])));
+        break;
       case GETCONSTANT:
         STACK_POP(); /* TODO class */
         STACK_PUSH(tr_const_get(vm, (char *) op->cmd[0]));
