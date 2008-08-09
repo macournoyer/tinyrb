@@ -200,6 +200,7 @@ void tr_next_frame(VM, OBJ obj, OBJ class)
   f->locals = tr_hash_new(vm);
   f->self   = obj;
   f->class  = class;
+  f->line   = 0;
 }
 
 void tr_prev_frame(VM)
@@ -249,6 +250,7 @@ void tr_init(VM, int argc, char const *argv[])
   f->stack   = tr_array_new(vm);
   f->class   = tr_const_get(vm, "Object");
   f->self    = tr_new(vm, f->class);
+  f->line    = 0;
   
   /* init argv */
   OBJ argv_ary = tr_array_new(vm);

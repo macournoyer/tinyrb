@@ -15,7 +15,7 @@ static OBJ return_other(VM, OBJ self, OBJ other)
 
 static OBJ cat_new(VM)
 {
-  OBJ c = tr_class_new(vm, "Cat", TR_NIL);
+  OBJ c = tr_class_new(vm, "Cat", tr_const_get(vm, "Object"));
   
   tr_def(vm, c, "def", lol, 0);
   tr_metadef(vm, c, "metadef", lol, 0);

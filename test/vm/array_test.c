@@ -63,14 +63,14 @@ void test_push_grow_array()
   
   a = tr_array_new(vm);
   
-  for (i = 0; i < 50; ++i)
+  for (i = 0; i < 100; ++i)
     tr_array_push(vm, a, x);
   
-  assert_equal(50, TR_CARRAY(a)->nalloc);
+  assert_equal(100, TR_CARRAY(a)->nalloc);
   
   tr_array_push(vm, a, x);
   
-  assert_equal(100, TR_CARRAY(a)->nalloc);
+  assert_equal(200, TR_CARRAY(a)->nalloc);
   
   tr_array_destroy(vm, a);
 }
