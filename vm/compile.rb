@@ -24,51 +24,89 @@ name, file = ARGV
 
 iseq = VM::InstructionSequence.compile_file(file, OUTPUT_COMPILE_OPTION)
 
+# iseq.to_a.each do |i|
+#   puts i.inspect
+# end
+# exit
+
+class InstructionConverter
+  def initialize(name, iseq, &block)
+    @name       = name
+    @iseq       = iseq
+    @out        = []
+    @converters = {}
+    @line       = 0
+    @blocks     = []
+    
+    # special convertions
+    convert :putobject do |cmds|
+      op :putobject, cmds[0], cmds[0].is_a?(Fixnum) ? "TR_FIXNUM" : "TR_SPECIAL"
+    end
+  end
+  
+  def convert(code, &block)
+    @converters[code] = block
+  end
+  
+  def op(code, *cmds)
+    cmd = cmds.collect { |c| "(void *) #{convert_type(c)}" }.join(", ")
+    @out << %Q(  { #{@line}, #{code.to_s.upcase}, { #{cmd} } },)
+  end
+  
+  def convert_type(v)
+    case v
+    when Symbol
+      %{"#{v}"}
+    when NilClass
+      "TR_NIL"
+    when TrueClass
+      "TR_TRUE"
+    when FalseClass
+      "TR_FALSE"
+    when String
+      v[0..2] == "TR_" ? v : v.inspect
+    when Array
+      key = "#{@name}__block_#{@blocks.size+1}"
+      @blocks << InstructionConverter.new(key, v).to_s
+      key
+    else
+      v.inspect
+    end
+  end
+  
+  def run
+    @iseq.to_a.last.each do |inst|
+      case inst
+      when Fixnum # line number
+        @line = inst
+      when Symbol # label
+        op :label, inst
+      else
+        if c = @converters[inst[0]]
+          c.call(inst[1..-1])
+        else
+          op inst[0], *inst[1..-1]
+        end
+      end
+    end
+  end
+  
+  def to_s
+    run
+    @blocks.join("\n") <<
+    "\n" <<
+    "tr_op #{@name}[] = {\n" <<
+    @out.join("\n") <<
+    "\n};"
+  end
+end
+
 puts '#ifndef _BOOT_H_'
 puts '#define _BOOT_H_'
 puts
 puts '#include "tinyrb.h"'
 puts
-puts "tr_op tr_#{name}_insts[] = {"
 
-# TODO clean this crap!
-iseq.to_a.last.each do |inst|
-  next if inst.is_a?(Fixnum)
-  
-  if inst.is_a?(Symbol) # label
-    puts %Q{  { LABEL, { (void *) "#{inst}", NULL, NULL, NULL, NULL } }, }
-    next
-  end
-  
-  opcode   = inst[0].to_s.upcase
-  operands = [].fill("NULL", 0, 5)
-  
-  Array(inst[1..-1]).each_with_index do |op, i|
-    case op
-    when Symbol
-      operands[i] = %Q{(void *) "#{op}"}
-    when NilClass
-      operands[i] = %Q{(void *) TR_NIL}
-    when TrueClass
-      operands[i] = %Q{(void *) TR_TRUE}
-    when FalseClass
-      operands[i] = %Q{(void *) TR_FALSE}
-    else
-      operands[i] = "(void *) #{op.inspect}"
-    end
-  end
-  
-  if opcode == "PUTOBJECT"
-    operands[1] = "(void *) "
-    if inst[1].class == Fixnum
-      operands[1] << "TR_FIXNUM"
-    else
-      operands[1] << "TR_SPECIAL"
-    end
-  end
-  
-  puts "  { #{opcode}, { #{operands.join(', ')} } },"
-end
+puts InstructionConverter.new("tr_boot_insts", iseq).to_s
 
-puts '};'
 puts '#endif /* _BOOT_H_ */'
