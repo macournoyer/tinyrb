@@ -1,4 +1,4 @@
-a = "oh"
+a = "ohaie"[0,2]
 a += "aie".to_s
 a += 1.to_s
 if a

@@ -9,12 +9,9 @@ static OBJ tr_vm_send(VM, const char *method, int argc)
   OBJ      *argv = tr_malloc(sizeof(OBJ) * argc);
   OBJ       obj;
   
-  for(i = 0; i < argc; ++i)
-    argv[i] = tr_array_pop(vm, f->stack);
+  for (i = argc; i > 0; --i)
+    argv[i-1] = tr_array_pop(vm, f->stack);
   obj = tr_array_pop(vm, f->stack);
-  
-  /* if (obj == TR_NIL)
-    obj = CUR_FRAME->cur_obj; */
   
   return tr_send(vm, obj, tr_intern(vm, method), argc, argv);
 }

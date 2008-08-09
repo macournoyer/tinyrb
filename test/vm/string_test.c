@@ -26,7 +26,28 @@ void test_concat()
   assert_str_equal("ohaie", TR_STR(res));
 }
 
+void test_slice()
+{
+  SETUP_VM;
+  OBJ str = tr_string_new(vm, "ohaie");
+  OBJ argv[] = { tr_fixnum_new(vm, 2), tr_fixnum_new(vm, 3) };
+  OBJ ret;
+  
+  ret = tr_send(vm, str, tr_intern(vm, "[]"), 2, argv);
+  assert_str_equal("aie", TR_STR(ret));
+  
+  argv[0] = tr_fixnum_new(vm, 10);
+  ret = tr_send(vm, str, tr_intern(vm, "[]"), 2, argv);
+  assert_equal(TR_NIL, ret);
+
+  argv[0] = tr_fixnum_new(vm, 2);
+  argv[1] = tr_fixnum_new(vm, 10);
+  ret = tr_send(vm, str, tr_intern(vm, "[]"), 2, argv);
+  assert_str_equal("aie", TR_STR(ret));
+}
+
 TEST_START;
   test_str();
   test_concat();
+  test_slice();
 TEST_END;

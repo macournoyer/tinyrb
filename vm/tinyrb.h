@@ -165,6 +165,7 @@ OBJ tr_object_inspect(VM, OBJ self);
 
 /* string */
 OBJ tr_string_new(VM, const char *ptr);
+OBJ tr_string_new2(VM, const char *ptr, size_t len);
 OBJ tr_intern(VM, const char *ptr);
 OBJ tr_string_concat(VM, OBJ self, OBJ str2);
 

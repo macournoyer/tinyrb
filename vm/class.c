@@ -37,8 +37,8 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
   tr_method *m   = TR_CMETHOD(met);
   
   if (m->func) { /* C based method */
-    if (m->argc != argc)
-      tr_raise(vm ,"wrong number of arguments: %d for %d", argc, m->argc);
+    if (m->argc >= 0 && m->argc != argc)
+      tr_raise(vm, "wrong number of arguments: %d for %d", argc, m->argc);
     
     /* HACK better way to have variable num of args? */
     return m->func(vm, obj, argv[0], argv[1], argv[2], argv[3], argv[4],
