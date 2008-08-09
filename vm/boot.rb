@@ -8,8 +8,6 @@ end
 Kernel.puts "prog name: " + ARGV.last
 Kernel.puts "type a key:"
 Kernel.puts STDIN.read(1)
-def method!
-  Kernel.puts "called in method!"
-end
-method!
+def method!(x); x end
+Kernel.puts "method! returned: " + method!("var")
 Kernel.raise true.to_s

@@ -42,7 +42,7 @@ static void tr_dump_stack(VM)
 #define STACK_POP()    tr_array_pop(vm, f->stack)
 #define JUMP_TO(label) ip = (int) tr_hash_get(vm, label2ip, tr_intern(vm, label));
 
-void tr_step(VM, tr_op *ops, size_t n)
+OBJ tr_run(VM, tr_op *ops, size_t n)
 {
   tr_frame *f = CUR_FRAME;
   tr_op    *op;
@@ -121,8 +121,7 @@ void tr_step(VM, tr_op *ops, size_t n)
         STACK_PUSH(tr_vm_send(vm, (char *) op->cmd[0], (int) op->cmd[1]));
         break;
       case LEAVE:
-        vm->cf --;
-        return;
+        return STACK_POP();
       case DEFINEMETHOD:
         tr_ops_def(vm, f->class,
                        (char *) op->cmd[0],  /* name */
@@ -155,14 +154,6 @@ void tr_step(VM, tr_op *ops, size_t n)
   }
 }
 
-static void tr_init_frame(VM, tr_frame *f)
-{
-  /* TODO ??? f->consts = tr_hash_new(vm); */
-  f->consts = vm->frames[vm->cf-1].consts;
-  f->stack  = tr_array_new(vm);
-  f->locals = tr_hash_new(vm);
-}
-
 void tr_raise(VM, const char *msg, ...)
 {
   va_list args;
@@ -174,19 +165,28 @@ void tr_raise(VM, const char *msg, ...)
   exit(-1);
 }
 
-void tr_run(VM, tr_op *ops, size_t n, OBJ obj)
+void tr_next_frame(VM, OBJ obj)
 {
+  vm->cf ++;
+  #ifdef TRACE_STACK
+  printf("moving to frame: %d\n", vm->cf);
+  #endif
   tr_frame  *f = CUR_FRAME;
   
-  if (vm->cf > 0) {
-    tr_init_frame(vm, f);
-    f->self  = obj;
-  }
-  
-  if (f->self != TR_NIL)
-    f->class = (OBJ) TR_COBJ(f->self)->class;
-  
-  tr_step(vm, ops, n);
+  /* TODO ??? f->consts = tr_hash_new(vm); */
+  f->consts = vm->frames[vm->cf-1].consts;
+  f->stack  = tr_array_new(vm);
+  f->locals = tr_hash_new(vm);
+  f->self   = obj;
+  f->class  = (OBJ) TR_COBJ(f->self)->class;
+}
+
+void tr_prev_frame(VM)
+{
+  vm->cf --;
+  #ifdef TRACE_STACK
+  printf("back to frame: %d\n", vm->cf);
+  #endif
 }
 
 static tr_define_builtins(VM)
@@ -226,7 +226,8 @@ void tr_init(VM, int argc, char const *argv[])
   tr_define_builtins(vm);
   
   f->stack   = tr_array_new(vm);
-  f->self    = tr_new(vm, tr_const_get(vm, "Object"));
+  f->class   = tr_const_get(vm, "Object");
+  f->self    = tr_new(vm, f->class);
   
   /* init argv */
   OBJ argv_ary = tr_array_new(vm);

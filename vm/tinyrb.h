@@ -142,8 +142,10 @@ typedef struct tr_vm {
 
 /* vm */
 void tr_init(VM, int argc, char const *argv[]);
-void tr_run(VM, tr_op *ops, size_t n, OBJ obj);
+OBJ tr_run(VM, tr_op *ops, size_t n);
 void tr_raise(VM, const char *msg, ...);
+void tr_next_frame(VM, OBJ obj);
+void tr_prev_frame(VM);
 
 /* class */
 OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[]);
