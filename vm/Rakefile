@@ -2,15 +2,14 @@ load "../tasks/compile.rake"
 
 RUBY_19 = "ruby19" # Maybe change this?
 
-CLEAN.include('boot.h')
+CLEAN.include('boot.cx')
 
 compile_tasks "vm"
 
-file "boot.h" => ["boot.rb", "compile.rb"] do |t|
+file "boot.cx" => ["boot.rb", "compile.rb"] do |t|
   sh "#{RUBY_19} compile.rb boot boot.rb > #{t.name}"
 end
 
 # File dependencies
-file 'main.o' => %w( main.c vm.h boot.h )
-file 'vm.h' => "boot.h"
-file 'vm.o' => %w( inst.h vm.h vm.c boot.h )
+file 'main.o' => %w( main.c boot.cx )
+file 'vm.o' => %w( inst.h vm.c )

@@ -44,11 +44,6 @@
 #define tr_free(p)      free((void *) (p))
 
 #define tr_log(m,...)   fprintf(stderr, m "\n", __VA_ARGS__)
-#ifdef DEBUG
-#define tr_debug(m,...) fprintf(stderr, m "\n", __VA_ARGS__)
-#else
-#define tr_debug(m,...)
-#endif
 
 /* objects */
 typedef unsigned long OBJ;
@@ -112,20 +107,13 @@ typedef struct tr_io {
 
 typedef struct tr_method {
   ACTS_AS_TR_OBJ;
-  OBJ           name;
-  OBJ         (*func)();
-  int           argc;
-  struct tr_op *ops;
-  size_t        nops;
+  OBJ     name;
+  OBJ   (*func)();
+  int     argc;
+  OBJ     ops;
 } tr_method;
 
 /* vm structs */
-typedef struct tr_op {
-  uint      line;
-  tr_inst_e inst;
-  void     *cmd[5];
-} tr_op;
-
 typedef struct tr_frame {
   OBJ  stack;
   OBJ  consts;
@@ -142,7 +130,7 @@ typedef struct tr_vm {
 
 /* vm */
 void tr_init(VM, int argc, char const *argv[]);
-OBJ tr_run(VM, tr_op *ops, size_t n);
+OBJ tr_run(VM, OBJ ops);
 void tr_raise(VM, const char *msg, ...);
 void tr_next_frame(VM, OBJ obj, OBJ class);
 void tr_prev_frame(VM);
@@ -151,9 +139,9 @@ void tr_prev_frame(VM);
 OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[]);
 OBJ tr_def(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
-OBJ tr_ops_def(VM, OBJ class, const char *name, tr_op *ops, int nops);
+OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops);
 OBJ tr_class_new(VM, const char* name, OBJ super);
-OBJ tr_class_define(VM, const char* name, OBJ cbase, OBJ super, tr_op *ops, int define_type, int nops);
+OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type);
 OBJ tr_metaclass_new(VM);
 
 /* object */
@@ -184,10 +172,12 @@ OBJ tr_hash_clear(VM, OBJ h);
 
 /* array */
 OBJ tr_array_new(VM);
+OBJ tr_array_create(VM, int argc, ...);
 void tr_array_push(VM, OBJ a, OBJ item);
 OBJ tr_array_pop(VM, OBJ a);
 OBJ tr_array_last(VM, OBJ o);
 OBJ tr_array_count(VM, OBJ a);
+OBJ tr_array_at(VM, OBJ self, int i);
 void tr_array_destroy(VM, OBJ a);
 void tr_array_init(VM);
 

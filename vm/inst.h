@@ -1,3 +1,6 @@
+#ifndef _INST_H_
+#define _INST_H_
+
 /* based on YARV instructions, http://www.atdot.net/yarv/insnstbl.html */
 typedef enum {
   NOP = 0,
@@ -18,7 +21,7 @@ typedef enum {
   PUTNIL,
   PUTSELF,
   PUTUNDEF,
-  /* PUTOBJECT, see bottom */
+  PUTOBJECT,
   PUTSTRING,
   CONCATSTRINGS,
   TOSTRING,
@@ -57,8 +60,10 @@ typedef enum {
   BRANCHUNLESS,
   
   /* my own lil instructions */
-  LABEL,
+  LABEL,     /* = 55 */
   PUTFIXNUM,
   PUTSYMBOL,
   PUTSPECIAL
 } tr_inst_e;
+
+#endif /* _INST_H_ */

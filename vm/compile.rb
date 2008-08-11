@@ -62,14 +62,15 @@ class InstructionConverter
   end
   
   def op(code, *cmds)
-    cmd = cmds.collect { |c| "(void *) #{convert_type(c)}" }.join(", ")
-    @out << %Q(  { #{@line}, #{code.to_s.upcase}, { #{cmd} } },)
+    cmd = cmds.collect { |c| convert_type(c) }
+    code_fix = "tr_fixnum_new(vm, #{code.to_s.upcase})"
+    @out << %Q[  tr_array_push(vm, o, tr_array_create(vm, #{2+cmd.size}, tr_fixnum_new(vm, #{@line}), #{[code_fix, *cmd].join(", ")}));]
   end
   
   def convert_type(v)
     case v
     when Symbol
-      %{"#{v}"}
+      "tr_intern(vm, \"#{v}\")"
     when NilClass
       "TR_NIL"
     when TrueClass
@@ -77,11 +78,13 @@ class InstructionConverter
     when FalseClass
       "TR_FALSE"
     when String
-      v[0..2] == "TR_" ? v : v.inspect
+      v[0..2] == "TR_" ? v : "tr_string_new(vm, #{v.inspect})"
+    when Fixnum
+      "tr_fixnum_new(vm, #{v})"
     when Array
-      key = "#{@name}__block_#{@blocks.size+1}"
+      key = "#{@name}_b#{@blocks.size+1}"
       @blocks << InstructionConverter.new(key, v).to_s
-      key
+      key + "(vm)"
     else
       v.inspect
     end
@@ -108,18 +111,15 @@ class InstructionConverter
     run
     @blocks.join("\n") <<
     "\n" <<
-    "tr_op #{@name}[] = {\n" <<
-    @out.join("\n") <<
-    "\n};"
+    "OBJ #{@name}(VM)\n{\n" <<
+    "  OBJ o = tr_array_new(vm);\n" <<
+    @out.join("\n") << "\n" <<
+    "  return o;\n" <<
+    "}"
   end
 end
 
-puts '#ifndef _BOOT_H_'
-puts '#define _BOOT_H_'
-puts
 puts '#include "tinyrb.h"'
 puts
-
-puts InstructionConverter.new("tr_boot_insts", iseq).to_s
-
-puts '#endif /* _BOOT_H_ */'
+puts InstructionConverter.new("tr_boot", iseq).to_s
+puts

@@ -59,7 +59,7 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
     for (i = 0; i < argc; ++i)
       tr_hash_set(vm, CUR_FRAME->locals, tr_fixnum_new(vm, argc-i+1), argv[i]);
     
-    ret = tr_run(vm, m->ops, m->nops);
+    ret = tr_run(vm, m->ops);
     
     tr_prev_frame(vm);
     return ret;
@@ -74,7 +74,7 @@ static OBJ tr_class_def(VM, tr_class *class, const char *name, OBJ (*func)(), in
   met->type = TR_METHOD;
   met->name = tr_intern(vm, name);
   met->func = func;
-  met->ops  = NULL;
+  met->ops  = TR_NIL;
   met->argc = argc;
   
   tr_hash_set(vm, class->methods, met->name, (OBJ) met);
@@ -92,15 +92,14 @@ OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc)
   return tr_class_def(vm, TR_COBJ(obj)->metaclass, name, func, argc);
 }
 
-OBJ tr_ops_def(VM, OBJ class, const char *name, tr_op *ops, int nops)
+OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops)
 {
   tr_method *met = (tr_method *) tr_malloc(sizeof(tr_method));
   
   met->type = TR_METHOD;
-  met->name = tr_intern(vm, name);
+  met->name = name;
   met->func = NULL;
   met->ops  = ops;
-  met->nops = nops;
   met->argc = -1;
   
   tr_hash_set(vm, TR_CCLASS(class)->methods, met->name, (OBJ) met);
@@ -141,12 +140,12 @@ OBJ tr_class_new(VM, const char* name, OBJ super)
   return (OBJ) c;
 }
 
-OBJ tr_class_define(VM, const char* name, OBJ cbase, OBJ super, tr_op *ops, int define_type, int nops)
+OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type)
 {
-  OBJ class = tr_class_new(vm, name, super == TR_NIL ? tr_const_get(vm, "Object") : super);
+  OBJ class = tr_class_new(vm, TR_STR(name), super == TR_NIL ? tr_const_get(vm, "Object") : super);
   
   tr_next_frame(vm, class, class);
-  OBJ ret = tr_run(vm, ops, nops);
+  OBJ ret = tr_run(vm, ops);
   tr_prev_frame(vm);
   
   return ret;

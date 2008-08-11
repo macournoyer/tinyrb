@@ -2,7 +2,17 @@
 
 /* #define TRACE_STACK */
 
-static OBJ tr_vm_send(VM, const char *method, int argc)
+#ifdef TRACE_STACK
+const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPECIAL","GETDYNAMIC","SETDYNAMIC",
+  "GETINSTANCEVARIABLE","SETINSTANCEVARIABLE","GETCLASSVARIABLE","SETCLASSVARIABLE","GETCONSTANT","SETCONSTANT",
+  "GETGLOBAL","SETGLOBAL","PUTNIL","PUTSELF","PUTUNDEF","PUTOBJECT","PUTSTRING","CONCATSTRINGS","TOSTRING",
+  "TOREGEXP","NEWARRAY","DUPARRAY","EXPANDARRAY","CONCATARRAY","SPLATARRAY","CHECKINCLUDEARRAY","NEWHASH",
+  "NEWRANGE","PUTNOT","POP","DUP","DUPN","SWAP","REPUT","TOPN","EMPTSTACK","DEFINEMETHOD","ALIAS","UNDEF","DEFINED",
+  "POSTEXE","TRACE","DEFINECLASS","SEND","INVOKESUPER","INVOKEBLOCK","LEAVE","FINISH","THROW","JUMP","BRANCHIF",
+  "BRANCHUNLESS", /* mine */ "LABEL","PUTFIXNUM","PUTSYMBOL","PUTSPECIAL"};
+#endif
+
+static OBJ tr_vm_send(VM, OBJ method, int argc)
 {
   tr_frame *f    = CUR_FRAME;
   size_t    i;
@@ -13,7 +23,7 @@ static OBJ tr_vm_send(VM, const char *method, int argc)
     argv[i-1] = tr_array_pop(vm, f->stack);
   obj = tr_array_pop(vm, f->stack);
   
-  return tr_send(vm, obj, tr_intern(vm, method), argc, argv);
+  return tr_send(vm, obj, method, argc, argv);
 }
 
 static int tr_vm_branch(VM, int b, OBJ val)
@@ -37,60 +47,61 @@ static void tr_dump_stack(VM)
 
 #define STACK_PUSH(o)  tr_array_push(vm, f->stack, (o))
 #define STACK_POP()    tr_array_pop(vm, f->stack)
-#define JUMP_TO(label) ip = (int) tr_hash_get(vm, label2ip, tr_intern(vm, label));
+#define JUMP_TO(label) ip = (int) tr_hash_get(vm, label2ip, label)
+#define LINENUM        TR_FIX(tr_array_at(vm, op, 0))
+#define OPCODE         TR_FIX(tr_array_at(vm, op, 1))
+#define CMD(i)         tr_array_at(vm, op, i+2)
 
-OBJ tr_run(VM, tr_op *ops, size_t n)
+OBJ tr_run(VM, OBJ ops)
 {
   tr_frame *f = CUR_FRAME;
-  tr_op    *op;
+  OBJ       op;
   size_t    ip;
+  size_t    n = TR_FIX(tr_array_count(vm, ops));
   OBJ       label2ip = tr_hash_new(vm);
   
   /* store labels=>ip mapping for later jumping */
   for (ip = 0; ip < n; ++ip) {
-    op = &ops[ip];
-    if (op->inst == LABEL)
-      tr_hash_set(vm, label2ip, tr_intern(vm, op->cmd[0]), (OBJ) ip);
+    op = tr_array_at(vm, ops, ip);
+    if (OPCODE == LABEL)
+      tr_hash_set(vm, label2ip, CMD(0), (OBJ) ip);
   }
   
   for (ip = 0; ip < n; ++ip) {
-    op = &ops[ip];
-    f->line = op->line;
+    op = tr_array_at(vm, ops, ip);
+    f->line = LINENUM;
     
     #ifdef TRACE_STACK
-    if ((int) op->cmd[0] > 100)
-      printf("[%d] %d, %s, %d, %d\n", ip, op->inst, op->cmd[0], op->cmd[1], op->cmd[2]);
-    else
-      printf("[%d] %d, %d, %d, %d\n", ip, op->inst, op->cmd[0], op->cmd[1], op->cmd[2]);
+    printf("[%d] %s   (line %d)\n", ip, tr_inst_names[OPCODE], LINENUM);
     #endif
     
-    switch (op->inst) {
+    switch (OPCODE) {
       /* nop */
       case NOP:
         break;
       
       /* variable */
       case GETLOCAL:
-        STACK_PUSH(tr_hash_get(vm, f->locals, tr_fixnum_new(vm, (int) op->cmd[0])));
+        STACK_PUSH(tr_hash_get(vm, f->locals, CMD(0)));
         break;
       case SETLOCAL:
-        tr_hash_set(vm, f->locals, tr_fixnum_new(vm, (int) op->cmd[0]), STACK_POP());
+        tr_hash_set(vm, f->locals, CMD(0), STACK_POP());
         break;
       case SETINSTANCEVARIABLE:
-        tr_hash_set(vm, TR_COBJ(f->self)->ivars, tr_intern(vm, (char *) op->cmd[0]), STACK_POP());
+        tr_hash_set(vm, TR_COBJ(f->self)->ivars, CMD(0), STACK_POP());
         break;
       case GETINSTANCEVARIABLE:
-        STACK_PUSH(tr_hash_get(vm, TR_COBJ(f->self)->ivars, tr_intern(vm, (char *) op->cmd[0])));
+        STACK_PUSH(tr_hash_get(vm, TR_COBJ(f->self)->ivars, CMD(0)));
         break;
       case SETCLASSVARIABLE:
-        tr_hash_set(vm, TR_COBJ(f->class)->ivars, tr_intern(vm, (char *) op->cmd[0]), STACK_POP());
+        tr_hash_set(vm, TR_COBJ(f->class)->ivars, CMD(0), STACK_POP());
         break;
       case GETCLASSVARIABLE:
-        STACK_PUSH(tr_hash_get(vm, TR_COBJ(f->class)->ivars, tr_intern(vm, (char *) op->cmd[0])));
+        STACK_PUSH(tr_hash_get(vm, TR_COBJ(f->class)->ivars, CMD(0)));
         break;
       case GETCONSTANT:
         STACK_POP(); /* TODO class */
-        STACK_PUSH(tr_const_get(vm, (char *) op->cmd[0]));
+        STACK_PUSH(tr_const_get(vm, TR_STR(CMD(0))));
         break;
       case NEWARRAY:
         /* TODO init items argc = op->cmd[0] */
@@ -102,16 +113,16 @@ OBJ tr_run(VM, tr_op *ops, size_t n)
         STACK_PUSH(TR_NIL);
         break;
       case PUTSTRING:
-        STACK_PUSH(tr_string_new(vm, (char *) op->cmd[0]));
+        STACK_PUSH(CMD(0));
         break;
       case PUTFIXNUM:
-        STACK_PUSH(tr_fixnum_new(vm, (int) op->cmd[0]));
+        STACK_PUSH(CMD(0));
         break;
       case PUTSYMBOL:
-        STACK_PUSH(tr_intern(vm, (char *) op->cmd[0]));
+        STACK_PUSH(CMD(0));
         break;
       case PUTSPECIAL:
-        STACK_PUSH(tr_special_get(vm, (OBJ) op->cmd[0]));
+        STACK_PUSH(tr_special_get(vm, CMD(0)));
         break;
       case PUTSELF:
         STACK_PUSH(f->self);
@@ -127,44 +138,43 @@ OBJ tr_run(VM, tr_op *ops, size_t n)
       
       /* method */
       case SEND:
-        STACK_PUSH(tr_vm_send(vm, (char *) op->cmd[0], (int) op->cmd[1]));
+        STACK_PUSH(tr_vm_send(vm, CMD(0),        /* method */
+                                  TR_FIX(CMD(1)) /* argc */
+                                  ));
         break;
       case LEAVE:
         return STACK_POP();
       case DEFINEMETHOD:
-        tr_ops_def(vm, f->class,
-                       (char *) op->cmd[0],  /* name */
-                       (tr_op *) op->cmd[1], /* ops */
-                       (int) op->cmd[3]);    /* nops */
+        tr_ops_def(vm, f->class, CMD(0),  /* name */
+                                 CMD(1)); /* opcode */
         break;
       
       /* class */
       case DEFINECLASS:
-        tr_class_define(vm, (char *) op->cmd[0],  /* name */
-                            STACK_POP(),          /* cbase */
-                            STACK_POP(),          /* super */
-                            (tr_op *) op->cmd[1], /* ops */
-                            (int) op->cmd[2],     /* define_type */
-                            (int) op->cmd[3]);    /* nops */
+        tr_class_define(vm, CMD(0),           /* name */
+                            STACK_POP(),      /* cbase */
+                            STACK_POP(),      /* super */
+                            CMD(1),           /* opcode */
+                            TR_FIX(CMD(2)));  /* define_type */
         break;
       
       /* jump */
       case JUMP:
-        JUMP_TO(op->cmd[0]);
+        JUMP_TO(CMD(0));
         break;
       case BRANCHUNLESS:
         if (tr_vm_branch(vm, 0, STACK_POP()))
-          JUMP_TO(op->cmd[0]);
+          JUMP_TO(CMD(0));
         break;
       case BRANCHIF:
         if (tr_vm_branch(vm, 1, STACK_POP()))
-          JUMP_TO(op->cmd[0]);
+          JUMP_TO(CMD(0));
         break;
       case LABEL:
         break;
       
       default:
-        tr_log("unsupported instruction: %d (ip=%d)", op->inst, ip);
+        tr_log("unsupported instruction: %d (ip=%d)", OPCODE, ip);
     }
     
     #ifdef TRACE_STACK

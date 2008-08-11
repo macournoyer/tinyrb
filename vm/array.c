@@ -1,6 +1,6 @@
 #include "tinyrb.h"
 
-#define TR_ARRAY_N    100 /* items in new array, TODO lower? */
+#define TR_ARRAY_N    1024 /* items in new array, TODO lower? */
 #define TR_ARRAY_SIZE sizeof(OBJ *)
 #define OBJ_AT(a,i)   *((OBJ *) (a)->items + TR_ARRAY_SIZE * (i))
 
@@ -21,6 +21,23 @@ OBJ tr_array_new(VM)
   }
 
   return (OBJ) a;
+}
+
+OBJ tr_array_create(VM, int argc, ...)
+{
+  OBJ     a = tr_array_new(vm);
+  OBJ     o;
+  va_list argp;
+  size_t  i;
+  
+  va_start(argp, argc);
+  
+  for (i = 0; i < argc; ++i)
+    tr_array_push(vm, a, va_arg(argp, OBJ));
+  
+  va_end(argp);
+  
+  return a;
 }
 
 void tr_array_push(VM, OBJ self, OBJ item)
@@ -84,10 +101,9 @@ void tr_array_destroy(VM, OBJ self)
   tr_free(a);
 }
 
-static OBJ tr_array_at(VM, OBJ self, OBJ posi)
+OBJ tr_array_at(VM, OBJ self, int i)
 {
   tr_array *a = TR_CARRAY(self);
-  int       i = TR_FIX(posi);
   
   if (i >= a->count)
     return TR_NIL;
@@ -95,11 +111,16 @@ static OBJ tr_array_at(VM, OBJ self, OBJ posi)
   return OBJ_AT(a, i);
 }
 
+static OBJ tr_array_at2(VM, OBJ self, OBJ i)
+{
+  return tr_array_at(vm, self, TR_FIX(i));
+}
+
 void tr_array_init(VM)
 {
   OBJ class = tr_class_new(vm, "Array", tr_const_get(vm, "Object"));
   
-  tr_def(vm, class, "[]", tr_array_at, 1);
+  tr_def(vm, class, "[]", tr_array_at2, 1);
   tr_def(vm, class, "last", tr_array_last, 0);
   tr_def(vm, class, "count", tr_array_count, 0);
   tr_def(vm, class, "size", tr_array_count, 0);

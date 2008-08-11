@@ -54,30 +54,8 @@ void test_push_special()
   tr_array_destroy(vm, a);
 }
 
-void test_push_grow_array()
-{
-  SETUP_VM;
-  OBJ    a;
-  OBJ    x = tr_string_new(vm, "bai");
-  size_t i;
-  
-  a = tr_array_new(vm);
-  
-  for (i = 0; i < 100; ++i)
-    tr_array_push(vm, a, x);
-  
-  assert_equal(100, TR_CARRAY(a)->nalloc);
-  
-  tr_array_push(vm, a, x);
-  
-  assert_equal(200, TR_CARRAY(a)->nalloc);
-  
-  tr_array_destroy(vm, a);
-}
-
 TEST_START;
   test_push_pop();
   test_pop_nil();
-  test_push_grow_array();
   test_push_special();
 TEST_END;

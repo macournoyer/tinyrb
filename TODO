@@ -1,6 +1,7 @@
 TODOs (by priority)
 ===================
-- Fix tr_array_push, when growing it borkes!
+- Use tr_array for tr_run
+- Refactor tr_array to a linked list
 - Implement module `include`
 - Implement string interning (http://en.wikipedia.org/wiki/String_intern_pool)
 - consts should be relative to current object (???)
