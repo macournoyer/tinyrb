@@ -57,7 +57,7 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
     
     /* move method args to locals */
     for (i = 0; i < argc; ++i)
-      tr_hash_set(vm, CUR_FRAME->locals, tr_fixnum_new(vm, i+2), argv[i]);
+      tr_hash_set(vm, CUR_FRAME->locals, tr_fixnum_new(vm, argc-i+1), argv[i]);
     
     ret = tr_run(vm, m->ops, m->nops);
     
