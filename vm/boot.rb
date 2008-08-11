@@ -41,3 +41,10 @@ Kernel.puts p.do_you_smell? + p.answer("!!!")
 
 # exception
 Kernel.raise "This is not so exceptional"
+
+# Send opcode to the VM from Ruby
+# VM.run [
+#   [1, 11, "Kernel"],
+#   [1, 19, "yeah!"],
+#   [1, 46, "puts", 1, nil, 0, nil]
+# ]

@@ -12,16 +12,18 @@ const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPEC
   "BRANCHUNLESS", /* mine */ "LABEL","PUTFIXNUM","PUTSYMBOL","PUTSPECIAL"};
 #endif
 
+#define STACK_PUSH(o)  tr_array_push(vm, CUR_FRAME->stack, (o))
+#define STACK_POP()    tr_array_pop(vm, CUR_FRAME->stack)
+
 static OBJ tr_vm_send(VM, OBJ method, int argc)
 {
-  tr_frame *f    = CUR_FRAME;
   size_t    i;
   OBJ      *argv = tr_malloc(sizeof(OBJ) * argc);
   OBJ       obj;
   
   for (i = argc; i > 0; --i)
-    argv[i-1] = tr_array_pop(vm, f->stack);
-  obj = tr_array_pop(vm, f->stack);
+    argv[i-1] = STACK_POP();
+  obj = STACK_POP();
   
   return tr_send(vm, obj, method, argc, argv);
 }
@@ -31,6 +33,18 @@ static int tr_vm_branch(VM, int b, OBJ val)
   if (b)
     return val != TR_NIL && val != TR_FALSE; /* if */
   return val == TR_NIL || val == TR_FALSE;   /* unless */
+}
+
+static OBJ tr_vm_newarray(VM, int argc)
+{
+  OBJ    a = tr_array_new(vm);
+  size_t i;
+  
+  /* TODO reverse! */
+  for (i = argc; i > 0; --i)
+    tr_array_push(vm, a, STACK_POP());
+  
+  return a;
 }
 
 static void tr_dump_stack(VM)
@@ -45,8 +59,6 @@ static void tr_dump_stack(VM)
   }
 }
 
-#define STACK_PUSH(o)  tr_array_push(vm, f->stack, (o))
-#define STACK_POP()    tr_array_pop(vm, f->stack)
 #define JUMP_TO(label) ip = (int) tr_hash_get(vm, label2ip, label)
 #define LINENUM        TR_FIX(tr_array_at(vm, op, 0))
 #define OPCODE         TR_FIX(tr_array_at(vm, op, 1))
@@ -104,8 +116,7 @@ OBJ tr_run(VM, OBJ ops)
         STACK_PUSH(tr_const_get(vm, TR_STR(CMD(0))));
         break;
       case NEWARRAY:
-        /* TODO init items argc = op->cmd[0] */
-        STACK_PUSH(tr_array_new(vm));
+        STACK_PUSH(tr_vm_newarray(vm, TR_FIX(CMD(0))));
         break;
       
       /* put */
@@ -235,6 +246,7 @@ static tr_define_builtins(VM)
   TR_COBJ(module)->class   =
   TR_COBJ(class)->class    = TR_CCLASS(class);
   
+  tr_vm_init(vm);
   tr_kernel_init(vm);
   tr_string_init(vm);
   tr_fixnum_init(vm);
@@ -266,4 +278,24 @@ void tr_init(VM, int argc, char const *argv[])
   for(i = 0; i < argc; ++i)
     tr_array_push(vm, argv_ary, tr_string_new(vm, argv[i]));
   tr_const_set(vm, "ARGV", argv_ary);
+}
+
+static OBJ tr_vm_run(VM, OBJ self, OBJ ops)
+{
+  return tr_run(vm, ops);
+}
+
+static OBJ tr_vm_to_s(VM, OBJ self)
+{
+  return tr_string_new(vm, "VM");
+}
+
+void tr_vm_init(VM)
+{
+  OBJ obj = tr_new2(vm, tr_const_get(vm, "Object"));
+  
+  tr_metadef(vm, obj, "run", tr_vm_run, 1);
+  tr_metadef(vm, obj, "to_s", tr_vm_to_s, 0);
+  
+  tr_const_set(vm, "VM", obj);
 }

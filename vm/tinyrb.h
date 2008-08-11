@@ -185,6 +185,7 @@ void tr_array_init(VM);
 OBJ tr_io_new(VM, int fd);
 
 /* misc init */
+void tr_vm_init(VM);
 void tr_special_init(VM);
 void tr_class_init(VM);
 void tr_object_init(VM);
