@@ -45,7 +45,7 @@ OBJ tr_new(VM, OBJ class, int argc, OBJ argv[])
 
   tr_obj_init(vm, TR_OBJECT, obj, class);
   
-  tr_send(vm, obj, tr_intern(vm, "initialize"), argc, argv);
+  tr_send(vm, obj, tr_intern(vm, "initialize"), argc, argv, TR_NIL);
   
   return obj;
 }

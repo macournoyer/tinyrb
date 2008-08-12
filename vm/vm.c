@@ -15,7 +15,7 @@ const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPEC
 #define STACK_PUSH(o)  tr_array_push(vm, CUR_FRAME->stack, (o))
 #define STACK_POP()    tr_array_pop(vm, CUR_FRAME->stack)
 
-static OBJ tr_vm_send(VM, OBJ method, int argc)
+static OBJ tr_vm_send(VM, OBJ method, int argc, OBJ block_ops)
 {
   size_t    i;
   OBJ      *argv = tr_malloc(sizeof(OBJ) * argc);
@@ -25,7 +25,7 @@ static OBJ tr_vm_send(VM, OBJ method, int argc)
     argv[i-1] = STACK_POP();
   obj = STACK_POP();
   
-  return tr_send(vm, obj, method, argc, argv);
+  return tr_send(vm, obj, method, argc, argv, block_ops);
 }
 
 static int tr_vm_branch(VM, int b, OBJ val)
@@ -149,15 +149,18 @@ OBJ tr_run(VM, OBJ ops)
       
       /* method */
       case SEND:
-        STACK_PUSH(tr_vm_send(vm, CMD(0),        /* method */
-                                  TR_FIX(CMD(1)) /* argc */
-                                  ));
+        STACK_PUSH(tr_vm_send(vm, CMD(0),         /* method */
+                                  TR_FIX(CMD(1)), /* argc */
+                                  CMD(2)));       /* block opcode */
         break;
       case LEAVE:
         return STACK_POP();
       case DEFINEMETHOD:
         tr_ops_def(vm, f->class, CMD(0),  /* name */
                                  CMD(1)); /* opcode */
+        break;
+      case INVOKEBLOCK:
+        STACK_PUSH(tr_yield(vm, 0, 0));
         break;
       
       /* class */
@@ -206,6 +209,17 @@ void tr_raise(VM, const char *msg, ...)
   exit(-1);
 }
 
+OBJ tr_yield(VM, int argc, OBJ argv[])
+{
+  tr_frame *f = CUR_FRAME;
+  OBJ       ret;
+  
+  if (f->block == TR_NIL)
+    tr_raise(vm, "No block given");
+  
+  return tr_proc_call(vm, f->block, argc, argv);
+}
+
 void tr_next_frame(VM, OBJ obj, OBJ class)
 {
   vm->cf ++;
@@ -221,6 +235,7 @@ void tr_next_frame(VM, OBJ obj, OBJ class)
   f->self   = obj;
   f->class  = class;
   f->line   = 0;
+  f->block  = TR_NIL;
 }
 
 void tr_prev_frame(VM)
@@ -247,6 +262,7 @@ static tr_define_builtins(VM)
   TR_COBJ(class)->class    = TR_CCLASS(class);
   
   tr_vm_init(vm);
+  tr_proc_init(vm);
   tr_kernel_init(vm);
   tr_string_init(vm);
   tr_fixnum_init(vm);
@@ -272,6 +288,7 @@ void tr_init(VM, int argc, char const *argv[])
   f->class   = tr_const_get(vm, "Object");
   f->self    = tr_new2(vm, f->class);
   f->line    = 0;
+  f->block   = TR_NIL;
   
   /* init argv */
   OBJ argv_ary = tr_array_new(vm);

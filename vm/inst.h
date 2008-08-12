@@ -58,6 +58,7 @@ typedef enum {
   JUMP,
   BRANCHIF,
   BRANCHUNLESS,
+  SETN,
   
   /* my own lil instructions */
   LABEL,     /* = 55 */

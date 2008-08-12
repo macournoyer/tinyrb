@@ -30,6 +30,7 @@
 #define TR_CHASH(o)     TR_CTYPE(o, TR_HASH, tr_hash)
 #define TR_CCLASS(o)    TR_CTYPE(o, TR_CLASS, tr_class)
 #define TR_CMETHOD(o)   TR_CTYPE(o, TR_METHOD, tr_method)
+#define TR_CPROC(o)     TR_CTYPE(o, TR_PROC, tr_proc)
 #define TR_CBOOL(o)     ((o)?TR_TRUE:TR_FALSE);
 
 /* shortcuts */
@@ -47,8 +48,8 @@
 
 /* objects */
 typedef unsigned long OBJ;
-typedef enum { TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE,
-               TR_CLASS, TR_IO, TR_METHOD, TR_OBJECT, TR_SPECIAL } tr_type;
+typedef enum { TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS,
+               TR_IO, TR_METHOD, TR_PROC, TR_OBJECT, TR_SPECIAL } tr_type;
 
 #define ACTS_AS_TR_OBJ /* lol! */ \
   tr_type          type;  \
@@ -105,6 +106,12 @@ typedef struct tr_io {
   int  fd;
 } tr_io;
 
+typedef struct tr_proc {
+  ACTS_AS_TR_OBJ;
+  OBJ       ops;
+  off_t     cf;
+} tr_proc;
+
 typedef struct tr_method {
   ACTS_AS_TR_OBJ;
   OBJ     name;
@@ -120,6 +127,7 @@ typedef struct tr_frame {
   OBJ  locals;
   OBJ  self;
   OBJ  class;
+  OBJ  block;
   uint line; /* cur line num */
 } tr_frame;
 
@@ -132,11 +140,12 @@ typedef struct tr_vm {
 void tr_init(VM, int argc, char const *argv[]);
 OBJ tr_run(VM, OBJ ops);
 void tr_raise(VM, const char *msg, ...);
+OBJ tr_yield(VM, int argc, OBJ argv[]);
 void tr_next_frame(VM, OBJ obj, OBJ class);
 void tr_prev_frame(VM);
 
 /* class */
-OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[]);
+OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops);
 OBJ tr_def(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops);
@@ -152,6 +161,11 @@ void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class);
 OBJ tr_new(VM, OBJ class, int argc, OBJ argv[]);
 OBJ tr_new2(VM, OBJ class);
 OBJ tr_object_inspect(VM, OBJ self);
+
+/* proc */
+OBJ tr_proc_new(VM, OBJ ops);
+OBJ tr_proc_call(VM, OBJ self, int argc, OBJ argv[]);
+void tr_proc_init(VM);
 
 /* string */
 OBJ tr_string_new(VM, const char *ptr);

@@ -30,14 +30,18 @@ static OBJ tr_lookup_method(VM, OBJ obj, OBJ name)
   return TR_NIL;
 }
 
-OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
+OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops)
 {
              obj = tr_special_get(vm, obj);
   OBJ        met = tr_lookup_method(vm, obj, message);
   tr_method *m   = TR_CMETHOD(met);
   
+  CUR_FRAME->block = TR_NIL;
   
   if (m->func) { /* C based method */
+    if (block_ops != TR_NIL)
+      CUR_FRAME->block = tr_proc_new(vm, block_ops);
+    
     if (m->argc == -1) { /* varargs */
       return m->func(vm, obj, argc, argv);
     } else {
@@ -54,6 +58,9 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[])
     OBJ    ret;
     
     tr_next_frame(vm, obj, (OBJ) TR_COBJ(obj)->class);
+    
+    if (block_ops != TR_NIL)
+      CUR_FRAME->block = tr_proc_new(vm, block_ops);
     
     /* move method args to locals */
     for (i = 0; i < argc; ++i)
