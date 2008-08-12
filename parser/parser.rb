@@ -3,30 +3,30 @@ require "emitter"
 
 class Parser
   def initialize(string)
-    @emitter = Emitter.new
-    @lexer   = Lexer.new(string)
-    @line    = 1
+    @tokens = Lexer.new(string).tokenize
+    @result = []
+    @cur_token = 0
+    @token = nil
+  end
+  
+  def advance
+    prev = @token
+    @token = @tokens[@cur_token]
+    
+    if @token.type == :name
+      @result << :asgn
+      @result << @token.value
+    end
   end
   
   def parse
-    @tokens = @lexer.tokenize
-    
-    
-    
-    @emitter.line = @line
-    @emitter.op :putstring, "hi"
-    @emitter.op :getlocal, "a"
-    
-    @emitter.out
+    advance
   end
 end
 
 if __FILE__ == $PROGRAM_NAME
   code = <<-EOS
     a = "0"
-    x = 1
-    puts "allo"
-    obj.hi
   EOS
 
   puts Parser.new(code).parse.inspect
