@@ -6,8 +6,8 @@ a += true.to_s
 
 # Conditional
 if a
-  Kernel.puts "a is a " + a.class.name
-  Kernel.puts "a = " + a
+  puts "a is a " + a.class.name
+  puts "a = " + a
 end
 i = 0
 while i < 3
@@ -15,13 +15,13 @@ while i < 3
 end
 
 # stdio
-Kernel.puts "prog name: " + ARGV.last
-Kernel.puts "type a key:"
-Kernel.puts "you typed: " + STDIN.read(1)
+puts "prog name: " + ARGV.last
+puts "type a key:"
+puts "you typed: " + STDIN.read(1)
 
 # method
 def method!(x); x end
-Kernel.puts "method! returned: " + method!("var")
+puts "method! returned: " + method!("var")
 
 # class
 class Poop
@@ -37,18 +37,17 @@ class Poop
   end
 end
 p = Poop.new("yes")
-Kernel.puts p.do_you_smell? + p.answer("!!!")
+puts p.do_you_smell? + p.answer("!!!")
 
 # Send opcode to the VM from Ruby
 VM.run [
-  [1, 11, "Kernel"],
   [1, 19, "yeah!"],
   [1, 46, "puts", 1, nil, 0, nil]
 ]
 
 # proc
 p = Proc.new { |hi| hi + " from proc" }
-Kernel.puts p.call("hi")
+puts p.call("hi")
 
 # exception
-Kernel.raise "This is not so exceptional"
+raise "This is not so exceptional"

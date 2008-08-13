@@ -1,13 +1,22 @@
 #include "tinyrb.h"
 
-OBJ tr_array_new(VM)
+tr_array *tr_array_struct(VM)
 {
   tr_array *a = (tr_array *) tr_malloc(sizeof(tr_array));
   
-  tr_obj_init(vm, TR_ARRAY, (OBJ) a, tr_const_get(vm, "Array"));
+  a->type  = TR_ARRAY;
   a->count = 0;
   a->first = NULL;
   a->last  = NULL;
+
+  return a;
+}
+
+OBJ tr_array_new(VM)
+{
+  tr_array *a = tr_array_struct(vm);
+  
+  tr_obj_init(vm, TR_ARRAY, (OBJ) a, tr_const_get(vm, "Array"));
 
   return (OBJ) a;
 }

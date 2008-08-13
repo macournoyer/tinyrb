@@ -59,7 +59,8 @@ typedef enum { TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS,
   tr_type          type;  \
   OBJ              ivars; \
   struct tr_class *class; \
-  struct tr_class *metaclass
+  struct tr_class *metaclass; \
+  struct tr_array *modules
 
 typedef struct tr_class {
   ACTS_AS_TR_OBJ;
@@ -157,7 +158,6 @@ void tr_next_frame(VM, OBJ obj, OBJ class);
 void tr_prev_frame(VM);
 
 /* class */
-OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops);
 OBJ tr_def(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
 OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops);
@@ -165,11 +165,16 @@ OBJ tr_class_new(VM, const char* name, OBJ super);
 OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type);
 OBJ tr_metaclass_new(VM);
 
+/* module */
+OBJ tr_module_new(VM, const char* name);
+OBJ tr_module_include(VM, OBJ self, OBJ module);
+
 /* object */
 void tr_const_set(VM, const char *name, OBJ obj);
 OBJ tr_const_get(VM, const char *name);
 int tr_const_defined(VM, const char *name);
 OBJ tr_special_get(VM, OBJ obj);
+OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops);
 void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class);
 OBJ tr_new(VM, OBJ class, int argc, OBJ argv[]);
 OBJ tr_new2(VM, OBJ class);
@@ -198,6 +203,7 @@ OBJ tr_hash_delete(VM, OBJ h, OBJ k);
 OBJ tr_hash_clear(VM, OBJ h);
 
 /* array */
+tr_array *tr_array_struct(VM);
 OBJ tr_array_new(VM);
 OBJ tr_array_create(VM, int argc, ...);
 OBJ tr_array_push(VM, OBJ a, OBJ item);
@@ -216,6 +222,7 @@ OBJ tr_io_new(VM, int fd);
 void tr_vm_init(VM);
 void tr_special_init(VM);
 void tr_class_init(VM);
+void tr_module_init(VM);
 void tr_object_init(VM);
 void tr_kernel_init(VM);
 void tr_string_init(VM);

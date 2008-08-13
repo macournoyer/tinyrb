@@ -259,10 +259,11 @@ static tr_define_builtins(VM)
 {
   tr_class_init(vm);
   tr_object_init(vm);
+  tr_module_init(vm);
   
   OBJ class  = tr_const_get(vm, "Class");
   OBJ object = tr_const_get(vm, "Object");
-  OBJ module = tr_class_new(vm, "Module", tr_const_get(vm, "Object"));
+  OBJ module = tr_const_get(vm, "Module");
   
   /* Since Class was not defined yet, have to do it manually */
   TR_CCLASS(class)->super  = TR_CCLASS(module);
@@ -278,6 +279,8 @@ static tr_define_builtins(VM)
   tr_array_init(vm);
   tr_io_init(vm);
   tr_special_init(vm);
+  
+  tr_module_include(vm, object, tr_const_get(vm, "Kernel"));
 }
 
 void tr_init(VM, int argc, char const *argv[])
