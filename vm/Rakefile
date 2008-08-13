@@ -7,7 +7,7 @@ CLEAN.include('boot.cx')
 compile_tasks "vm"
 
 file "boot.cx" => ["boot.rb", "compile.rb"] do |t|
-  sh "#{RUBY_19} compile.rb boot boot.rb > #{t.name}"
+  sh "#{RUBY_19} compile.rb boot.rb > #{t.name}"
 end
 
 # File dependencies
