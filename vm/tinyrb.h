@@ -201,6 +201,8 @@ OBJ tr_array_pop(VM, OBJ a);
 OBJ tr_array_last(VM, OBJ o);
 OBJ tr_array_count(VM, OBJ a);
 OBJ tr_array_at(VM, OBJ self, int i);
+OBJ tr_array_set(VM, OBJ self, int i, OBJ item);
+OBJ tr_array_insert(VM, OBJ self, int i, OBJ item);
 void tr_array_init(VM);
 
 /* io */

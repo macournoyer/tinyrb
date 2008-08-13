@@ -35,7 +35,7 @@ static u_int tr_hashcode_string(OBJ v)
   return tr_hash;
 }
 
-static u_int tr_hashcode(tr_hash *h, OBJ v)
+static u_int tr_hashcode(VM, tr_hash *h, OBJ v)
 {
   u_int i;
   
@@ -43,7 +43,7 @@ static u_int tr_hashcode(tr_hash *h, OBJ v)
     case TR_STRING: i = tr_hashcode_string(v); break;
     case TR_FIXNUM: i = TR_FIX(v); break;
     default:
-      tr_log("no hash method for type: %d", TR_TYPE(v));
+      tr_raise(vm, "no hash method for type: %d", TR_TYPE(v));
       i = (u_int) v;
   }
   
@@ -57,13 +57,13 @@ static u_int tr_hashcode(tr_hash *h, OBJ v)
   return i;
 }
 
-static int tr_hash_keys_compare(OBJ key1, OBJ key2)
+static int tr_hash_keys_compare(VM, OBJ key1, OBJ key2)
 {
   switch (TR_TYPE(key1)) {
     case TR_STRING: return strcmp((char *) key1, (char *) key2) == 0;
     case TR_FIXNUM: return TR_FIX(key1) == TR_FIX(key2);
   }
-  tr_log("don't know how to compare key of type: %d: ", TR_TYPE(key1));
+  tr_raise(vm, "don't know how to compare key of type: %d: ", TR_TYPE(key1));
   return 0;
 }
 
@@ -187,7 +187,7 @@ OBJ tr_hash_set(VM, OBJ o, OBJ k, OBJ v)
     return TR_NIL;
   } /*oom*/
   
-  e->h    = tr_hashcode(h, k);
+  e->h    = tr_hashcode(vm, h, k);
   index   = HASH_INDEX(h->tablelength, e->h);
   e->k    = k;
   e->v    = v;
@@ -203,13 +203,13 @@ OBJ tr_hash_get(VM, OBJ o, OBJ k)
   tr_hash_entry *e;
   u_int          hashvalue, index;
   
-  hashvalue = tr_hashcode(h, k);
+  hashvalue = tr_hashcode(vm, h, k);
   index     = HASH_INDEX(h->tablelength, hashvalue);
   e         = h->table[index];
   
   while (NULL != e) {
     /* Check tr_hash value to short circuit heavier comparison */
-    if ((hashvalue == e->h) && (tr_hash_keys_compare(k, e->k)))
+    if ((hashvalue == e->h) && (tr_hash_keys_compare(vm, k, e->k)))
       return e->v;
     e = e->next;
   }
@@ -228,14 +228,14 @@ OBJ tr_hash_delete(VM, OBJ o, OBJ k)
   OBJ             v;
   u_int           hashvalue, index;
 
-  hashvalue = tr_hashcode(h, k);
-  index     = HASH_INDEX(h->tablelength, tr_hashcode(h, k));
+  hashvalue = tr_hashcode(vm, h, k);
+  index     = HASH_INDEX(h->tablelength, tr_hashcode(vm, h, k));
   pE        = &(h->table[index]);
   e         = *pE;
   
   while (NULL != e) {
     /* Check hash value to short circuit heavier comparison */
-    if ((hashvalue == e->h) && (tr_hash_keys_compare(k, e->k))) {
+    if ((hashvalue == e->h) && (tr_hash_keys_compare(vm, k, e->k))) {
       *pE = e->next;
       h->hash_entrycount--;
       v = e->v;

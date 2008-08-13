@@ -152,6 +152,9 @@ OBJ tr_run(VM, OBJ ops)
       case DUP:
         STACK_PUSH(tr_array_last(vm, f->stack));
         break;
+      case SETN:
+        STACK_POP(); /* ignore */
+        break;
       
       /* method */
       case SEND:
