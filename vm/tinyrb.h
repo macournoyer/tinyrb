@@ -165,6 +165,7 @@ OBJ tr_metaclass_new(VM);
 /* object */
 void tr_const_set(VM, const char *name, OBJ obj);
 OBJ tr_const_get(VM, const char *name);
+int tr_const_defined(VM, const char *name);
 OBJ tr_special_get(VM, OBJ obj);
 void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class);
 OBJ tr_new(VM, OBJ class, int argc, OBJ argv[]);

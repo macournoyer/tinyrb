@@ -17,6 +17,13 @@ OBJ tr_const_get(VM, const char *name)
   return c;
 }
 
+int tr_const_defined(VM, const char *name)
+{
+  OBJ c = tr_hash_get(vm, CUR_FRAME->consts, tr_intern(vm, name));
+  
+  return c != TR_NIL;
+}
+
 OBJ tr_special_get(VM, OBJ obj)
 {
   switch (obj) {
