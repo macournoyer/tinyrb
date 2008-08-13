@@ -1,7 +1,8 @@
 TODOs (by priority)
 ===================
+- Make Symbol usable as Object
 - Implement Range (require by parser)
-- Allow reopening classes
+- Implement array splat (require by parser)
 - Move some core classe method to ruby? Load before parsing
 - Run parser through tinyrb
 - Implement module `include`

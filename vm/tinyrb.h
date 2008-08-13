@@ -2,11 +2,13 @@
 #define _TINYRB_H_
 
 #include <assert.h>
+#include <fcntl.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -31,6 +33,7 @@
 #define TR_CCLASS(o)    TR_CTYPE(o, TR_CLASS, tr_class)
 #define TR_CMETHOD(o)   TR_CTYPE(o, TR_METHOD, tr_method)
 #define TR_CPROC(o)     TR_CTYPE(o, TR_PROC, tr_proc)
+#define TR_CIO(o)       TR_CTYPE(o, TR_IO, tr_io)
 #define TR_CBOOL(o)     ((o)?TR_TRUE:TR_FALSE);
 
 /* shortcuts */
