@@ -46,8 +46,22 @@ void test_slice()
   assert_str_equal("aie", TR_STR(ret));
 }
 
+void test_intern()
+{
+  SETUP_VM;
+  OBJ s1 = tr_intern(vm, "ohaie");
+  OBJ s2 = tr_intern(vm, "ohaie");
+  OBJ s3 = tr_intern(vm, "kthxbai");
+  
+  assert_same(TR_SYMBOL, TR_TYPE(s1));
+  
+  assert_same(s2, s1);
+  assert_equal(0, s2 != s3);
+}
+
 TEST_START;
-  test_str();
+  /* test_str();
   test_concat();
-  test_slice();
+  test_slice(); */
+  test_intern();
 TEST_END;

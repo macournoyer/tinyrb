@@ -137,6 +137,16 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops)
 
 /* object */
 
+tr_type tr_type_get(OBJ obj)
+{
+  if (obj <= TR_UNDEF)
+    return TR_SPECIAL;
+  else if (TR_SPECIAL(obj, TR_SYMBOL_FLAG))
+    return TR_SYMBOL;
+  else
+    return ((tr_obj *) obj)->type;
+}
+
 void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class)
 {
   tr_obj *o = TR_COBJ(obj);

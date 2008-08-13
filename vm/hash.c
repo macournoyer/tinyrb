@@ -23,31 +23,20 @@ const float max_load_factor = 0.65;
 
 #define freekey(X) tr_free(X)
 
-static u_int tr_hashcode_string(OBJ v)
-{
-  char          *str = TR_STR(v);
-  unsigned long  tr_hash = 5381;
-  int            c;
-  
-  while (c = *str++)
-    tr_hash = ((tr_hash << 5) + tr_hash) + c; /* hash * 33 + c */
-  
-  return tr_hash;
-}
-
-static u_int tr_hashcode(VM, tr_hash *h, OBJ v)
+static u_int tr_hashcode(VM, OBJ v)
 {
   u_int i;
   
   switch (TR_TYPE(v)) {
-    case TR_STRING: i = tr_hashcode_string(v); break;
+    case TR_STRING: i = tr_string_hash(TR_STR(v)); break;
     case TR_FIXNUM: i = TR_FIX(v); break;
+    case TR_SYMBOL: i = v; break;
     default:
       tr_raise(vm, "no hash method for type: %d", TR_TYPE(v));
       i = (u_int) v;
   }
   
-  /* Aim to protect against poor tr_hash functions by adding logic here
+  /* Aim to protect against poor hash functions by adding logic here
    * - logic taken from java 1.4 hash source */
   i += ~(i << 9);
   i ^=  ((i >> 14) | (i << 18)); /* >>> */
@@ -62,6 +51,7 @@ static int tr_hash_keys_compare(VM, OBJ key1, OBJ key2)
   switch (TR_TYPE(key1)) {
     case TR_STRING: return strcmp((char *) key1, (char *) key2) == 0;
     case TR_FIXNUM: return TR_FIX(key1) == TR_FIX(key2);
+    case TR_SYMBOL: return key1 == key2;
   }
   tr_raise(vm, "don't know how to compare key of type: %d: ", TR_TYPE(key1));
   return 0;
@@ -187,7 +177,7 @@ OBJ tr_hash_set(VM, OBJ o, OBJ k, OBJ v)
     return TR_NIL;
   } /*oom*/
   
-  e->h    = tr_hashcode(vm, h, k);
+  e->h    = tr_hashcode(vm, k);
   index   = HASH_INDEX(h->tablelength, e->h);
   e->k    = k;
   e->v    = v;
@@ -203,7 +193,7 @@ OBJ tr_hash_get(VM, OBJ o, OBJ k)
   tr_hash_entry *e;
   u_int          hashvalue, index;
   
-  hashvalue = tr_hashcode(vm, h, k);
+  hashvalue = tr_hashcode(vm, k);
   index     = HASH_INDEX(h->tablelength, hashvalue);
   e         = h->table[index];
   
@@ -228,8 +218,8 @@ OBJ tr_hash_delete(VM, OBJ o, OBJ k)
   OBJ             v;
   u_int           hashvalue, index;
 
-  hashvalue = tr_hashcode(vm, h, k);
-  index     = HASH_INDEX(h->tablelength, tr_hashcode(vm, h, k));
+  hashvalue = tr_hashcode(vm, k);
+  index     = HASH_INDEX(h->tablelength, tr_hashcode(vm, k));
   pE        = &(h->table[index]);
   e         = *pE;
   

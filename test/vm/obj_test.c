@@ -21,7 +21,17 @@ void test_send_to_superclass()
   assert_equal(1, TR_NIL != v);
 }
 
+void test_obj_type()
+{
+  assert_equal(TR_SPECIAL, tr_type_get(TR_NIL));
+  assert_equal(TR_SPECIAL, tr_type_get(TR_TRUE));
+  assert_equal(TR_SPECIAL, tr_type_get(TR_UNDEF));
+  assert_equal(TR_SYMBOL, tr_type_get(tr_intern(NULL, "hi")));  
+  assert_equal(TR_ARRAY, tr_type_get((OBJ)tr_array_struct(NULL)));
+}
+
 TEST_START;
   test_type();
   test_send_to_superclass();
+  test_obj_type();
 TEST_END;

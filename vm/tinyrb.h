@@ -22,10 +22,15 @@
 #define TR_NIL   ((OBJ) 4)
 #define TR_UNDEF ((OBJ) 6)
 
+/* flags */
+#define TR_SPECIAL_SHIFT 8
+#define TR_SYMBOL_FLAG   0x0e
+#define TR_SPECIAL(o,f)  (((o)&(f))==(f))
+
 /* conversion */
-#define TR_TYPE(o)      (TR_COBJ(o)->type)
-#define TR_CTYPE(o,e,t) (assert(((OBJ) o) > TR_UNDEF && TR_TYPE(o) == e), ((t *) o))
-#define TR_COBJ(o)      (assert(((OBJ) o) > TR_UNDEF), (tr_obj *) o)
+#define TR_TYPE(o)      tr_type_get(o)
+#define TR_CTYPE(o,e,t) (assert(TR_TYPE(o) == e), ((t *) o))
+#define TR_COBJ(o)      (assert(TR_TYPE(o) < TR_SPECIAL), (tr_obj *) o)
 #define TR_CSTRING(o)   TR_CTYPE(o, TR_STRING, tr_string)
 #define TR_CFIXNUM(o)   TR_CTYPE(o, TR_FIXNUM, tr_fixnum)
 #define TR_CARRAY(o)    TR_CTYPE(o, TR_ARRAY, tr_array)
@@ -52,8 +57,11 @@
 
 /* objects */
 typedef unsigned long OBJ;
-typedef enum { TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS,
-               TR_IO, TR_METHOD, TR_PROC, TR_OBJECT, TR_SPECIAL } tr_type;
+typedef enum {
+  TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS,
+  TR_IO, TR_METHOD, TR_PROC, TR_OBJECT,
+  TR_SPECIAL, TR_SYMBOL /* put all "special" types here */
+} tr_type;
 
 #define ACTS_AS_TR_OBJ /* lol! */ \
   tr_type          type;  \
@@ -145,8 +153,9 @@ typedef struct tr_frame {
 } tr_frame;
 
 typedef struct tr_vm {
-  off_t    cf; /* current frame */
-  tr_frame frames[TR_MAX_FRAMES];
+  off_t     cf; /* current frame */
+  tr_frame  frames[TR_MAX_FRAMES];
+  tr_hash  *symbols;
 } tr_vm;
 
 /* vm */
@@ -175,6 +184,7 @@ OBJ tr_const_get(VM, const char *name);
 int tr_const_defined(VM, const char *name);
 OBJ tr_special_get(VM, OBJ obj);
 OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops);
+tr_type tr_type_get(OBJ obj);
 void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class);
 OBJ tr_new(VM, OBJ class, int argc, OBJ argv[]);
 OBJ tr_new2(VM, OBJ class);
@@ -190,6 +200,7 @@ OBJ tr_string_new(VM, const char *ptr);
 OBJ tr_string_new2(VM, const char *ptr, size_t len);
 OBJ tr_intern(VM, const char *ptr);
 OBJ tr_string_concat(VM, OBJ self, OBJ str2);
+u_int tr_string_hash(const char *str);
 
 /* fixnum */
 OBJ tr_fixnum_new(VM, int val);

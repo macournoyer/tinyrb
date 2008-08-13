@@ -17,19 +17,6 @@ OBJ tr_string_new2(VM, const char *ptr, size_t len)
   return (OBJ) str;
 }
 
-OBJ tr_intern(VM, const char *ptr)
-{
-  /* TODO */
-  tr_string *str = (tr_string *) tr_malloc(sizeof(tr_string));
-  
-  /* tr_obj_init(vm, TR_STRING, (OBJ) str, tr_const_get(vm, "Symbol")); */
-  str->len  = strlen(ptr);
-  str->ptr  = tr_malloc(str->len * sizeof(char));
-  strcpy(str->ptr, ptr);
-  
-  return (OBJ) str;
-}
-
 OBJ tr_string_concat(VM, OBJ self, OBJ str2)
 {
   tr_string *str = (tr_string *) tr_string_new(vm, TR_STR(self));
@@ -83,4 +70,23 @@ void tr_string_init(VM)
   tr_def(vm, class, "size", tr_string_size, 0);
   tr_def(vm, class, "[]", tr_string_slice, 2);
   tr_def(vm, class, "==", tr_string_slice, 1);
+}
+
+/* symbol */
+u_int tr_string_hash(const char *str)
+{
+  unsigned long  hash = 5381;
+  int            c;
+  
+  while (c = *str++)
+    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+  
+  return hash;
+}
+
+OBJ tr_intern(VM, const char *ptr)
+{
+  u_int hash = tr_string_hash(ptr);
+  
+  return (OBJ) hash << TR_SPECIAL_SHIFT | TR_SYMBOL_FLAG;
 }

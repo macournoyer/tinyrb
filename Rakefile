@@ -19,7 +19,12 @@ task :test do
 end
 task :default => :test
 
+def compute_size(dir)
+  "%0.2fK" % (Dir["{#{dir}}/**.{c,rb,h}"].inject(0) { |sum, f| sum += File.size(f) } / 1024.0)
+end
 desc "Compute size of codebase"
 task :size do
-  puts "%0.2fK" % (Dir["{parser,vm}/**.{c,rb,h}"].inject(0) { |sum, f| sum += File.size(f) } / 1024.0)
+  puts "vm:     " + compute_size("vm")
+  puts "parser: " + compute_size("parser")
+  puts "total:  " + compute_size("vm,parser")
 end
