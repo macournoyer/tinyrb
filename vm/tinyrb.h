@@ -79,11 +79,17 @@ typedef struct tr_fixnum {
   int   val;
 } tr_fixnum;
 
+typedef struct tr_array_entry {
+  OBJ                    value;
+  struct tr_array_entry *next;
+  struct tr_array_entry *prev;
+} tr_array_entry;
+
 typedef struct tr_array {
   ACTS_AS_TR_OBJ;
-  size_t   count;
-  uint     nalloc;
-  OBJ     *items;
+  size_t          count;
+  tr_array_entry *first;
+  tr_array_entry *last;
 } tr_array;
 
 typedef struct tr_hash_entry {
@@ -187,12 +193,11 @@ OBJ tr_hash_clear(VM, OBJ h);
 /* array */
 OBJ tr_array_new(VM);
 OBJ tr_array_create(VM, int argc, ...);
-void tr_array_push(VM, OBJ a, OBJ item);
+OBJ tr_array_push(VM, OBJ a, OBJ item);
 OBJ tr_array_pop(VM, OBJ a);
 OBJ tr_array_last(VM, OBJ o);
 OBJ tr_array_count(VM, OBJ a);
 OBJ tr_array_at(VM, OBJ self, int i);
-void tr_array_destroy(VM, OBJ a);
 void tr_array_init(VM);
 
 /* io */

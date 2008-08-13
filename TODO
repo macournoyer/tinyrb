@@ -3,7 +3,6 @@ TODOs (by priority)
 - Allow reopening classes
 - Move some core classe method to ruby? Load before parsing
 - Run parser through tinyrb
-- Refactor tr_array to a linked list
 - Implement module `include`
 - Implement string interning (http://en.wikipedia.org/wiki/String_intern_pool)
 - consts should be relative to current object (???)

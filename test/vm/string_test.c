@@ -21,7 +21,7 @@ void test_concat()
   OBJ str2 = tr_string_new(vm, "aie");
   OBJ argv[] = { str2 };
   
-  OBJ res = tr_send(vm, str1, tr_intern(vm, "+"), 1, argv);
+  OBJ res = tr_send(vm, str1, tr_intern(vm, "+"), 1, argv, TR_NIL);
   
   assert_str_equal("ohaie", TR_STR(res));
 }
@@ -33,16 +33,16 @@ void test_slice()
   OBJ argv[] = { tr_fixnum_new(vm, 2), tr_fixnum_new(vm, 3) };
   OBJ ret;
   
-  ret = tr_send(vm, str, tr_intern(vm, "[]"), 2, argv);
+  ret = tr_send(vm, str, tr_intern(vm, "[]"), 2, argv, TR_NIL);
   assert_str_equal("aie", TR_STR(ret));
   
   argv[0] = tr_fixnum_new(vm, 10);
-  ret = tr_send(vm, str, tr_intern(vm, "[]"), 2, argv);
+  ret = tr_send(vm, str, tr_intern(vm, "[]"), 2, argv, TR_NIL);
   assert_equal(TR_NIL, ret);
 
   argv[0] = tr_fixnum_new(vm, 2);
   argv[1] = tr_fixnum_new(vm, 10);
-  ret = tr_send(vm, str, tr_intern(vm, "[]"), 2, argv);
+  ret = tr_send(vm, str, tr_intern(vm, "[]"), 2, argv, TR_NIL);
   assert_str_equal("aie", TR_STR(ret));
 }
 

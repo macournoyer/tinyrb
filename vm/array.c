@@ -1,26 +1,24 @@
 #include "tinyrb.h"
 
-#define TR_ARRAY_N    1024 /* items in new array, TODO lower? */
-#define TR_ARRAY_SIZE sizeof(OBJ *)
-#define OBJ_AT(a,i)   *((OBJ *) (a)->items + TR_ARRAY_SIZE * (i))
-
 OBJ tr_array_new(VM)
 {
   tr_array *a = (tr_array *) tr_malloc(sizeof(tr_array));
-  if (a == NULL)
-    return TR_NIL;
   
   tr_obj_init(vm, TR_ARRAY, (OBJ) a, tr_const_get(vm, "Array"));
-  a->nalloc = TR_ARRAY_N;
-  a->count  = 0;
-  a->items  = tr_malloc(TR_ARRAY_N * TR_ARRAY_SIZE);
-  
-  if (a->items == NULL) {
-    tr_free(a);
-    return TR_NIL;
-  }
+  a->count = 0;
+  a->first = NULL;
+  a->last  = NULL;
 
   return (OBJ) a;
+}
+
+static tr_array_entry *tr_array_entry_new(VM, OBJ value)
+{
+  tr_array_entry *e = (tr_array_entry *) tr_malloc(sizeof(tr_array_entry));
+  e->value = value;
+  e->next  = NULL;
+  e->prev  = NULL;
+  return e;
 }
 
 OBJ tr_array_create(VM, int argc, ...)
@@ -40,39 +38,44 @@ OBJ tr_array_create(VM, int argc, ...)
   return a;
 }
 
-void tr_array_push(VM, OBJ self, OBJ item)
+OBJ tr_array_push(VM, OBJ self, OBJ item)
 {
-  tr_array *a = TR_CARRAY(self);
-  OBJ      *slot;
+  tr_array       *a = TR_CARRAY(self);
+  tr_array_entry *e = tr_array_entry_new(vm, item);
   
-  if (a->count == a->nalloc) {
-    /* array is full, double the size */
-
-    void   *new;
-    size_t  size;
-    
-    size = TR_ARRAY_SIZE * a->nalloc;
-
-    new = tr_realloc(a->items, 2 * size);
-    assert(new);
-    
-    a->items = new;
-    a->nalloc *= 2;
+  a->count++;
+  
+  if (a->first == NULL) {
+    a->first = a->last = e;
+    return item;
   }
   
-  slot = (OBJ *) a->items + TR_ARRAY_SIZE * a->count;
-  memcpy((void *) slot, &item, sizeof(OBJ *));
-  a->count++;
+  a->last->next = e;
+  e->prev = a->last;
+  a->last = e;
+  
+  return item;
 }
 
 OBJ tr_array_pop(VM, OBJ self)
 {
-  tr_array *a   = TR_CARRAY(self);
-  OBJ       obj = tr_array_last(vm, self);
-
-  if (a->count > 0)
-    TR_CARRAY(a)->count--;
-
+  tr_array       *a = TR_CARRAY(self);
+  tr_array_entry *e;
+  OBJ             obj;
+  
+  if (a->first == NULL)
+    return TR_NIL;
+  
+  e   = a->last;
+  obj = e->value;
+  a->count--;
+  
+  a->last = e->prev;
+  tr_free(e);
+  
+  if (a->count == 0)
+    a->first = a->last = NULL;
+  
   return obj;
 }
 
@@ -80,40 +83,74 @@ OBJ tr_array_last(VM, OBJ self)
 {
   tr_array *a = TR_CARRAY(self);
   
-  if (a->count == 0)
+  if (a->first == NULL)
     return TR_NIL;
   
-  return OBJ_AT(a, a->count - 1);
+  return a->last->value;
 }
 
 OBJ tr_array_count(VM, OBJ self)
 {
-  tr_array *a = TR_CARRAY(self);
-  
-  return tr_fixnum_new(vm, a->count);
+  return tr_fixnum_new(vm, TR_CARRAY(self)->count);
 }
 
-void tr_array_destroy(VM, OBJ self)
+static tr_array_entry *tr_array_entry_at(VM, OBJ self, int i)
 {
-  tr_array *a = TR_CARRAY(self);
+  tr_array       *a = TR_CARRAY(self);
+  tr_array_entry *e = a->first;
+  off_t           c = 0;
   
-  tr_free(a->items);
-  tr_free(a);
+  if (i >= a->count)
+    return NULL;
+  
+  for (c = 0; c < i && e != NULL; ++c)
+    e = e->next;
+  
+  if (c == i && e != NULL)
+    return e;
+  return NULL;
 }
 
 OBJ tr_array_at(VM, OBJ self, int i)
 {
-  tr_array *a = TR_CARRAY(self);
+  tr_array_entry *e = tr_array_entry_at(vm, self, i);
   
-  if (i >= a->count)
+  if (e == NULL)
     return TR_NIL;
   
-  return OBJ_AT(a, i);
+  return e->value;
 }
 
 static OBJ tr_array_at2(VM, OBJ self, OBJ i)
 {
   return tr_array_at(vm, self, TR_FIX(i));
+}
+
+OBJ tr_array_insert(VM, OBJ self, int i, OBJ item)
+{
+  tr_array       *a = TR_CARRAY(self);
+  tr_array_entry *e = tr_array_entry_at(vm, self, i);
+  tr_array_entry *n = tr_array_entry_new(vm, item);
+  
+  if (e == NULL)
+    return tr_array_push(vm, self, item);
+  
+  if (e->prev == NULL)
+    a->first = n;
+  else
+    e->prev->next = n;
+  n->prev = e->prev;
+  e->prev = n;
+  n->next = e;
+  
+  a->count++;
+  
+  return item;
+}
+
+static OBJ tr_array_insert2(VM, OBJ self, int i, OBJ item)
+{
+  return tr_array_insert(vm, self, TR_FIX(i), item);
 }
 
 void tr_array_init(VM)
@@ -125,5 +162,6 @@ void tr_array_init(VM)
   tr_def(vm, class, "count", tr_array_count, 0);
   tr_def(vm, class, "size", tr_array_count, 0);
   tr_def(vm, class, "<<", tr_array_push, 1);
+  tr_def(vm, class, "insert", tr_array_insert2, 2);
 }
 

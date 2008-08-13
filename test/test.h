@@ -22,6 +22,9 @@
 #define assert_equal(expected, actual) \
   _assert(expected == actual, "%d expected but was %d", expected, actual)
 
+#define assert_same(expected, actual) \
+  _assert(expected == actual, "%p expected but was %p", expected, actual)
+
 #define assert_str_equal(expected, actual) \
   _assert(strcmp(expected, actual) == 0, "%s expected but was %s", expected, actual)
 

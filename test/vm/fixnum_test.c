@@ -24,8 +24,9 @@ void test_fixnum_to_s()
   SETUP_VM;
   OBJ n = tr_fixnum_new(vm, 52);
   OBJ argv[0];
+  OBJ v = tr_send(vm, n, tr_intern(vm, "to_s"), 0, argv, TR_NIL);
   
-  assert_str_equal("52", TR_STR(tr_send(vm, n, tr_intern(vm, "to_s"), 0, argv)));
+  assert_str_equal("52", TR_STR(v));
 }
 
 TEST_START;

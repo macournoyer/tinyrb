@@ -38,6 +38,7 @@ class InstructionConverter
     @line       = 0
     @blocks     = []
     
+    # TODO remove, put back to putobject
     # special convertions
     convert :putobject do |cmds|
       type = case cmds[0]
@@ -49,12 +50,6 @@ class InstructionConverter
         op :putspecial, cmds[0]
       end
     end
-    convert :definemethod do |cmds|
-      op :definemethod, cmds[0], cmds[1], cmds[2], cmds[1].last.size-1
-    end
-    convert :defineclass do |cmds|
-      op :defineclass, cmds[0], cmds[1], cmds[2], cmds[1].last.size-1
-    end
   end
   
   def convert(code, &block)
@@ -62,12 +57,12 @@ class InstructionConverter
   end
   
   def op(code, *cmds)
-    cmd = cmds.collect { |c| convert_type(c) }
+    cmd = cmds.collect { |c| convert_type(code, c) }
     code_fix = "tr_fixnum_new(vm, #{code.to_s.upcase})"
     @out << %Q[  tr_array_push(vm, o, tr_array_create(vm, #{2+cmd.size}, tr_fixnum_new(vm, #{@line}), #{[code_fix, *cmd].join(", ")}));]
   end
   
-  def convert_type(v)
+  def convert_type(code, v)
     case v
     when Symbol
       "tr_intern(vm, \"#{v}\")"
@@ -82,9 +77,13 @@ class InstructionConverter
     when Fixnum
       "tr_fixnum_new(vm, #{v})"
     when Array
-      key = "#{@name}_b#{@blocks.size+1}"
-      @blocks << InstructionConverter.new(key, v).to_s
-      key + "(vm)"
+      if code == :duparray
+        "tr_array_create(vm, #{v.size}, #{v.map { |i| convert_type(code, i) }.join(", ")})"
+      else
+        key = "#{@name}_b#{@blocks.size+1}"
+        @blocks << InstructionConverter.new(key, v).to_s
+        key + "(vm)"
+      end
     else
       v.inspect
     end

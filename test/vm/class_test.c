@@ -37,7 +37,7 @@ void test_send_to_class()
   OBJ    argv[0];
   
   obj = tr_new2(vm, cat_new(vm));
-  ret = tr_send(vm, obj, tr_intern(vm, "def"), 0, argv);
+  ret = tr_send(vm, obj, tr_intern(vm, "def"), 0, argv, TR_NIL);
   
   assert_equal(TR_TRUE, ret);
 }
@@ -49,7 +49,7 @@ void test_send_to_metaclass()
   OBJ    argv[0];
   
   obj = cat_new(vm);
-  ret = tr_send(vm, obj, tr_intern(vm, "metadef"), 0, argv);
+  ret = tr_send(vm, obj, tr_intern(vm, "metadef"), 0, argv, TR_NIL);
   
   assert_equal(TR_TRUE, ret);
 }
@@ -58,7 +58,7 @@ void test_send_multi_args()
 {
   SETUP_VM;
   OBJ argv[] = { TR_FALSE };
-  OBJ ret = tr_send(vm, cat_new(vm), tr_intern(vm, "args"), 1, argv);
+  OBJ ret = tr_send(vm, cat_new(vm), tr_intern(vm, "args"), 1, argv, TR_NIL);
   
   assert_equal(TR_FALSE, ret);
 }
@@ -67,7 +67,7 @@ void test_send_var_args()
 {
   SETUP_VM;
   OBJ argv[] = { TR_FALSE };
-  OBJ ret = tr_send(vm, cat_new(vm), tr_intern(vm, "varargs"), 1, argv);
+  OBJ ret = tr_send(vm, cat_new(vm), tr_intern(vm, "varargs"), 1, argv, TR_NIL);
   
   assert_equal(1, TR_FIX(ret));
 }

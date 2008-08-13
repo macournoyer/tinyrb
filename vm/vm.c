@@ -40,22 +40,20 @@ static OBJ tr_vm_newarray(VM, int argc)
   OBJ    a = tr_array_new(vm);
   size_t i;
   
-  /* TODO reverse! */
   for (i = argc; i > 0; --i)
-    tr_array_push(vm, a, STACK_POP());
+    tr_array_insert(vm, a, 0, STACK_POP());
   
   return a;
 }
 
 static void tr_dump_stack(VM)
 {
-  size_t    i;
-  tr_array *a = TR_CARRAY(CUR_FRAME->stack);
-  OBJ      *o;
+  tr_array       *a = TR_CARRAY(CUR_FRAME->stack);
+  tr_array_entry *e = a->first;
+  size_t          i = 0;
   
-  for (i = 0; i < a->count; ++i) {
-    o = (OBJ *) a->items + i * sizeof(OBJ *);
-    printf("    [%d] %p\n", i, *o);
+  while (e != NULL) {
+    printf("    [%d] %p\n", i++, e->value);
   }
 }
 
@@ -117,6 +115,9 @@ OBJ tr_run(VM, OBJ ops)
         break;
       case NEWARRAY:
         STACK_PUSH(tr_vm_newarray(vm, TR_FIX(CMD(0))));
+        break;
+      case DUPARRAY:
+        STACK_PUSH(CMD(0));
         break;
       
       /* put */

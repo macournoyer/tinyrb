@@ -16,8 +16,9 @@ void test_send_to_superclass()
   SETUP_VM;
   OBJ str = tr_string_new(vm, "lol");
   OBJ argv[0];
+  OBJ v = tr_send(vm, str, tr_intern(vm, "inspect"), 0, argv, TR_NIL);
   
-  assert_equal(1, TR_NIL != tr_send(vm, str, tr_intern(vm, "inspect"), 0, argv));
+  assert_equal(1, TR_NIL != v);
 }
 
 TEST_START;
