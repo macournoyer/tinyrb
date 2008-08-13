@@ -47,8 +47,8 @@ VM.run [
 ]
 
 # proc
-proc1 = Proc.new { "hi from proc" }
-Kernel.puts proc1.call
+p = Proc.new { |hi| hi + " from proc" }
+Kernel.puts p.call("hi")
 
 # exception
 Kernel.raise "This is not so exceptional"

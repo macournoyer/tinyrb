@@ -9,7 +9,7 @@ const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPEC
   "TOREGEXP","NEWARRAY","DUPARRAY","EXPANDARRAY","CONCATARRAY","SPLATARRAY","CHECKINCLUDEARRAY","NEWHASH",
   "NEWRANGE","PUTNOT","POP","DUP","DUPN","SWAP","REPUT","TOPN","EMPTSTACK","DEFINEMETHOD","ALIAS","UNDEF","DEFINED",
   "POSTEXE","TRACE","DEFINECLASS","SEND","INVOKESUPER","INVOKEBLOCK","LEAVE","FINISH","THROW","JUMP","BRANCHIF",
-  "BRANCHUNLESS", /* mine */ "LABEL","PUTFIXNUM","PUTSYMBOL","PUTSPECIAL"};
+  "BRANCHUNLESS", "SETN", /* mine */ "LABEL","PUTFIXNUM","PUTSYMBOL","PUTSPECIAL"};
 #endif
 
 #define STACK_PUSH(o)  tr_array_push(vm, CUR_FRAME->stack, (o))
@@ -54,6 +54,7 @@ static void tr_dump_stack(VM)
   
   while (e != NULL) {
     printf("    [%d] %p\n", i++, e->value);
+    e = e->next;
   }
 }
 
@@ -96,6 +97,10 @@ OBJ tr_run(VM, OBJ ops)
         break;
       case SETLOCAL:
         tr_hash_set(vm, f->locals, CMD(0), STACK_POP());
+        break;
+      case GETDYNAMIC:
+        /* huuu so not sure about this... see proc.c for HACK */
+        STACK_PUSH(VM_FRAME(TR_FIX(CMD(1)))->block_argv[VM_FRAME(TR_FIX(CMD(1)))->block_argc-TR_FIX(CMD(0))]);
         break;
       case SETINSTANCEVARIABLE:
         tr_hash_set(vm, TR_COBJ(f->self)->ivars, CMD(0), STACK_POP());

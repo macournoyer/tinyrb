@@ -37,7 +37,8 @@
 #define TR_STR(s)       (TR_CSTRING(s)->ptr)
 #define TR_FIX(n)       (TR_CFIXNUM(n)->val)
 #define VM              tr_vm *vm
-#define CUR_FRAME       (&vm->frames[vm->cf])
+#define VM_FRAME(n)     (&vm->frames[n])
+#define CUR_FRAME       VM_FRAME(vm->cf)
 
 /* mem stuff */
 #define tr_malloc(s)    malloc(s)
@@ -134,6 +135,8 @@ typedef struct tr_frame {
   OBJ  self;
   OBJ  class;
   OBJ  block;
+  OBJ *block_argv;
+  int  block_argc;
   uint line; /* cur line num */
 } tr_frame;
 

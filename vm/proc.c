@@ -17,10 +17,14 @@ OBJ tr_proc_call(VM, OBJ self, int argc, OBJ argv[])
   OBJ      ret;
   off_t    cf = vm->cf;
   
-  /* TODO pass argv */
-  
   vm->cf = proc->cf;
+  
+  /* HACK used by GETDYNAMIC */
+  CUR_FRAME->block_argc = argc;
+  CUR_FRAME->block_argv = argv; 
+  
   ret = tr_run(vm, proc->ops);
+  
   vm->cf = cf;
   
   return ret;
