@@ -275,6 +275,7 @@ static tr_define_builtins(VM)
   tr_proc_init(vm);
   tr_kernel_init(vm);
   tr_string_init(vm);
+  tr_symbol_init(vm);
   tr_fixnum_init(vm);
   tr_array_init(vm);
   tr_io_init(vm);
@@ -289,6 +290,7 @@ void tr_init(VM, int argc, char const *argv[])
   tr_frame *f;
   
   vm->cf = 0;
+  vm->symbols = tr_array_struct(vm);
   
   f = CUR_FRAME;
   f->consts = tr_hash_new(vm);

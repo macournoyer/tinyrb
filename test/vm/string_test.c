@@ -59,9 +59,28 @@ void test_intern()
   assert_equal(0, s2 != s3);
 }
 
+void test_symbol_type()
+{
+  SETUP_VM;
+  OBJ s = tr_intern(vm, "ohaie");
+  
+  assert_equal(TR_SYMBOL, TR_TYPE(s));
+}
+
+void test_get_special_symbol()
+{
+  SETUP_VM;
+  OBJ s = tr_intern(vm, "ohaie");
+  OBJ str = tr_special_get(vm, s);
+  
+  assert_str_equal("ohaie", TR_STR(str));
+}
+
 TEST_START;
   /* test_str();
   test_concat();
-  test_slice(); */
+  test_slice();
   test_intern();
+  test_symbol_type(); */
+  test_get_special_symbol();
 TEST_END;

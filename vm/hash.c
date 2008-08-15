@@ -18,10 +18,21 @@ static const u_int primes[] = {
 const u_int prime_table_length = sizeof(primes)/sizeof(primes[0]);
 const float max_load_factor = 0.65;
 
-#define HASH_MINSIZE    10
+#define HASH_MINSIZE    100 /* TODO test and tweak */
 #define HASH_INDEX(v,l) ((v) % (l))
 
 #define freekey(X) tr_free(X)
+
+static u_int tr_string_hash(const char *str)
+{
+  unsigned long  hash = 5381;
+  int            c;
+  
+  while (c = *str++)
+    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+  
+  return hash;
+}
 
 static u_int tr_hashcode(VM, OBJ v)
 {
@@ -151,9 +162,9 @@ static int tr_hash_expand(tr_hash *h)
   return -1;
 }
 
-size_t tr_hash_count(VM, OBJ h)
+OBJ tr_hash_count(VM, OBJ h)
 {
-  return (size_t) TR_CHASH(h)->hash_entrycount;
+  return tr_fixnum_new(vm, TR_CHASH(h)->hash_entrycount);
 }
 
 OBJ tr_hash_set(VM, OBJ o, OBJ k, OBJ v)

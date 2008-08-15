@@ -1,6 +1,5 @@
 TODOs (by priority)
 ===================
-- Make Symbol usable as Object
 - Implement Range (require by parser)
 - Implement array splat (require by parser)
 - Move some core classe method to ruby? Load before parsing

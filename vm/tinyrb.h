@@ -28,9 +28,9 @@
 #define TR_SPECIAL(o,f)  (((o)&(f))==(f))
 
 /* conversion */
-#define TR_TYPE(o)      tr_type_get(o)
-#define TR_CTYPE(o,e,t) (assert(TR_TYPE(o) == e), ((t *) o))
-#define TR_COBJ(o)      (assert(TR_TYPE(o) < TR_SPECIAL), (tr_obj *) o)
+#define TR_TYPE(o)      tr_type_get((OBJ) o)
+#define TR_CTYPE(o,e,t) (TR_ASSERT(TR_TYPE(o) == e, "unexpected type: %d for %d", TR_TYPE(o), e), ((t *) o))
+#define TR_COBJ(o)      (TR_ASSERT(TR_TYPE(o) < TR_SPECIAL, "not an object"), (tr_obj *) o)
 #define TR_CSTRING(o)   TR_CTYPE(o, TR_STRING, tr_string)
 #define TR_CFIXNUM(o)   TR_CTYPE(o, TR_FIXNUM, tr_fixnum)
 #define TR_CARRAY(o)    TR_CTYPE(o, TR_ARRAY, tr_array)
@@ -40,13 +40,15 @@
 #define TR_CPROC(o)     TR_CTYPE(o, TR_PROC, tr_proc)
 #define TR_CIO(o)       TR_CTYPE(o, TR_IO, tr_io)
 #define TR_CBOOL(o)     ((o)?TR_TRUE:TR_FALSE);
+#define TR_CSYMBOL(o)   (TR_ASSERT(TR_TYPE(o)==TR_SYMBOL, "not a symbol"), (tr_string*) tr_symbol_get(vm, o))
 
 /* shortcuts */
-#define TR_STR(s)       (TR_CSTRING(s)->ptr)
+#define TR_STR(s)       (TR_TYPE(s)==TR_STRING ? TR_CSTRING(s)->ptr : TR_CSYMBOL(s)->ptr)
 #define TR_FIX(n)       (TR_CFIXNUM(n)->val)
 #define VM              tr_vm *vm
 #define VM_FRAME(n)     (&vm->frames[n])
 #define CUR_FRAME       VM_FRAME(vm->cf)
+#define TR_ASSERT(c,...)  ((c) ? NULL : tr_raise(vm, __VA_ARGS__))
 
 /* mem stuff */
 #define tr_malloc(s)    malloc(s)
@@ -85,6 +87,7 @@ typedef struct tr_string {
   ACTS_AS_TR_OBJ;
   char    *ptr;
   size_t   len;
+  unsigned interned: 1;
 } tr_string;
 
 typedef struct tr_fixnum {
@@ -155,7 +158,7 @@ typedef struct tr_frame {
 typedef struct tr_vm {
   off_t     cf; /* current frame */
   tr_frame  frames[TR_MAX_FRAMES];
-  tr_hash  *symbols;
+  tr_array *symbols;
 } tr_vm;
 
 /* vm */
@@ -198,9 +201,11 @@ void tr_proc_init(VM);
 /* string */
 OBJ tr_string_new(VM, const char *ptr);
 OBJ tr_string_new2(VM, const char *ptr, size_t len);
-OBJ tr_intern(VM, const char *ptr);
+OBJ tr_intern(VM, char *ptr);
 OBJ tr_string_concat(VM, OBJ self, OBJ str2);
-u_int tr_string_hash(const char *str);
+
+/* symbol */
+OBJ tr_symbol_get(VM, OBJ obj);
 
 /* fixnum */
 OBJ tr_fixnum_new(VM, int val);
@@ -209,7 +214,7 @@ OBJ tr_fixnum_new(VM, int val);
 OBJ tr_hash_new(VM);
 OBJ tr_hash_set(VM, OBJ h, OBJ k, OBJ v);
 OBJ tr_hash_get(VM, OBJ h, OBJ k);
-size_t tr_hash_count(VM, OBJ h);
+OBJ tr_hash_count(VM, OBJ h);
 OBJ tr_hash_delete(VM, OBJ h, OBJ k);
 OBJ tr_hash_clear(VM, OBJ h);
 
@@ -232,6 +237,7 @@ OBJ tr_io_new(VM, int fd);
 /* misc init */
 void tr_vm_init(VM);
 void tr_special_init(VM);
+void tr_symbol_init(VM);
 void tr_class_init(VM);
 void tr_module_init(VM);
 void tr_object_init(VM);

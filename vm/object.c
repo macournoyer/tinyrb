@@ -26,10 +26,16 @@ int tr_const_defined(VM, const char *name)
 
 OBJ tr_special_get(VM, OBJ obj)
 {
-  switch (obj) {
-    case TR_NIL: return tr_const_get(vm, "NIL");
-    case TR_TRUE: return tr_const_get(vm, "TRUE");
-    case TR_FALSE: return tr_const_get(vm, "FALSE");
+  switch (TR_TYPE(obj)) {
+    case TR_SPECIAL:
+      switch (obj) {
+        case TR_NIL: return tr_const_get(vm, "NIL");
+        case TR_TRUE: return tr_const_get(vm, "TRUE");
+        case TR_FALSE: return tr_const_get(vm, "FALSE");
+      }
+      break;
+    case TR_SYMBOL:
+      return tr_symbol_get(vm, obj);
   }
   return obj;
 }
@@ -149,7 +155,7 @@ tr_type tr_type_get(OBJ obj)
 
 void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class)
 {
-  tr_obj *o = TR_COBJ(obj);
+  tr_obj *o = (tr_obj *) obj;
   
   o->type      = type;
   o->ivars     = tr_hash_new(vm);

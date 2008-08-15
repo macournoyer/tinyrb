@@ -95,7 +95,7 @@ OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type
 
 static OBJ tr_class_name(VM, OBJ self)
 {
-  return (OBJ) TR_CCLASS(self)->name;
+  return TR_CSYMBOL(TR_CCLASS(self)->name);
 }
 
 void tr_class_init(VM)

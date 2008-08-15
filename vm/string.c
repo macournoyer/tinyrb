@@ -12,6 +12,7 @@ OBJ tr_string_new2(VM, const char *ptr, size_t len)
   tr_obj_init(vm, TR_STRING, (OBJ) str, tr_const_get(vm, "String"));
   str->len  = len;
   str->ptr  = tr_malloc(str->len * sizeof(char));
+  str->interned = 0;
   strcpy(str->ptr, ptr);
   
   return (OBJ) str;
@@ -73,20 +74,53 @@ void tr_string_init(VM)
 }
 
 /* symbol */
-u_int tr_string_hash(const char *str)
+
+#define INDEX2SYM(i) (OBJ)((i) << TR_SPECIAL_SHIFT | TR_SYMBOL_FLAG)
+#define SYM2INDEX(i) (int)((i) >> TR_SPECIAL_SHIFT)
+
+OBJ tr_symbol_get(VM, OBJ obj)
 {
-  unsigned long  hash = 5381;
-  int            c;
+  int i          = SYM2INDEX(obj);
+  tr_string *str = (tr_string *) tr_array_at(vm, (OBJ) vm->symbols, i);
   
-  while (c = *str++)
-    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+  assert(TR_TYPE(obj) == TR_SYMBOL);
+  assert((OBJ) str != TR_NIL);
   
-  return hash;
+  if (!str->interned) {
+    tr_obj_init(vm, TR_STRING, (OBJ) str, tr_const_get(vm, "Symbol"));
+    str->interned = 1;
+  }
+  
+  return (OBJ) str;
 }
 
-OBJ tr_intern(VM, const char *ptr)
+OBJ tr_intern(VM, char *ptr)
 {
-  u_int hash = tr_string_hash(ptr);
+  tr_array_entry *e = vm->symbols->first;
+  tr_string      *str;
+  OBJ             i = 0;
   
-  return (OBJ) hash << TR_SPECIAL_SHIFT | TR_SYMBOL_FLAG;
+  while (e != NULL) {
+    str = (tr_string *) e->value;
+    if (strcmp(ptr, str->ptr) == 0)
+      return INDEX2SYM(i);
+    i++;
+    e = e->next;
+  }
+  
+  /* new symbol */
+  str = (tr_string *) tr_malloc(sizeof(tr_string));
+  str->type = TR_STRING;
+  str->len  = strlen(ptr);
+  str->ptr  = tr_malloc(str->len * sizeof(char));
+  str->interned = 0;
+  strcpy(str->ptr, ptr);
+  tr_array_push(vm, (OBJ) vm->symbols, (OBJ) str);
+  
+  return INDEX2SYM(i);
+}
+
+void tr_symbol_init(VM)
+{
+  OBJ class = tr_class_new(vm, "Symbol", tr_const_get(vm, "String"));
 }

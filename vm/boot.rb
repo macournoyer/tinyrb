@@ -1,8 +1,9 @@
-# String stuff
+# # String stuff
 a = "ohaie"[0,2]
 a += "aie".to_s
 a += 1.to_s
 a += true.to_s
+a += :that.to_s
 
 # Conditional
 if a
@@ -42,7 +43,7 @@ puts p.do_you_smell? + p.answer("!!!")
 # Send opcode to the VM from Ruby
 VM.run [
   [1, 19, "yeah!"],
-  [1, 46, "puts", 1, nil, 0, nil]
+  [1, 46, :puts, 1, nil, 0, nil]
 ]
 
 # proc
