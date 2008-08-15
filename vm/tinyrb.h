@@ -38,6 +38,7 @@
 #define TR_CCLASS(o)    TR_CTYPE(o, TR_CLASS, tr_class)
 #define TR_CMETHOD(o)   TR_CTYPE(o, TR_METHOD, tr_method)
 #define TR_CPROC(o)     TR_CTYPE(o, TR_PROC, tr_proc)
+#define TR_CRANGE(o)    TR_CTYPE(o, TR_RANGE, tr_range)
 #define TR_CIO(o)       TR_CTYPE(o, TR_IO, tr_io)
 #define TR_CBOOL(o)     ((o)?TR_TRUE:TR_FALSE);
 #define TR_CSYMBOL(o)   (TR_ASSERT(TR_TYPE(o)==TR_SYMBOL, "not a symbol"), (tr_string*) tr_symbol_get(vm, o))
@@ -61,7 +62,7 @@
 typedef unsigned long OBJ;
 typedef enum {
   TR_STRING = 0, TR_FIXNUM, TR_HASH, TR_ARRAY, TR_MODULE, TR_CLASS,
-  TR_IO, TR_METHOD, TR_PROC, TR_OBJECT,
+  TR_IO, TR_METHOD, TR_PROC, TR_RANGE, TR_OBJECT,
   TR_SPECIAL, TR_SYMBOL /* put all "special" types here */
 } tr_type;
 
@@ -127,6 +128,12 @@ typedef struct tr_io {
   ACTS_AS_TR_OBJ;
   int  fd;
 } tr_io;
+
+typedef struct tr_range {
+  ACTS_AS_TR_OBJ;
+  OBJ  first;
+  OBJ  last;
+} tr_range;
 
 typedef struct tr_proc {
   ACTS_AS_TR_OBJ;
@@ -231,6 +238,9 @@ OBJ tr_array_set(VM, OBJ self, int i, OBJ item);
 OBJ tr_array_insert(VM, OBJ self, int i, OBJ item);
 void tr_array_init(VM);
 
+/* range */
+OBJ tr_range_new(VM, OBJ first, OBJ last);
+
 /* io */
 OBJ tr_io_new(VM, int fd);
 
@@ -244,6 +254,7 @@ void tr_object_init(VM);
 void tr_kernel_init(VM);
 void tr_string_init(VM);
 void tr_fixnum_init(VM);
+void tr_range_init(VM);
 void tr_io_init(VM);
 
 #endif /* _TINYRB_H_ */

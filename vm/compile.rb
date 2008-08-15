@@ -74,6 +74,8 @@ class InstructionConverter
       v[0..2] == "TR_" ? v : "tr_string_new(vm, #{v.inspect})"
     when Fixnum
       "tr_fixnum_new(vm, #{v})"
+    when Range
+      "tr_range_new(vm, #{convert_type(code, v.first)}, #{convert_type(code, v.last)})"
     when Array
       if code == :duparray
         "tr_array_create(vm, #{v.size}, #{v.map { |i| convert_type(code, i) }.join(", ")})"
