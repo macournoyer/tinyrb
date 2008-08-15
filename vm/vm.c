@@ -15,7 +15,9 @@ const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPEC
 #define STACK_PUSH(o)  tr_array_push(vm, CUR_FRAME->stack, (o))
 #define STACK_POP()    tr_array_pop(vm, CUR_FRAME->stack)
 
-static OBJ tr_vm_send(VM, OBJ method, int argc, OBJ block_ops)
+#define TR_SEND_ARGS_SPLAT_FLAG 2
+
+static OBJ tr_vm_send(VM, OBJ method, int argc, OBJ block_ops, int opflag)
 {
   size_t    i;
   OBJ      *argv = tr_malloc(sizeof(OBJ) * argc);
@@ -24,6 +26,20 @@ static OBJ tr_vm_send(VM, OBJ method, int argc, OBJ block_ops)
   for (i = argc; i > 0; --i)
     argv[i-1] = STACK_POP();
   obj = STACK_POP();
+  
+  if (opflag & TR_SEND_ARGS_SPLAT_FLAG) {
+    /* TODO only works w/ full splat in args,
+       eg.: ohaie(*a) works, but not ohaie(1, *a) */
+    tr_array       *a = TR_CARRAY(argv[argc-1]);
+    tr_array_entry *e = a->first;
+    
+    while (e != NULL) {
+      argv = tr_realloc(argv, sizeof(OBJ) * (argc + 1));
+      argv[argc] = e->value;
+      e = e->next;
+      argc++;
+    }
+  }
   
   return tr_send(vm, obj, method, argc, argv, block_ops);
 }
@@ -158,9 +174,10 @@ OBJ tr_run(VM, OBJ ops)
       
       /* method */
       case SEND:
-        STACK_PUSH(tr_vm_send(vm, CMD(0),         /* method */
-                                  TR_FIX(CMD(1)), /* argc */
-                                  CMD(2)));       /* block opcode */
+        STACK_PUSH(tr_vm_send(vm, CMD(0),           /* method */
+                                  TR_FIX(CMD(1)),   /* argc */
+                                  CMD(2),           /* block opcode */
+                                  TR_FIX(CMD(3)))); /* op flag */
         break;
       case LEAVE:
         return STACK_POP();
