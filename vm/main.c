@@ -1,7 +1,7 @@
 #include "tinyrb.h"
 #include "boot.cx"
 
-int main(int argc, char const *argv[])
+int main(int argc, char *argv[])
 {
   tr_vm  vm;
   

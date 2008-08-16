@@ -5,7 +5,7 @@
   static int failures
 
 #define TEST_START \
-  int main(int argc, char const *argv[]) { \
+  int main(int argc, char *argv[]) { \
   printf("== %s\n", argv[0])
 
 #define TEST_END \
@@ -28,4 +28,4 @@
 #define assert_str_equal(expected, actual) \
   _assert(strcmp(expected, actual) == 0, "%s expected but was %s", expected, actual)
 
-#define SETUP_VM tr_vm _vm; tr_vm *vm = &_vm; char const *__vm_argv[0]; tr_init(vm, 0, __vm_argv);
+#define SETUP_VM tr_vm _vm; tr_vm *vm = &_vm; char *__vm_argv[0]; tr_init(vm, 0, __vm_argv);

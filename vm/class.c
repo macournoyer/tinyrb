@@ -2,7 +2,7 @@
 
 /* class */
 
-static OBJ tr_class_def(VM, tr_class *class, const char *name, OBJ (*func)(), int argc)
+static OBJ tr_class_def(VM, tr_class *class, char *name, OBJ (*func)(), int argc)
 {
   tr_method *met = (tr_method *) tr_malloc(sizeof(tr_method));
   
@@ -17,25 +17,40 @@ static OBJ tr_class_def(VM, tr_class *class, const char *name, OBJ (*func)(), in
   return TR_NIL;
 }
 
-OBJ tr_def(VM, OBJ obj, const char *name, OBJ (*func)(), int argc)
+OBJ tr_def(VM, OBJ obj, char *name, OBJ (*func)(), int argc)
 {
   return tr_class_def(vm, TR_CCLASS(obj), name, func, argc);
 }
 
-OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc)
+OBJ tr_metadef(VM, OBJ obj, char *name, OBJ (*func)(), int argc)
 {
   return tr_class_def(vm, TR_COBJ(obj)->metaclass, name, func, argc);
 }
 
-OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops)
+OBJ tr_alias(VM, OBJ obj, OBJ new_name, OBJ name)
+{
+  tr_method *met = (tr_method *) tr_hash_get(vm, TR_CCLASS(obj)->methods, name);
+
+  TR_ASSERT((OBJ) met != TR_NIL, "method not found: %s", TR_STR(name));
+  
+  if (met->func)
+    return tr_def(vm, obj, TR_STR(new_name), met->func, met->argc);
+  else
+    return tr_ops_def(vm, obj, new_name, met->ops, met->filename, met->arg_names, met->argc, met->labels);
+}
+
+OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ arg_names, OBJ argc, OBJ labels)
 {
   tr_method *met = (tr_method *) tr_malloc(sizeof(tr_method));
   
-  met->type = TR_METHOD;
-  met->name = name;
-  met->func = NULL;
-  met->ops  = ops;
-  met->argc = -1;
+  met->type      = TR_METHOD;
+  met->name      = name;
+  met->func      = NULL;
+  met->ops       = ops;
+  met->argc      = TR_FIX(argc);
+  met->filename  = filename;
+  met->arg_names = arg_names;
+  met->labels    = labels;
   
   tr_hash_set(vm, TR_CCLASS(class)->methods, met->name, (OBJ) met);
   
@@ -57,7 +72,7 @@ OBJ tr_metaclass_new(VM)
   return (OBJ) c;
 }
 
-OBJ tr_class_new(VM, const char* name, OBJ super)
+OBJ tr_class_new(VM, char* name, OBJ super)
 {
   tr_class *c = (tr_class *) tr_malloc(sizeof(tr_class));
   
@@ -95,7 +110,7 @@ OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type
 
 static OBJ tr_class_name(VM, OBJ self)
 {
-  return TR_CSYMBOL(TR_CCLASS(self)->name);
+  return (OBJ) TR_CSYMBOL(TR_CCLASS(self)->name);
 }
 
 void tr_class_init(VM)
@@ -108,7 +123,7 @@ void tr_class_init(VM)
 
 /* module */
 
-OBJ tr_module_new(VM, const char* name)
+OBJ tr_module_new(VM, char* name)
 {
   tr_class *c = (tr_class *) tr_malloc(sizeof(tr_class));
   

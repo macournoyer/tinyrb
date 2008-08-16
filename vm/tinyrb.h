@@ -28,35 +28,35 @@
 #define TR_SPECIAL(o,f)  (((o)&(f))==(f))
 
 /* conversion */
-#define TR_TYPE(o)      tr_type_get((OBJ) o)
-#define TR_CTYPE(o,e,t) (TR_ASSERT(TR_TYPE(o) == e, "unexpected type: %d for %d", TR_TYPE(o), e), ((t *) o))
-#define TR_COBJ(o)      (TR_ASSERT(TR_TYPE(o) < TR_SPECIAL, "not an object"), (tr_obj *) o)
-#define TR_CSTRING(o)   TR_CTYPE(o, TR_STRING, tr_string)
-#define TR_CFIXNUM(o)   TR_CTYPE(o, TR_FIXNUM, tr_fixnum)
-#define TR_CARRAY(o)    TR_CTYPE(o, TR_ARRAY, tr_array)
-#define TR_CHASH(o)     TR_CTYPE(o, TR_HASH, tr_hash)
-#define TR_CCLASS(o)    TR_CTYPE(o, TR_CLASS, tr_class)
-#define TR_CMETHOD(o)   TR_CTYPE(o, TR_METHOD, tr_method)
-#define TR_CPROC(o)     TR_CTYPE(o, TR_PROC, tr_proc)
-#define TR_CRANGE(o)    TR_CTYPE(o, TR_RANGE, tr_range)
-#define TR_CIO(o)       TR_CTYPE(o, TR_IO, tr_io)
-#define TR_CBOOL(o)     ((o)?TR_TRUE:TR_FALSE);
-#define TR_CSYMBOL(o)   (TR_ASSERT(TR_TYPE(o)==TR_SYMBOL, "not a symbol"), (tr_string*) tr_symbol_get(vm, o))
+#define TR_TYPE(o)       tr_type_get((OBJ) o)
+#define TR_CTYPE(o,e,t)  (TR_ASSERT(TR_TYPE(o) == e, "unexpected type: %d for %d", TR_TYPE(o), e), ((t *) o))
+#define TR_COBJ(o)       (TR_ASSERT(TR_TYPE(o) < TR_SPECIAL, "not an object"), (tr_obj *) o)
+#define TR_CSTRING(o)    TR_CTYPE(o, TR_STRING, tr_string)
+#define TR_CFIXNUM(o)    TR_CTYPE(o, TR_FIXNUM, tr_fixnum)
+#define TR_CARRAY(o)     TR_CTYPE(o, TR_ARRAY, tr_array)
+#define TR_CHASH(o)      TR_CTYPE(o, TR_HASH, tr_hash)
+#define TR_CCLASS(o)     TR_CTYPE(o, TR_CLASS, tr_class)
+#define TR_CMETHOD(o)    TR_CTYPE(o, TR_METHOD, tr_method)
+#define TR_CPROC(o)      TR_CTYPE(o, TR_PROC, tr_proc)
+#define TR_CRANGE(o)     TR_CTYPE(o, TR_RANGE, tr_range)
+#define TR_CIO(o)        TR_CTYPE(o, TR_IO, tr_io)
+#define TR_CBOOL(o)      ((o)?TR_TRUE:TR_FALSE);
+#define TR_CSYMBOL(o)    (TR_ASSERT(TR_TYPE(o)==TR_SYMBOL, "not a symbol"), (tr_string*) tr_symbol_get(vm, o))
 
 /* shortcuts */
-#define TR_STR(s)       (TR_TYPE(s)==TR_STRING ? TR_CSTRING(s)->ptr : TR_CSYMBOL(s)->ptr)
-#define TR_FIX(n)       (TR_CFIXNUM(n)->val)
-#define VM              tr_vm *vm
-#define VM_FRAME(n)     (&vm->frames[n])
-#define CUR_FRAME       VM_FRAME(vm->cf)
-#define TR_ASSERT(c,...)  ((c) ? NULL : tr_raise(vm, __VA_ARGS__))
+#define TR_STR(s)        (TR_TYPE(s)==TR_STRING ? TR_CSTRING(s)->ptr : TR_CSYMBOL(s)->ptr)
+#define TR_FIX(n)        (TR_CFIXNUM(n)->val)
+#define VM               tr_vm *vm
+#define VM_FRAME(n)      (&vm->frames[n])
+#define CUR_FRAME        VM_FRAME(vm->cf)
+#define TR_ASSERT(c,...) ((c) ? NULL : tr_raise(vm, __VA_ARGS__))
 
 /* mem stuff */
-#define tr_malloc(s)    malloc(s)
-#define tr_realloc(c,s) realloc(c,s)
-#define tr_free(p)      free((void *) (p))
+#define tr_malloc(s)     malloc(s)
+#define tr_realloc(c,s)  realloc(c,s)
+#define tr_free(p)       free((void *) (p))
 
-#define tr_log(m,...)   fprintf(stderr, m "\n", __VA_ARGS__)
+#define tr_log(m,...)    fprintf(stderr, m "\n", __VA_ARGS__)
 
 /* objects */
 typedef unsigned long OBJ;
@@ -144,9 +144,12 @@ typedef struct tr_proc {
 typedef struct tr_method {
   ACTS_AS_TR_OBJ;
   OBJ     name;
+  OBJ     filename;
   OBJ   (*func)();
   int     argc;
   OBJ     ops;
+  OBJ     arg_names;
+  OBJ     labels;
 } tr_method;
 
 /* vm structs */
@@ -169,31 +172,33 @@ typedef struct tr_vm {
 } tr_vm;
 
 /* vm */
-void tr_init(VM, int argc, char const *argv[]);
+void tr_init(VM, int argc, char *argv[]);
 OBJ tr_run(VM, OBJ ops);
-void tr_raise(VM, const char *msg, ...);
+void tr_raise(VM, char *msg, ...);
 OBJ tr_yield(VM, int argc, OBJ argv[]);
 void tr_next_frame(VM, OBJ obj, OBJ class);
 void tr_prev_frame(VM);
 
 /* class */
-OBJ tr_def(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
-OBJ tr_metadef(VM, OBJ obj, const char *name, OBJ (*func)(), int argc);
-OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops);
-OBJ tr_class_new(VM, const char* name, OBJ super);
+OBJ tr_def(VM, OBJ obj, char *name, OBJ (*func)(), int argc);
+OBJ tr_metadef(VM, OBJ obj, char *name, OBJ (*func)(), int argc);
+OBJ tr_alias(VM, OBJ obj, OBJ new_name, OBJ name);
+OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ arg_names, OBJ argc, OBJ labels);
+OBJ tr_class_new(VM, char* name, OBJ super);
 OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type);
 OBJ tr_metaclass_new(VM);
 
 /* module */
-OBJ tr_module_new(VM, const char* name);
+OBJ tr_module_new(VM, char* name);
 OBJ tr_module_include(VM, OBJ self, OBJ module);
 
 /* object */
-void tr_const_set(VM, const char *name, OBJ obj);
-OBJ tr_const_get(VM, const char *name);
-int tr_const_defined(VM, const char *name);
+void tr_const_set(VM, char *name, OBJ obj);
+OBJ tr_const_get(VM, char *name);
+int tr_const_defined(VM, char *name);
 OBJ tr_special_get(VM, OBJ obj);
 OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops);
+OBJ tr_send2(VM, OBJ obj, char *message, int argc, ...);
 tr_type tr_type_get(OBJ obj);
 void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class);
 OBJ tr_new(VM, OBJ class, int argc, OBJ argv[]);
@@ -206,8 +211,8 @@ OBJ tr_proc_call(VM, OBJ self, int argc, OBJ argv[]);
 void tr_proc_init(VM);
 
 /* string */
-OBJ tr_string_new(VM, const char *ptr);
-OBJ tr_string_new2(VM, const char *ptr, size_t len);
+OBJ tr_string_new(VM, char *ptr);
+OBJ tr_string_new2(VM, char *ptr, size_t len);
 OBJ tr_intern(VM, char *ptr);
 OBJ tr_string_concat(VM, OBJ self, OBJ str2);
 

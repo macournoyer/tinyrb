@@ -48,6 +48,14 @@ class InstructionConverter
         op :putspecial, cmds[0]
       end
     end
+    convert :definemethod do |cmds|
+      op :definemethod, cmds[0],     # name
+                        cmds[1],     # opcode
+                        cmds[1][6],  # filename
+                        cmds[1][8],  # arg names
+                        cmds[1][9],  # argc
+                        cmds[1][10]  # labels
+    end
   end
   
   def convert(code, &block)
@@ -77,12 +85,12 @@ class InstructionConverter
     when Range
       "tr_range_new(vm, #{convert_type(code, v.first)}, #{convert_type(code, v.last)})"
     when Array
-      if code == :duparray
-        "tr_array_create(vm, #{v.size}, #{v.map { |i| convert_type(code, i) }.join(", ")})"
-      else
+      if v.first == "YARVInstructionSequence/SimpleDataFormat"
         key = "#{@name}_b#{@blocks.size+1}"
         @blocks << InstructionConverter.new(key, v).to_s
         key + "(vm)"
+      else
+        "tr_array_create(vm, #{v.size}#{', ' if v.size > 0}#{v.map { |i| convert_type(code, i) }.join(", ")})"
       end
     else
       v.inspect

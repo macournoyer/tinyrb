@@ -18,12 +18,12 @@ static const u_int primes[] = {
 const u_int prime_table_length = sizeof(primes)/sizeof(primes[0]);
 const float max_load_factor = 0.65;
 
-#define HASH_MINSIZE    100 /* TODO test and tweak */
+#define HASH_MINSIZE    1024 /* TODO test and tweak */
 #define HASH_INDEX(v,l) ((v) % (l))
 
 #define freekey(X) tr_free(X)
 
-static u_int tr_string_hash(const char *str)
+static u_int tr_string_hash(char *str)
 {
   unsigned long  hash = 5381;
   int            c;

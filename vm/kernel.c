@@ -2,7 +2,8 @@
 
 static OBJ tr_kernel_puts(VM, OBJ self, OBJ txt)
 {
-  puts(TR_STR(txt));
+  OBJ str = tr_send2(vm, txt, "to_s", 0);
+  puts(TR_STR(str));
   return TR_NIL;
 }
 

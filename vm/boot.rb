@@ -1,4 +1,33 @@
-# # # String stuff
+# class Class
+#   def ===(obj)
+#     name == obj.class.name
+#   end
+# end
+# 
+# class String
+#   alias :orignal_slice :[]
+#   def [](start, len)
+#     puts start
+#     puts len
+#     if Range === start
+#       range = start
+#       orignal_slice(range.first, range.last - range.first)
+#     else
+#       orignal_slice(start, len)
+#     end
+#   end
+# end
+
+# puts "hi"[1..2, "a"]
+# puts "hi"[1, 2]
+
+def a(a, b)
+  puts a
+  puts b
+end
+a(1, 2)
+
+# # String stuff
 # a = "ohaie"[0,2]
 # a += "aie".to_s
 # a += 1.to_s
@@ -52,5 +81,3 @@
 # 
 # # exception
 # raise "This is not so exceptional"
-
-puts (1..10).first.to_s

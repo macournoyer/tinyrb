@@ -1,11 +1,11 @@
 #include "tinyrb.h"
 
-OBJ tr_string_new(VM, const char *ptr)
+OBJ tr_string_new(VM, char *ptr)
 {
   return tr_string_new2(vm, ptr, strlen(ptr));
 }
 
-OBJ tr_string_new2(VM, const char *ptr, size_t len)
+OBJ tr_string_new2(VM, char *ptr, size_t len)
 {
   tr_string *str = (tr_string *) tr_malloc(sizeof(tr_string));
   
@@ -70,7 +70,7 @@ void tr_string_init(VM)
   tr_def(vm, class, "to_s", tr_string_self, 0);
   tr_def(vm, class, "size", tr_string_size, 0);
   tr_def(vm, class, "[]", tr_string_slice, 2);
-  tr_def(vm, class, "==", tr_string_slice, 1);
+  tr_def(vm, class, "==", tr_string_eq, 1);
 }
 
 /* symbol */

@@ -2,12 +2,12 @@
 
 /* constants */
 
-void tr_const_set(VM, const char *name, OBJ obj)
+void tr_const_set(VM, char *name, OBJ obj)
 {
   tr_hash_set(vm, CUR_FRAME->consts, tr_intern(vm, name), obj);
 }
 
-OBJ tr_const_get(VM, const char *name)
+OBJ tr_const_get(VM, char *name)
 {
   OBJ c = tr_hash_get(vm, CUR_FRAME->consts, tr_intern(vm, name));
   
@@ -17,7 +17,7 @@ OBJ tr_const_get(VM, const char *name)
   return c;
 }
 
-int tr_const_defined(VM, const char *name)
+int tr_const_defined(VM, char *name)
 {
   OBJ c = tr_hash_get(vm, CUR_FRAME->consts, tr_intern(vm, name));
   
@@ -139,6 +139,29 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops)
     return ret;
     
   }
+}
+
+OBJ tr_send2(VM, OBJ obj, char *message, int argc, ...)
+{
+  va_list argp;
+  OBJ    *argv;
+  OBJ     ret;
+  size_t  i;
+  
+  if (argc > 0) {
+    argv = (OBJ *) tr_malloc(sizeof(OBJ) * argc);
+    va_start(argp, argc);
+    for (i = 0; i < argc; ++i)
+      argv[i] = va_arg(argp, OBJ);
+    va_end(argp);
+  }
+  
+  ret = tr_send(vm, obj, tr_intern(vm, message), argc, argv, TR_NIL);
+  
+  if (argc > 0)
+    tr_free(argv);
+  
+  return ret;
 }
 
 /* object */

@@ -27,6 +27,9 @@ static OBJ tr_vm_send(VM, OBJ method, int argc, OBJ block_ops, int opflag)
     argv[i-1] = STACK_POP();
   obj = STACK_POP();
   
+  if (obj == TR_NIL)
+    obj = CUR_FRAME->self;
+  
   if (opflag & TR_SEND_ARGS_SPLAT_FLAG) {
     /* TODO only works w/ full splat in args,
        eg.: ohaie(*a) works, but not ohaie(1, *a) */
@@ -183,7 +186,15 @@ OBJ tr_run(VM, OBJ ops)
         return STACK_POP();
       case DEFINEMETHOD:
         tr_ops_def(vm, f->class, CMD(0),  /* name */
-                                 CMD(1)); /* opcode */
+                                 CMD(1),  /* opcode */
+                                 CMD(2),  /* filename */
+                                 CMD(3),  /* arg names */
+                                 CMD(4),  /* argc */
+                                 CMD(5)); /* labels */
+        break;
+      case ALIAS:
+        tr_alias(vm, f->class, STACK_POP(),  /* cur name */
+                               STACK_POP()); /* new name */
         break;
       case INVOKEBLOCK:
         STACK_PUSH(tr_yield(vm, 0, 0));
@@ -223,7 +234,7 @@ OBJ tr_run(VM, OBJ ops)
   }
 }
 
-void tr_raise(VM, const char *msg, ...)
+void tr_raise(VM, char *msg, ...)
 {
   va_list args;
   va_start(args, msg);
@@ -232,6 +243,7 @@ void tr_raise(VM, const char *msg, ...)
   fprintf(stderr, "\n");
   fprintf(stderr, "     from (?):%d\n", CUR_FRAME->line);
   va_end(args);
+  assert(0);
   exit(-1);
 }
 
@@ -302,7 +314,7 @@ static tr_define_builtins(VM)
   tr_module_include(vm, object, tr_const_get(vm, "Kernel"));
 }
 
-void tr_init(VM, int argc, char const *argv[])
+void tr_init(VM, int argc, char *argv[])
 {
   size_t    i;
   tr_frame *f;
