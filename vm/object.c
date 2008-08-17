@@ -105,24 +105,30 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops)
   
   CUR_FRAME->block = TR_NIL;
   
+  
   if (m->func) { /* C based method */
+    if (m->argc != -1 && m->argc != argc)
+      tr_raise(vm, "wrong number of arguments: %d for %d", argc, m->argc);
+    
     if (block_ops != TR_NIL)
       CUR_FRAME->block = tr_proc_new(vm, block_ops);
     
     if (m->argc == -1) { /* varargs */
       return m->func(vm, obj, argc, argv);
     } else {
-      if (m->argc != argc)
-        tr_raise(vm, "wrong number of arguments: %d for %d", argc, m->argc);
-      
       /* HACK better way to have variable num of args? */
       return m->func(vm, obj, argv[0], argv[1], argv[2], argv[3], argv[4],
                               argv[5], argv[6], argv[7], argv[8], argv[9]);
     }
     
   } else { /* opcode based method */
-    size_t i;
-    OBJ    ret;
+    size_t    i;
+    OBJ       ret;
+    tr_array *labels = TR_CARRAY(m->labels);
+    int       min_argc = m->argc - (labels->count > 0 ? labels->count + 1 : 0);
+    
+    if (argc < min_argc)
+      tr_raise(vm, "wrong number of arguments: %d for %d", argc, min_argc);
     
     tr_next_frame(vm, obj, (OBJ) TR_COBJ(obj)->class);
     
@@ -130,10 +136,18 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops)
       CUR_FRAME->block = tr_proc_new(vm, block_ops);
     
     /* move method args to locals */
-    for (i = 0; i < argc; ++i)
-      tr_hash_set(vm, CUR_FRAME->locals, tr_fixnum_new(vm, argc-i+1), argv[i]);
+    for (i = 0; i < m->argc; ++i)
+      tr_hash_set(vm, CUR_FRAME->locals, tr_fixnum_new(vm, m->argc-i+1), argv[i]);
     
-    ret = tr_run(vm, m->ops);
+    /* insert a jump instruct to skip default val in method sign */
+    if (labels->count > 0) {
+      OBJ label = tr_array_at(vm, m->labels, (labels->count - 1) - (m->argc - argc));
+      tr_array_insert(vm, m->ops, 0, tr_array_create(vm, 3, tr_fixnum_new(vm, 0), tr_fixnum_new(vm, JUMP), label));
+    }
+    
+    ret = tr_run(vm, m->filename, m->ops);
+    
+    /* TODO remote the injected instruction */
     
     tr_prev_frame(vm);
     return ret;

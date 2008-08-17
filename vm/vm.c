@@ -82,13 +82,15 @@ static void tr_dump_stack(VM)
 #define OPCODE         TR_FIX(tr_array_at(vm, op, 1))
 #define CMD(i)         tr_array_at(vm, op, i+2)
 
-OBJ tr_run(VM, OBJ ops)
+OBJ tr_run(VM, OBJ filename, OBJ ops)
 {
   tr_frame *f = CUR_FRAME;
   OBJ       op;
   size_t    ip;
   size_t    n = TR_FIX(tr_array_count(vm, ops));
   OBJ       label2ip = tr_hash_new(vm);
+  
+  f->filename = filename;
   
   /* store labels=>ip mapping for later jumping */
   for (ip = 0; ip < n; ++ip) {
@@ -234,6 +236,18 @@ OBJ tr_run(VM, OBJ ops)
   }
 }
 
+static void tr_vm_print_stack() {
+  void  *trace[16];
+  char **messages = (char **) NULL;
+  int    i, trace_size = 0;
+
+  trace_size = backtrace(trace, 16);
+  messages   = (char **) backtrace_symbols(trace, trace_size);
+  printf("VM backtrace:\n");
+  for (i = 0; i < trace_size; ++i)
+	  printf("  %s\n", messages[i]);
+}
+
 void tr_raise(VM, char *msg, ...)
 {
   va_list args;
@@ -241,9 +255,9 @@ void tr_raise(VM, char *msg, ...)
   fprintf(stderr, "Exception: ");
   vfprintf(stderr, msg, args);
   fprintf(stderr, "\n");
-  fprintf(stderr, "     from (?):%d\n", CUR_FRAME->line);
+  fprintf(stderr, "     from %s:%d\n", TR_STR(CUR_FRAME->filename), CUR_FRAME->line);
   va_end(args);
-  assert(0);
+  tr_vm_print_stack();
   exit(-1);
 }
 
@@ -341,9 +355,9 @@ void tr_init(VM, int argc, char *argv[])
   tr_const_set(vm, "ARGV", argv_ary);
 }
 
-static OBJ tr_vm_run(VM, OBJ self, OBJ ops)
+static OBJ tr_vm_run(VM, OBJ self, OBJ filename, OBJ ops)
 {
-  return tr_run(vm, ops);
+  return tr_run(vm, filename, ops);
 }
 
 static OBJ tr_vm_to_s(VM, OBJ self)
@@ -355,7 +369,7 @@ void tr_vm_init(VM)
 {
   OBJ obj = tr_new2(vm, tr_const_get(vm, "Object"));
   
-  tr_metadef(vm, obj, "run", tr_vm_run, 1);
+  tr_metadef(vm, obj, "run", tr_vm_run, 2);
   tr_metadef(vm, obj, "to_s", tr_vm_to_s, 0);
   
   tr_const_set(vm, "VM", obj);

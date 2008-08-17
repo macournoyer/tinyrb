@@ -162,6 +162,7 @@ typedef struct tr_frame {
   OBJ  block;
   OBJ *block_argv;
   int  block_argc;
+  OBJ  filename;
   uint line; /* cur line num */
 } tr_frame;
 
@@ -173,7 +174,7 @@ typedef struct tr_vm {
 
 /* vm */
 void tr_init(VM, int argc, char *argv[]);
-OBJ tr_run(VM, OBJ ops);
+OBJ tr_run(VM, OBJ filename, OBJ ops);
 void tr_raise(VM, char *msg, ...);
 OBJ tr_yield(VM, int argc, OBJ argv[]);
 void tr_next_frame(VM, OBJ obj, OBJ class);

@@ -102,7 +102,7 @@ OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type
     class = tr_class_new(vm, n, super == TR_NIL ? tr_const_get(vm, "Object") : super);
   
   tr_next_frame(vm, class, class);
-  OBJ ret = tr_run(vm, ops);
+  OBJ ret = tr_run(vm, tr_string_new(vm, "?"), ops);
   tr_prev_frame(vm);
   
   return ret;

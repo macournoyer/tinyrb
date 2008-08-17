@@ -23,7 +23,7 @@ OBJ tr_proc_call(VM, OBJ self, int argc, OBJ argv[])
   CUR_FRAME->block_argc = argc;
   CUR_FRAME->block_argv = argv; 
   
-  ret = tr_run(vm, proc->ops);
+  ret = tr_run(vm, tr_string_new(vm, "?"), proc->ops);
   
   vm->cf = cf;
   
