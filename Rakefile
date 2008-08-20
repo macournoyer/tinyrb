@@ -19,7 +19,8 @@ desc "Run all tests (default)"
 task :test do
   rake "test/vm", :test
 end
-task :default => :test
+
+task :default => [:compile, :test]
 
 def compute_size(dir)
   "%0.2fK" % (Dir["{#{dir}}/**.{c,rb,h}"].inject(0) { |sum, f| sum += File.size(f) } / 1024.0)
