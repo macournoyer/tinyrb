@@ -1,5 +1,5 @@
 # String stuff
-a = "ohaie"[0,2]
+a = "ohaie"[0..2]
 a += "aie".to_s
 a += 1.to_s
 a += true.to_s

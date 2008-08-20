@@ -2,7 +2,7 @@ load "../tasks/compile.rake"
 
 RUBY_19 = "ruby19" # Maybe change this?
 
-CLEAN.include('boot.cx')
+CLEAN.include("boot.rb", "boot.cx")
 
 compile_tasks "vm"
 

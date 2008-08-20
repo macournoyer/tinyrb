@@ -4,11 +4,13 @@ end
 
 desc "Compile tinyrb"
 task :compile do
+  rake "kernel", :compile
   rake "vm", :compile
 end
 
 desc "Remove all generated files"
 task :clean do
+  rake "kernel", :clean
   rake "vm", :clean
   rake "test/vm", :clean
 end
@@ -24,7 +26,8 @@ def compute_size(dir)
 end
 desc "Compute size of codebase"
 task :size do
+  puts "kernel: " + compute_size("kernel")
   puts "vm:     " + compute_size("vm")
   puts "parser: " + compute_size("parser")
-  puts "total:  " + compute_size("vm,parser")
+  puts "total:  " + compute_size("kernel,vm,parser")
 end
