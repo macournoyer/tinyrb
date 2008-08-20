@@ -4,6 +4,10 @@
 require 'set'
 require 'gram'
 
+# set_trace_func proc { |event, file, line, id, binding, classname|
+#   printf "%s\#%s\n", classname, id
+# }
+
 class Array
   def each_pairwise()
     i = 0;
