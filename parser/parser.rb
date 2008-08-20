@@ -1,14 +1,7 @@
 # grammar interpreter written in Ruby
 # by Markus Liedl
-#
-# todo:
-#   optimize
 
-
-require 'pp'
 require 'set'
-
-$: << ".";
 require 'sexp-reader'
 
 class Array
@@ -16,28 +9,26 @@ class Array
     i = 0;
     while i < size()
       yield(self[i], self[i+1])
-      i += 2;
+      i += 2
     end
-    self;
+    self
   end
 end
 
 # need a nil that's not `false'
-class <<(Pnil=Object.new)
+class PnilClass
   def ==(other)
     self.object_id == other.object_id \
       or other == :nil
   end
-  def pretty_print(pp)
-    pp.text("Pnil");
-  end
   def to_s() "Pnil"; end
 end
+Pnil = PnilClass.new
 
 class Cons # SinglyLinkedListCell
   def self.from_array(ary, pos=0)
     if ary.length > pos
-      Cons.new(ary[pos], from_array(ary, pos+1));
+      Cons.new(ary[pos], from_array(ary, pos+1))
     else
       Pnil
     end
@@ -51,33 +42,22 @@ class Cons # SinglyLinkedListCell
   def ==(other)
     if Cons === other
       @first == other.first() \
-      and @rest == other.rest();
+      and @rest == other.rest()
     elsif Array === other
-      s = self;
-      pos = 0;
+      s = self
+      pos = 0
       loop do
         if s == Pnil
           return pos == other.length()
         elsif s.first() != other[pos]
           return false;
         end
-        s = s.rest();
-        pos += 1;
+        s = s.rest()
+        pos += 1
       end
-      return true;
+      return true
     else
-      false;
-    end
-  end
-
-  def pretty_print(pp)
-    pp.group 2, "#<List", ">" do
-      s = self;
-      while s != Pnil
-        pp.breakable();
-        pp.pp(s.first());
-        s = s.rest();
-      end
+      false
     end
   end
 end
@@ -85,20 +65,19 @@ end
 
 class Grammar
   def self.from_string(gram, param)
-    new(SExpReader.read_string(gram), param);
+    new(SExpReader.read_string(gram), param)
   end
 
   def self.from_file(gramfile, param)
-    new(SExpReader.read_file_all(gramfile), param);
+    new(SExpReader.read_file_all(gramfile), param)
   end
 
   def initialize(rules, param)
+    @keep_locations = param[:keep_locations]
+    @trace = param[:trace]
 
-    @keep_locations = param[:keep_locations];
-    @trace = param[:trace];
-
-    @modes = Hash.new();
-    @rules = Hash.new();
+    @modes = {}
+    @rules = {}
 
     # first create and insert the Rule instances
     rules.each_pairwise do |head, body|
@@ -111,24 +90,24 @@ class Grammar
       rule.resolve(self);
     end
 
-    @entry_rule = lookup_rule(rules[0]);
+    @entry_rule = lookup_rule(rules[0])
   end
 
   def parse(input0)
-    input = input0 + " ";  # important!
-    context = Context.new(input);
-    res = @entry_rule.call_without_arguments(context);
-    context.at_end() and res;
+    input = input0 + " "  # important!
+    context = Context.new(input)
+    res = @entry_rule.call_without_arguments(context)
+    context.at_end() and res
   end
 
   def add_rule(name_args, body)
-    name, args = nil, nil;
+    name, args = nil, nil
     if Symbol === name_args
-      name = name_args;
+      name = name_args
     else
-      name, *args = name_args;
+      name, *args = name_args
     end
-    @rules[name] = Rule.make(name, args, body);
+    @rules[name] = Rule.make(name, args, body)
   end
 
   def lookup_rule(name)
@@ -139,21 +118,21 @@ class Grammar
     if String === form
       StringParser.new(form)
     elsif Integer === form
-      getter = {1=>:first, 2=>:second, 3=>:third}[form];
-      GetCaptureVariable.new(getter);
+      getter = {1=>:first, 2=>:second, 3=>:third}[form]
+      GetCaptureVariable.new(getter)
     elsif Symbol === form
       if form == :"@"
-        GetCaptureVariable.new(:retvar);
+        GetCaptureVariable.new(:retvar)
       else
-        CallWithoutArguments.new(lookup_rule(form), @trace);
+        CallWithoutArguments.new(lookup_rule(form), @trace)
       end
     elsif Array === form
-      rest = form[1..-1];
+      rest = form[1..-1]
       case form[0]
       when :range
-        RangeParser.new(*rest);
+        RangeParser.new(*rest)
       when :one_of
-        OneOf.new(rest[0]);
+        OneOf.new(rest[0])
 
       when :seq
         Sequence.implicite(resolve_all(rest))
@@ -169,78 +148,78 @@ class Grammar
         Until.new(*split_resolve_rest(0, rest))
 
       when :"@"
-        AssignCaptureVariable.new(:retvar=, resolve_form(form[1]));
+        AssignCaptureVariable.new(:retvar=, resolve_form(form[1]))
       when Integer
-        setter = {1=>:first=, 2=>:second=, 3=>:third=}[form[0]];
-        AssignCaptureVariable.new(setter, resolve_form(form[1]));
+        setter = {1=>:first=, 2=>:second=, 3=>:third=}[form[0]]
+        AssignCaptureVariable.new(setter, resolve_form(form[1]))
       when :make
-        Make.new(*split_resolve_rest(1, rest));
+        Make.new(*split_resolve_rest(1, rest))
 
       when :string
         ConstructString.new(resolve_all(rest))
       when :yield
-        YieldStringPart.new(resolve_form(rest[0]));
+        YieldStringPart.new(resolve_form(rest[0]))
 
       when :new_mark_scope
-        NewMarkScope.new(split_resolve_rest(0, rest));
+        NewMarkScope.new(split_resolve_rest(0, rest))
       when :add_mark_scope
-        AddMarkScope.new(split_resolve_rest(0, rest));
+        AddMarkScope.new(split_resolve_rest(0, rest))
       when :mark
-        MarkWord.new(resolve_form(rest[0]));
+        MarkWord.new(resolve_form(rest[0]))
       when :is_marked
-        IsMarked.new(resolve_form(rest[0]));
+        IsMarked.new(resolve_form(rest[0]))
 
       when :error
-        PError.new(resolve_form(rest[0]), rest[1]);
+        PError.new(resolve_form(rest[0]), rest[1])
 
       when :trace    # todo: ignored
-        resolve_form(rest[0]);
+        resolve_form(rest[0])
 
       when :except
-        Except.new(resolve_all(rest));
+        Except.new(resolve_all(rest))
 
       when :enter_mode
-        mode = rest[0];
-        EnterMode.new(mode, encode_mode(mode), resolve_form(rest[1]));
+        mode = rest[0]
+        EnterMode.new(mode, encode_mode(mode), resolve_form(rest[1]))
       when :leave_mode
-        mode = rest[0];
-        LeaveMode.new(mode, encode_mode(mode), resolve_form(rest[1]));
+        mode = rest[0]
+        LeaveMode.new(mode, encode_mode(mode), resolve_form(rest[1]))
       when :not_in_mode
-        mode = rest[0];
-        NotInMode.new(mode, encode_mode(mode), resolve_form(rest[1]));
+        mode = rest[0]
+        NotInMode.new(mode, encode_mode(mode), resolve_form(rest[1]))
       when :only_in_mode
-        mode = rest[0];
-        OnlyInMode.new(mode, encode_mode(mode), resolve_form(rest[1]));
+        mode = rest[0]
+        OnlyInMode.new(mode, encode_mode(mode), resolve_form(rest[1]))
 
       when :call
-        rule = lookup_rule(rest[0]);
-        args = rest[1..-1];
+        rule = lookup_rule(rest[0])
+        args = rest[1..-1]
         if args
-          CallWithArguments.new(rule, resolve_all(args), @trace);
+          CallWithArguments.new(rule, resolve_all(args), @trace)
         else
-          CallWithoutArguments.new(rule, @trace);
+          CallWithoutArguments.new(rule, @trace)
         end
       when :arg
-        GetArg.new(rest[0]);
+        GetArg.new(rest[0])
         
       when :location
-        sub = resolve_form(rest[0]);
-        @keep_locations ? Location.new(sub) : sub;
+        sub = resolve_form(rest[0])
+        @keep_locations ? Location.new(sub) : sub
 
       when :postpone_rest_of_line
-        PostponeRestOfLine.new(resolve_form(rest[0]));
+        PostponeRestOfLine.new(resolve_form(rest[0]))
 
       when :again
-        Again.new(resolve_form(rest[0]));
+        Again.new(resolve_form(rest[0]))
 
       when :return
-        Return.new(rest[0]);
+        Return.new(rest[0])
 
       else
-        fail "form unknown: #{form.inspect}";
+        fail "form unknown: #{form.inspect}"
       end
     else
-      fail "form unknown: #{form.inspect}";
+      fail "form unknown: #{form.inspect}"
     end
   end
 
@@ -253,8 +232,8 @@ class Grammar
   end
 
   def encode_mode(modename)
-    bit = @modes[modename] ||= @modes.size();
-    1 << bit;
+    bit = @modes[modename] ||= @modes.size()
+    1 << bit
   end
 end
 
@@ -262,24 +241,24 @@ class Context
   attr_accessor :position, :marks, :modes, :consumed_region
 
   def initialize(input)
-    @input = input;
-    @position = 0;
-    @rule_activations = Array.new();
-    @constructed_strings = Array.new();
-    @marks = Set.new();
-    @modes = 0;
-    @consumed_region = -1 .. -1; # nothing is consumed yet
-    @trace_indent = 0;
-    @cache = Hash.new();
+    @input = input
+    @position = 0
+    @rule_activations = []
+    @constructed_strings = []
+    @marks = Set.new
+    @modes = 0
+    @consumed_region = -1 .. -1 # nothing is consumed yet
+    @trace_indent = 0
+    @cache = Hash.new
   end
 
   def advance(count)
-    @position += count;
-    correct_position();
+    @position += count
+    correct_position
   end
 
   def at_end()
-    @position+1 >= @input.length();
+    @position+1 >= @input.length
   end
 
   def current_char()
@@ -294,106 +273,105 @@ class Context
     # todo: no better way?
     0.upto(string.length-1) do |offset|
       if char_at_offset(offset) != string[offset]
-        return false;
+        return false
       end
     end
-    # puts "#{@position} accepted #{string}";
-    advance(string.length());
-    true;
+    advance(string.length())
+    true
   end
 
-  def save()
+  def save
     [@position,
-     marks_cloned(),  # todo: maybe too expensive
+     marks_cloned,  # todo: maybe too expensive
      @consumed_region ] 
   end
 
   def revert_to(state)
-    @position, @marks, @consumed_region = *state;
+    @position, @marks, @consumed_region = *state
   end
 
-  def current_rule_activation()
-    @rule_activations.last();
+  def current_rule_activation
+    @rule_activations.last
   end
 
   def push_rule_activation(act)
-    @rule_activations.push(act);
+    @rule_activations.push(act)
   end
 
-  def pop_rule_activation()
-    @rule_activations.pop();
+  def pop_rule_activation
+    @rule_activations.pop
   end
 
-  def push_string_construction()
-    @constructed_strings.push(Array.new());
+  def push_string_construction
+    @constructed_strings.push([])
   end
 
-  def pop_constructed_string()
-    @constructed_strings.pop();
+  def pop_constructed_string
+    @constructed_strings.pop
   end
 
   def yield_to_constructed_string(part)
-    @constructed_strings.last().push(part)
+    @constructed_strings.last.push(part)
   end
 
-  def marks_cloned()
-    @marks.clone();
+  def marks_cloned
+    @marks.clone
   end
   
-  def reset_marks()
-    @marks = Set.new();
+  def reset_marks
+    @marks = Set.new
   end
   
   def mark(word)
-    @marks.add(word);
+    @marks.add(word)
   end
 
   def marked?(word)
-    @marks.include?(word);
+    @marks.include?(word)
   end
 
   def mark_region_as_consumed(from, to)
     @consumed_region =
       if @consumed_region === from
-        @consumed_region.begin() .. to
+        @consumed_region.begin .. to
       else
-        from .. to;
+        from .. to
       end
   end
 
   def correct_position()
     if @consumed_region === @position
-      @position = @consumed_region.end;
+      @position = @consumed_region.end
     end
   end
 
   def skip_to_beginning_of_next_line()
     nl = @input.index("\n", @position) \
-         || @input.index("\r", @position);
+         || @input.index("\r", @position)
     if nl
-      @position = nl+1;
-      correct_position();
+      @position = nl+1
+      correct_position
     else
-      fail 'there is no next line.';
+      fail 'there is no next line.'
     end
   end
 
-  def trace_indent()
+  def trace_indent
     0.upto(@trace_indent) do
-      print("  ");
+      print("  ")
     end
   end
 
   def trace_enter(rule)
-    trace_indent();
-    @trace_indent += 1;
-    puts "#{@position}  enter #{rule.name}";
+    trace_indent
+    @trace_indent += 1
+    puts "#{@position}  enter #{rule.name}"
   end
 
   def trace_leave(rule, res)
-    @trace_indent -= 1;
-    trace_indent();
-    puts "#{@position}  leave #{rule.name}  -- #{res.inspect()}";
+    @trace_indent -= 1
+    trace_indent
+    puts "#{@position}  leave #{rule.name}  -- #{res.inspect()}"
   end
 
 
@@ -401,43 +379,42 @@ class Context
 
   def cache_put(start, startmarks, name, res)
     key = [start, name, @modes]
-    @cache[key] = [@position, res, @marks - startmarks, @consumed_region];
+    @cache[key] = [@position, res, @marks - startmarks, @consumed_region]
   end
 
   def cache_lookup(name)
-    key = [@position, name, @modes];
+    key = [@position, name, @modes]
     if @cache.include?(key)
-      @position, res, added_marks, @consumed_region = *@cache[key];
-      @marks += added_marks;
-      return true, res;
+      @position, res, added_marks, @consumed_region = *@cache[key]
+      @marks += added_marks
+      return true, res
     else
       return false, nil
     end
   end
-
 
 end
 
 class Rule
   def self.make(name, args, body)
     if not args
-      RuleWithoutArguments.new(name, body);
+      RuleWithoutArguments.new(name, body)
     else
-      RuleWithArguments.new(name, args, body);
+      RuleWithArguments.new(name, args, body)
     end
   end
 
   attr_reader :name
 
   def resolve(grammar)
-    @body = grammar.resolve_form(@body);
-    @use_retvar = @body.uses_retvar();
-    @uses_any_capture_variable = @body.uses_any_capture_variable();
+    @body = grammar.resolve_form(@body)
+    @use_retvar = @body.uses_retvar
+    @uses_any_capture_variable = @body.uses_any_capture_variable
   end
 
   def rule_return_value(res, act)
     if @use_retvar
-      res and act.retvar();
+      res and act.retvar
     else
       res
     end
@@ -454,22 +431,22 @@ class RuleWithoutArguments < Rule
     @name, @body = name, body
   end
   def call_without_arguments(context)
-    success, res = context.cache_lookup(@name);
+    success, res = context.cache_lookup(@name)
     if success
       res
     else
-      start = context.position();
-      startmarks = context.marks_cloned();
+      start = context.position()
+      startmarks = context.marks_cloned()
       if @uses_any_capture_variable
-        context.push_rule_activation(Act.new());
+        context.push_rule_activation(Act.new)
         xres = @body.parse(context)
-        act = context.pop_rule_activation();
-        res = rule_return_value(xres, act);
+        act = context.pop_rule_activation()
+        res = rule_return_value(xres, act)
       else
         res = @body.parse(context)
       end
-      context.cache_put(start, startmarks, @name, res);
-      res;
+      context.cache_put(start, startmarks, @name, res)
+      res
     end
   end
 
@@ -483,8 +460,8 @@ end
 
 class RuleWithArguments < Rule
   def initialize(name, args, body)
-    @name, @args, @body = name, args, body;
-    @arg_pos = Hash.new();
+    @name, @args, @body = name, args, body
+    @arg_pos = {}
     @args.each_index {|i| @arg_pos[@args[i]] = i }
   end
 
@@ -494,23 +471,23 @@ class RuleWithArguments < Rule
 
   def call_with_arguments(context, args)
     if args.length != @args.length
-      fail "the rule #{@name} expected #{@args.length} arguments "\
+      fail "the rule #{@name} expected #{@args.length} arguments " \
            "but caller gave #{args.length}!"
     end
-    context.push_rule_activation(Act.new(@arg_pos, args));
+    context.push_rule_activation(Act.new(@arg_pos, args))
     xres = @body.parse(context)
-    act = context.pop_rule_activation();
-    rule_return_value(xres, act);
+    act = context.pop_rule_activation
+    rule_return_value(xres, act)
   end
 
   class Act < RuleActivation
     attr_reader :args
     def initialize(arg_pos, args)
-      @arg_pos, @args = arg_pos, args;
+      @arg_pos, @args = arg_pos, args
     end
     def arg(argname)
-      pos = @arg_pos[argname] or fail "unknown argument #{argname}.";
-      @args[pos];
+      pos = @arg_pos[argname] or fail "unknown argument #{argname}."
+      @args[pos]
     end
   end
 end
@@ -531,12 +508,12 @@ class StringParser
   include NoVariables
 
   def initialize(string)
-    @string = string;
+    @string = string
   end
 
   def parse(context)
     context.consume_string(@string) \
-      and @string;
+      and @string
   end
 end
 
@@ -550,7 +527,7 @@ class RangeParser
   def parse(context)
     if @range.include?(res = context.current_char())
       context.advance(1)
-      res.chr();
+      res.chr
     else
       false
     end
@@ -563,16 +540,16 @@ class OneOf
   def initialize(string)
     @chars = Hash.new();
     0.upto(string.length-1) do |i|
-      @chars[string[i]] = true;
+      @chars[string[i]] = true
     end
   end
 
   def parse(context)
     if @chars[res = context.current_char()]
       context.advance(1)
-      res.chr();
+      res.chr
     else
-      false;
+      false
     end
   end
 end
@@ -588,31 +565,31 @@ class Sequence
   end
 
   def initialize(sub)
-    @sub = sub;
+    @sub = sub
   end
 
   def uses_retvar() @sub.any? { |s| s.uses_retvar } end
-  def uses_any_capture_variable()
+  def uses_any_capture_variable
     @sub.any? { |s| s.uses_any_capture_variable }
   end
 
   def parse(context)
-    start = context.save();
-    last = Pnil;
+    start = context.save
+    last = Pnil
     for sub in @sub do
       if not (res = sub.parse(context))
-        context.revert_to(start);
-        return false;
+        context.revert_to(start)
+        return false
       end
-      last = res;
+      last = res
     end
-    last;
+    last
   end
 end
 
 class Alternatives
   def initialize(alternatives)
-    @alternatives = alternatives;
+    @alternatives = alternatives
   end
 
   def uses_retvar() @alternatives.any? { |alt| alt.uses_retvar() } end
@@ -623,10 +600,10 @@ class Alternatives
   def parse(context)
     for alt in @alternatives
       if res = alt.parse(context)
-        return res;
+        return res
       end
     end
-    false;
+    false
   end
 end
 
@@ -640,11 +617,11 @@ class Repetition
   end
 
   def parse(context)
-    count = 0;
+    count = 0
     while @sub.parse(context)
-      count += 1;
+      count += 1
     end
-    count >= @mincount ? Pnil : false;
+    count >= @mincount ? Pnil : false
   end
 end
 
@@ -652,7 +629,7 @@ end
 class Optional
   include HasSub
   def initialize(sub)
-    @sub = Sequence.implicite(sub);
+    @sub = Sequence.implicite(sub)
   end
   
   def parse(context)
@@ -666,17 +643,17 @@ class Until
     @cond, @body = cond, body
   end
 
-  def uses_retvar() @cond.uses_retvar() or @body.uses_retvar(); end
-  def uses_any_capture_variable()
-    @cond.uses_any_capture_variable() \
-      or @body.uses_any_capture_variable();
+  def uses_retvar() @cond.uses_retvar or @body.uses_retvar end
+  def uses_any_capture_variable
+    @cond.uses_any_capture_variable \
+      or @body.uses_any_capture_variable
   end
 
   def parse(context)
     until @cond.parse(context)
-      return false unless @body.parse(context);
+      return false unless @body.parse(context)
     end
-    Pnil;
+    Pnil
   end
 end
 
@@ -693,7 +670,7 @@ class AssignCaptureVariable
 
   def parse(context)
     if res = @sub.parse(context)
-      context.current_rule_activation().send(@setter, res);
+      context.current_rule_activation().send(@setter, res)
       res
     else
       false
@@ -703,51 +680,51 @@ end
 
 class GetCaptureVariable
   def initialize(getter)
-    @getter = getter;
+    @getter = getter
   end
 
   def uses_retvar() @getter == :retvar=; end
   def uses_any_capture_variable() true; end
 
   def parse(context)
-    context.current_rule_activation().send(@getter);
+    context.current_rule_activation().send(@getter)
   end
 end
 
 def parse_all_and_keep(sub, context)
-  res = Array.new(sub.length());
-  i = 0;
-  start = context.save();
+  res = [sub.length]
+  i = 0
+  start = context.save
   for s in sub do
     unless res[i] = s.parse(context)
-      context.revert_to(start);
-      return false;
+      context.revert_to(start)
+      return false
     end
-    i += 1;
+    i += 1
   end
-  res;
+  res
 end
 
 class Make
   def initialize(name, *sub)
-    @name, @sub = name, sub;
+    @name, @sub = name, sub
   end
   
   def uses_retvar() @sub.any? { |s| s.uses_retvar() } end
-  def uses_any_capture_variable()
+  def uses_any_capture_variable
     @sub.any? { |s| s.uses_any_capture_variable() }
   end
 
   def parse(context)
-    res = parse_all_and_keep(@sub, context);
+    res = parse_all_and_keep(@sub, context)
     if res
       if @name == :cons
-        Cons.new(*res);  # must be two arguments
+        Cons.new(*res)  # must be two arguments
       elsif @name == :nil
         Pnil
       else
         # todo: use factory
-        [@name, *res];
+        [@name, *res]
       end
     end
   end
@@ -755,7 +732,7 @@ end
 
 class CallWithoutArguments
   def initialize(rule, trace)
-    @rule, @trace = rule, trace;
+    @rule, @trace = rule, trace
   end
 
   def uses_retvar() false end
@@ -763,27 +740,27 @@ class CallWithoutArguments
 
 
   def parse(context)
-    context.trace_enter(@rule) if @trace;
-    res = @rule.call_without_arguments(context);
-    context.trace_leave(@rule, res) if @trace;
-    res;
+    context.trace_enter(@rule) if @trace
+    res = @rule.call_without_arguments(context)
+    context.trace_leave(@rule, res) if @trace
+    res
   end
 end
 
 class GetArg
   include NoVariables
   def initialize(argname)
-    @argname = argname;
+    @argname = argname
   end
   def parse(context)
-    context.current_rule_activation.arg(@argname);
+    context.current_rule_activation.arg(@argname)
   end
 end
 
 
 class CallWithArguments
   def initialize(rule, args, trace)
-    @rule, @args, @trace = rule, args, trace;
+    @rule, @args, @trace = rule, args, trace
   end
 
   def uses_retvar() @args.any? {|a| a.uses_retvar() } end
@@ -792,15 +769,15 @@ class CallWithArguments
   end
 
   def parse(context)
-    args = parse_all_and_keep(@args, context);
+    args = parse_all_and_keep(@args, context)
     if args
-      context.trace_enter(@rule) if @trace;
-      res = @rule.call_with_arguments(context, args);
-      context.trace_leave(@rule, res) if @trace;
+      context.trace_enter(@rule) if @trace
+      res = @rule.call_with_arguments(context, args)
+      context.trace_leave(@rule, res) if @trace
     else
-      res = false;
+      res = false
     end
-    res;
+    res
   end
 end
 
@@ -808,13 +785,13 @@ end
 class ConstructString
   include HasSub
   def initialize(sub)
-    @sub = Sequence.implicite(sub);
+    @sub = Sequence.implicite(sub)
   end
   def parse(context)
-    context.push_string_construction();
-    res = @sub.parse(context);
-    string_parts = context.pop_constructed_string();
-    res and string_parts.join("");
+    context.push_string_construction()
+    res = @sub.parse(context)
+    string_parts = context.pop_constructed_string()
+    res and string_parts.join("")
   end
 end
 
@@ -822,14 +799,14 @@ class YieldStringPart
   include HasSub
 
   def initialize(sub)
-    @sub = sub;
+    @sub = sub
   end
   def parse(context)
     if res = @sub.parse(context)
-      context.yield_to_constructed_string(res);
-      res;
+      context.yield_to_constructed_string(res)
+      res
     else
-      false;
+      false
     end
   end
 end
@@ -842,10 +819,10 @@ class NewMarkScope
   end
 
   def parse(context)
-    outer_marks = context.marks_cloned();
-    context.reset_marks();
-    res = @sub.parse(context);
-    context.marks = outer_marks;
+    outer_marks = context.marks_cloned()
+    context.reset_marks()
+    res = @sub.parse(context)
+    context.marks = outer_marks
     res;
   end
 end
@@ -858,10 +835,10 @@ class AddMarkScope
   end
 
   def parse(context)
-    outer_marks = context.marks_cloned();
-    res = @sub.parse(context);
-    context.marks = outer_marks;
-    res;
+    outer_marks = context.marks_cloned()
+    res = @sub.parse(context)
+    context.marks = outer_marks
+    res
   end
 end
 
@@ -869,10 +846,10 @@ end
 class MarkWord
   include HasSub
   def initialize(sub)
-    @sub = sub;
+    @sub = sub
   end
   def parse(context)
-    res = @sub.parse(context);
+    res = @sub.parse(context)
     if res
       context.mark(res)
     end
@@ -883,10 +860,10 @@ end
 class IsMarked
   include HasSub
   def initialize(sub)
-    @sub = sub;
+    @sub = sub
   end
   def parse(context)
-    res = @sub.parse(context);
+    res = @sub.parse(context)
     if res
       if context.marked?(res)
         res
@@ -901,7 +878,7 @@ end
 
 class ParserError < Exception
   def initialize(msg)
-    @msg = msg;
+    @msg = msg
   end
 end
 
@@ -909,12 +886,12 @@ class PError
   include HasSub
 
   def initialize(sub, msg)
-    @sub, @msg = sub, msg;
+    @sub, @msg = sub, msg
   end
 
   def parse(context)
     if @sub.parse(context)
-      raise ParserError.new(@msg);
+      raise ParserError.new(@msg)
     end
     Pnil
   end
@@ -925,18 +902,18 @@ class Except
   include HasSub
 
   def initialize(sub)
-    @sub = Sequence.implicite(sub);
+    @sub = Sequence.implicite(sub)
   end
 
   def parse(context)
-    start = context.save();
+    start = context.save()
     res = if @sub.parse(context)
-            false;
+            false
           else
-            Pnil;
+            Pnil
           end
-    context.revert_to(start);
-    res;
+    context.revert_to(start)
+    res
   end
 end
 
@@ -944,28 +921,28 @@ end
 class EnterMode
   include HasSub
   def initialize(modename, bitmask, sub)
-    @modename, @bitmask, @sub = modename, bitmask, sub;
+    @modename, @bitmask, @sub = modename, bitmask, sub
   end
   def parse(context)
-    outer_modes = context.modes();
-    context.modes |= @bitmask;
-    res = @sub.parse(context);
-    context.modes = outer_modes;
-    res;
+    outer_modes = context.modes()
+    context.modes |= @bitmask
+    res = @sub.parse(context)
+    context.modes = outer_modes
+    res
   end
 end
 
 class LeaveMode
   include HasSub
   def initialize(modename, bitmask, sub)
-    @modename, @bitmask, @sub = modename, bitmask, sub;
+    @modename, @bitmask, @sub = modename, bitmask, sub
   end
   def parse(context)
-    outer_modes = context.modes();
-    context.modes &= ~@bitmask;
-    res = @sub.parse(context);
-    context.modes = outer_modes;
-    res;
+    outer_modes = context.modes()
+    context.modes &= ~@bitmask
+    res = @sub.parse(context)
+    context.modes = outer_modes
+    res
   end
 end
 
@@ -973,11 +950,11 @@ end
 class NotInMode
   include HasSub
   def initialize(modename, bitmask, sub)
-    @modename, @bitmask, @sub = modename, bitmask, sub;
+    @modename, @bitmask, @sub = modename, bitmask, sub
   end
   def parse(context)
     if context.modes & @bitmask == 0
-      @sub.parse(context);
+      @sub.parse(context)
     else
       false
     end
@@ -988,11 +965,11 @@ end
 class OnlyInMode
   include HasSub
   def initialize(modename, bitmask, sub)
-    @modename, @bitmask, @sub = modename, bitmask, sub;
+    @modename, @bitmask, @sub = modename, bitmask, sub
   end
   def parse(context)
     if context.modes & @bitmask != 0
-      @sub.parse(context);
+      @sub.parse(context)
     else
       false
     end
@@ -1003,11 +980,11 @@ end
 class Location
   include HasSub
   def initialize(sub)
-    @sub = sub;
+    @sub = sub
   end
   def parse(context)
-    start = context.position;
-    res = @sub.parse(context);
+    start = context.position
+    res = @sub.parse(context)
     res and [:loc, start, context.position, res]
   end
 end
@@ -1015,16 +992,16 @@ end
 class PostponeRestOfLine
   include HasSub
   def initialize(sub)
-    @sub = sub;
+    @sub = sub
   end
   def parse(context)
-    start = context.position;
-    context.skip_to_beginning_of_next_line();
-    beginning_of_next_line = context.position;
-    if res = @sub.parse(context);
-      xend = context.position;
-      context.mark_region_as_consumed(beginning_of_next_line, xend);
-      context.position = start;
+    start = context.position
+    context.skip_to_beginning_of_next_line
+    beginning_of_next_line = context.position
+    if res = @sub.parse(context)
+      xend = context.position
+      context.mark_region_as_consumed(beginning_of_next_line, xend)
+      context.position = start
       res
     else
       false
@@ -1035,7 +1012,7 @@ end
 class Again
   include HasSub
   def initialize(sub)
-    @sub = sub;
+    @sub = sub
   end
   def parse(context)
     string = @sub.parse(context)
@@ -1043,7 +1020,7 @@ class Again
       context.consume_string(string) \
         and string
     else
-      fail 'the "again" form expected to get a String.';
+      fail 'the "again" form expected to get a String.'
     end
   end
 end
@@ -1051,7 +1028,7 @@ end
 class Return
   include NoVariables
   def initialize(value)
-    @value = value;
+    @value = value
   end
   def parse(context)
     @value
@@ -1059,7 +1036,7 @@ class Return
 end
 
 if __FILE__ == $PROGRAM_NAME
-  pp Grammar.from_file('gram.lisp', {}).parse(<<-EOS)
+  puts Grammar.from_file('gram.lisp', {}).parse(<<-EOS).inspect
     Kernel.puts "ohaie"
   EOS
 end

@@ -1,7 +1,9 @@
 TODOs (by priority)
 ===================
-- Implement Range (require by parser)
-- Implement array splat (require by parser)
+- object_id
+- def self.yo; ...
+- attr_accessor
+- array splat (eg.: name, *args = name_args)
 - Move some core classe method to ruby? Load before parsing
 - Run parser through tinyrb
 - Implement string interning (http://en.wikipedia.org/wiki/String_intern_pool)
