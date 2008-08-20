@@ -1,0 +1,14 @@
+require "rake/clean"
+require "sexp-reader"
+
+CLEAN.include("gram.rb")
+
+file "gram.rb" => "gram.lisp" do |t|
+  File.open(t.name, 'w') do |f|
+    f << "GRAM = "
+    f << SExpReader.read_file_all("gram.lisp").inspect
+    f << "\n"
+  end
+end
+
+task :default => "gram.rb"

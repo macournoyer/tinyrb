@@ -2,7 +2,7 @@
 # by Markus Liedl
 
 require 'set'
-require 'sexp-reader'
+require 'gram'
 
 class Array
   def each_pairwise()
@@ -64,14 +64,6 @@ end
 
 
 class Grammar
-  def self.from_string(gram, param)
-    new(SExpReader.read_string(gram), param)
-  end
-
-  def self.from_file(gramfile, param)
-    new(SExpReader.read_file_all(gramfile), param)
-  end
-
   def initialize(rules, param)
     @keep_locations = param[:keep_locations]
     @trace = param[:trace]
@@ -1036,7 +1028,7 @@ class Return
 end
 
 if __FILE__ == $PROGRAM_NAME
-  puts Grammar.from_file('gram.lisp', {}).parse(<<-EOS).inspect
+  puts Grammar.new(GRAM, {}).parse(<<-EOS).inspect
     Kernel.puts "ohaie"
   EOS
 end
