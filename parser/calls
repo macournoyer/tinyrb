@@ -27,7 +27,6 @@ Fixnum#|
 Fixnum#~
 Hash#[]
 Hash#[]=
-Hash#default
 Hash#each_key
 Hash#include?
 Hash#initialize
@@ -41,7 +40,6 @@ Kernel#clone
 Kernel#dup
 Kernel#eql?
 Kernel#hash
-Kernel#instance_eval
 Kernel#is_a?
 Kernel#method_missing
 Kernel#send

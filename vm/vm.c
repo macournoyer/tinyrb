@@ -119,6 +119,12 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
       case SETLOCAL:
         tr_hash_set(vm, f->locals, CMD(0), STACK_POP());
         break;
+      case GETGLOBAL:
+        STACK_PUSH(tr_hash_get(vm, vm->globals, CMD(0)));
+        break;
+      case SETGLOBAL:
+        tr_hash_set(vm, vm->globals, CMD(0), STACK_POP());
+        break;
       case GETDYNAMIC:
         /* huuu so not sure about this... see proc.c for HACK */
         STACK_PUSH(VM_FRAME(TR_FIX(CMD(1)))->block_argv[VM_FRAME(TR_FIX(CMD(1)))->block_argc-TR_FIX(CMD(0))]);
@@ -334,6 +340,7 @@ void tr_init(VM, int argc, char *argv[])
   tr_frame *f;
   
   vm->cf = 0;
+  vm->globals = tr_hash_new(vm);
   vm->symbols = tr_array_struct(vm);
   
   f = CUR_FRAME;

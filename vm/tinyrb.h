@@ -169,6 +169,7 @@ typedef struct tr_frame {
 typedef struct tr_vm {
   off_t     cf; /* current frame */
   tr_frame  frames[TR_MAX_FRAMES];
+  OBJ       globals;
   tr_array *symbols;
 } tr_vm;
 

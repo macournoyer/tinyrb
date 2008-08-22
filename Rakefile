@@ -16,8 +16,9 @@ task :clean do
 end
 
 desc "Run all tests (default)"
-task :test do
+task :test => :compile do
   rake "test/vm", :test
+  sh "./vm/vm"
 end
 
 task :default => [:compile, :test]

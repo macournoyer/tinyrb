@@ -103,8 +103,7 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops)
   OBJ        met = tr_lookup_method(vm, obj, message);
   tr_method *m   = TR_CMETHOD(met);
   
-  CUR_FRAME->block = TR_NIL;
-  
+  /* CUR_FRAME->block = TR_NIL; */
   
   if (m->func) { /* C based method */
     if (m->argc != -1 && m->argc != argc)

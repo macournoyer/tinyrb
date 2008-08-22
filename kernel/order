@@ -1,3 +1,6 @@
+boolean.rb
 class.rb
+fixnum.rb
 string.rb
-test.rb
+spec.rb
+specs.rb

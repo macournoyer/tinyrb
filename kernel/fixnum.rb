@@ -1,0 +1,2 @@
+class Fixnum
+end
