@@ -1,26 +1,26 @@
 Array#+
-Array#[]
+x Array#[]
 Array#[]=
-Array#each
+x Array#each
 Array#each_index
 Array#eql?
 Array#hash
 Array#join
-Array#last
-Array#length
+x Array#last
+x Array#length
 Array#map
-Array#pop
-Array#push
-Array#size
+x Array#pop
+x Array#push
+x Array#size
 Enumerable#any?
 Exception#initialize
 Fixnum#&
-Fixnum#+
-Fixnum#-
+x Fixnum#+
+x Fixnum#-
 Fixnum#<
 Fixnum#<<
-Fixnum#==
-Fixnum#>=
+x Fixnum#==
+x Fixnum#>=
 Fixnum#|
 Fixnum#~
 Hash#[]

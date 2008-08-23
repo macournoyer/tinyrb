@@ -189,6 +189,7 @@ void tr_array_init(VM)
   tr_def(vm, class, "count", tr_array_count, 0);
   tr_def(vm, class, "size", tr_array_count, 0);
   tr_def(vm, class, "<<", tr_array_push, 1);
+  tr_def(vm, class, "pop", tr_array_pop, 0);
   tr_def(vm, class, "insert", tr_array_insert2, 2);
 }
 

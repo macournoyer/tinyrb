@@ -132,15 +132,36 @@ describe Array do
     a[0].should == 1
   end
   xit "+"
-  xit "each"
-  xit "each_with_index"
+  it "should iterate each" do
+    $i = 0
+    [1, 1, 1].each do |i|
+      $i += i
+    end
+    $i.should == 3
+  end
+  xit "should iterate each_with_index" do
+    $i = 0
+    [1, 1, 1].each_with_index do |i, ind|
+      $i += ind
+    end
+    $i.should == 3
+  end
   xit "hash"
   xit "join"
   xit "map"
-  xit "pop"
-  xit "push"
-  xit "push"
-  xit "length/size"
+  it "pop" do
+    a = [1, 2]
+    a.pop.should == 2
+    a.pop.should == 1
+  end
+  it "push" do
+    a = []
+    a.push 1
+    a[0].should == 1
+  end
+  it "should have a size" do
+    [1, 2, 3].size.should == 3
+  end
 end
 
 describe "stdio" do
@@ -158,7 +179,7 @@ describe "method" do
     "yield:" + yield
   end
   def method_with_block_args
-    "yield:" + yield("arg")
+    "yield:" + yield("arg", "!")
   end
 
   it "should call" do
@@ -178,7 +199,7 @@ describe "method" do
   end
 
   it "should call with block arg" do
-    method_with_block_args { |arg| arg }.should == "yield:arg"
+    method_with_block_args { |arg, exl| arg + exl }.should == "yield:arg!"
   end
   
   it "should be aliasable" do

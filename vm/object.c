@@ -107,7 +107,7 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops)
   
   if (m->func) { /* C based method */
     if (m->argc != -1 && m->argc != argc)
-      tr_raise(vm, "wrong number of arguments: %d for %d", argc, m->argc);
+      tr_raise(vm, "`%s`, wrong number of arguments: %d for %d", TR_STR(m->name), argc, m->argc);
     
     if (block_ops != TR_NIL)
       CUR_FRAME->block = tr_proc_new(vm, block_ops);
@@ -126,8 +126,11 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops)
     tr_array *labels = TR_CARRAY(m->labels);
     int       min_argc = m->argc - (labels->count > 0 ? labels->count + 1 : 0);
     
+    if (block_ops != TR_NIL)
+      min_argc--;
+    
     if (argc < min_argc)
-      tr_raise(vm, "wrong number of arguments: %d for %d", argc, min_argc);
+      tr_raise(vm, "`%s`, wrong number of arguments: %d for %d", TR_STR(m->name), argc, min_argc);
     
     tr_next_frame(vm, obj, (OBJ) TR_COBJ(obj)->class);
     
