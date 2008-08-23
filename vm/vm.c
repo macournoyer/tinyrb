@@ -14,6 +14,7 @@ const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPEC
 
 #define STACK_PUSH(o)  tr_array_push(vm, CUR_FRAME->stack, (o))
 #define STACK_POP()    tr_array_pop(vm, CUR_FRAME->stack)
+#define VM_FRAME(n)    (&vm->frames[TR_FIX(n)])
 
 #define TR_SEND_ARGS_SPLAT_FLAG 2
 
@@ -126,8 +127,10 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
         tr_hash_set(vm, vm->globals, CMD(0), STACK_POP());
         break;
       case GETDYNAMIC:
-        /* huuu so not sure about this... see proc.c for HACK */
-        STACK_PUSH(VM_FRAME(TR_FIX(CMD(1)))->block_argv[VM_FRAME(TR_FIX(CMD(1)))->block_argc-TR_FIX(CMD(0))]);
+        STACK_PUSH(tr_hash_get(vm, VM_FRAME(CMD(1))->locals, CMD(0)));
+        break;
+      case SETDYNAMIC:
+        tr_hash_set(vm, VM_FRAME(CMD(1))->locals, CMD(0), STACK_POP());
         break;
       case SETINSTANCEVARIABLE:
         tr_hash_set(vm, TR_COBJ(f->self)->ivars, CMD(0), STACK_POP());
@@ -166,7 +169,8 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
         STACK_PUSH(CMD(0));
         break;
       case PUTSPECIAL:
-        STACK_PUSH(tr_special_get(vm, CMD(0)));
+        /* STACK_PUSH(tr_special_get(vm, CMD(0))); */
+        STACK_PUSH(CMD(0));
         break;
       case PUTSELF:
         STACK_PUSH(f->self);
@@ -263,6 +267,7 @@ void tr_raise(VM, char *msg, ...)
   fprintf(stderr, "\n");
   fprintf(stderr, "     from %s:%d\n", TR_STR(CUR_FRAME->filename), CUR_FRAME->line);
   va_end(args);
+  assert(0);
   tr_vm_print_stack();
   exit(-1);
 }
@@ -364,7 +369,11 @@ void tr_init(VM, int argc, char *argv[])
 
 static OBJ tr_vm_run(VM, OBJ self, OBJ filename, OBJ ops)
 {
-  return tr_run(vm, filename, ops);
+  /* TODO customize self and class */
+  tr_next_frame(vm, CUR_FRAME->self, CUR_FRAME->class);
+  OBJ ret = tr_run(vm, filename, ops);
+  tr_prev_frame(vm);
+  return ret;
 }
 
 static OBJ tr_vm_to_s(VM, OBJ self)

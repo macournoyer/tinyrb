@@ -58,6 +58,9 @@ static OBJ tr_string_slice(VM, OBJ self, OBJ start, OBJ len)
 
 static OBJ tr_string_eq(VM, OBJ self, OBJ other)
 {
+  if (TR_TYPE(other) != TR_STRING)
+    return TR_FALSE;
+  
   char *s1 = TR_STR(self), *s2 = TR_STR(other);
   return TR_CBOOL(strcmp(s1, s2) == 0);
 }

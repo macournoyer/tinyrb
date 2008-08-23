@@ -47,8 +47,7 @@
 #define TR_STR(s)        (TR_TYPE(s)==TR_STRING ? TR_CSTRING(s)->ptr : TR_CSYMBOL(s)->ptr)
 #define TR_FIX(n)        (TR_CFIXNUM(n)->val)
 #define VM               tr_vm *vm
-#define VM_FRAME(n)      (&vm->frames[n])
-#define CUR_FRAME        VM_FRAME(vm->cf)
+#define CUR_FRAME        (&vm->frames[vm->cf])
 #define TR_ASSERT(c,...) ((c) ? NULL : tr_raise(vm, __VA_ARGS__))
 
 /* mem stuff */

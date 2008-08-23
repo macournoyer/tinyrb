@@ -6,7 +6,7 @@ class String
   alias :original_slice :[]
   def [](f, l=nil)
     if Range === f
-      original_slice(f.first, size - f.last)
+      original_slice(f.first, size - f.last - 2)
     else
       original_slice(f,l)
     end

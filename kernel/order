@@ -1,6 +1,8 @@
 boolean.rb
+object.rb
 class.rb
 fixnum.rb
 string.rb
+array.rb
 spec.rb
 specs.rb

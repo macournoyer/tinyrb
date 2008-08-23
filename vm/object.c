@@ -236,11 +236,17 @@ static OBJ tr_object_nop(VM, OBJ self)
   return self;
 }
 
+static OBJ tr_object_id(VM, OBJ self)
+{
+  return tr_fixnum_new(vm, (int) self);
+}
+
 void tr_object_init(VM)
 {
   OBJ object = tr_class_new(vm, "Object", TR_NIL);
   
   tr_def(vm, object, "inspect", tr_object_inspect, 0);
+  tr_def(vm, object, "object_id", tr_object_id, 0);
   tr_def(vm, object, "to_s", tr_object_inspect, 0);
   tr_def(vm, object, "class", tr_object_class, 0);
   tr_def(vm, object, "initialize", tr_object_nop, -1);

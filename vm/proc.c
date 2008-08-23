@@ -21,7 +21,7 @@ OBJ tr_proc_call(VM, OBJ self, int argc, OBJ argv[])
   
   /* HACK used by GETDYNAMIC */
   CUR_FRAME->block_argc = argc;
-  CUR_FRAME->block_argv = argv; 
+  CUR_FRAME->block_argv = argv;
   
   ret = tr_run(vm, tr_string_new(vm, "?"), proc->ops);
   

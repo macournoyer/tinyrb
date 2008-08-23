@@ -16,6 +16,10 @@ def it(name)
   yield
 end
 
+def xit(name)
+  puts "  ignoring: it " + name
+end
+
 def print_spec_summary!
   puts $__spec_count.to_s + " examples, " +
        $__spec_failures.to_s + " failures"
@@ -27,8 +31,10 @@ class SpecMatcher
     @negate = negate
   end
   
-  def ==(other);  _match "==", other, @object == other  end
-  def !=(other);  _match "!=", other, @object != other  end
+  def ==(other);  _match "==",  other, @object == other  end
+  def >(other);   _match ">",   other, @object > other   end
+  def <(other);   _match "<",   other, @object < other   end
+  def !=(other);  _match "!=",  other, @object != other  end
   def ===(other); _match "===", other, @object === other end
   
   def _cond(cond)

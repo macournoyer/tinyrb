@@ -1,6 +1,10 @@
 class Class
+  def ==(other)
+    other.class.to_s == "Class" && name == other.name
+  end
+
   def ===(obj)
-    name == obj.class.name
+    self == obj.class
   end
   
   def to_s
