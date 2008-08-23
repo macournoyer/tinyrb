@@ -32,7 +32,7 @@ describe String do
     "ohaie"[2..10].should == "aie"
   end
   it "should slice with negative" do
-    # "ohaie"[2..-1].should == "aie"
+    # TODO hangs!11!!??: "ohaie"[2..-1].should == "aie"
     "ohaie"[0..-4].should == "oh"
   end
 end
@@ -158,9 +158,10 @@ describe Proc do
   it "should set var in proc" do
     Proc.new { hi = "hi from proc"; hi }.call.should == "hi from proc"
   end
-  xit "should call with arg" do
+  it "should call with arg" do
     Proc.new { |hi| hi + " from proc" }.call("hi").should == "hi from proc"
   end
 end
+
 
 print_spec_summary!

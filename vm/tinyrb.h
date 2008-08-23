@@ -159,8 +159,6 @@ typedef struct tr_frame {
   OBJ  self;
   OBJ  class;
   OBJ  block;
-  OBJ *block_argv;
-  int  block_argc;
   OBJ  filename;
   uint line; /* cur line num */
 } tr_frame;

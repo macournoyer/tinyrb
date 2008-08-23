@@ -15,13 +15,13 @@ OBJ tr_proc_call(VM, OBJ self, int argc, OBJ argv[])
 {
   tr_proc *proc = TR_CPROC(self);
   OBJ      ret;
+  size_t   i;
   off_t    cf = vm->cf;
   
   vm->cf = proc->cf;
   
-  /* HACK used by GETDYNAMIC */
-  CUR_FRAME->block_argc = argc;
-  CUR_FRAME->block_argv = argv;
+  for (i = 0; i < argc; ++i)
+    tr_hash_set(vm, vm->frames[proc->cf].locals, tr_fixnum_new(vm, argc-i), argv[i]);
   
   ret = tr_run(vm, tr_string_new(vm, "?"), proc->ops);
   

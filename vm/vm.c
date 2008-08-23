@@ -14,7 +14,6 @@ const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPEC
 
 #define STACK_PUSH(o)  tr_array_push(vm, CUR_FRAME->stack, (o))
 #define STACK_POP()    tr_array_pop(vm, CUR_FRAME->stack)
-#define VM_FRAME(n)    (&vm->frames[TR_FIX(n)])
 
 #define TR_SEND_ARGS_SPLAT_FLAG 2
 
@@ -78,6 +77,7 @@ static void tr_dump_stack(VM)
   }
 }
 
+#define VM_FRAME(n)    (&vm->frames[vm->cf-TR_FIX(n)])
 #define JUMP_TO(label) ip = (int) tr_hash_get(vm, label2ip, label)
 #define LINENUM        TR_FIX(tr_array_at(vm, op, 0))
 #define OPCODE         TR_FIX(tr_array_at(vm, op, 1))
