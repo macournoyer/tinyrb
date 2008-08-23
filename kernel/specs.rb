@@ -92,6 +92,20 @@ describe true do
   end
 end
 
+describe "nil" do
+  it "should convert to string" do
+    nil.to_s.should == ""
+  end
+  it "should be false" do
+    nil.should == false
+    (!nil).should == true
+  end
+  it "should be nil?" do
+    nil.nil?.should == true
+    "nil".nil?.should == false
+  end
+end
+
 describe Symbol do
   it "should convert to string" do
     :that.to_s.should == "that"

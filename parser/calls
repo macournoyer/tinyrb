@@ -33,7 +33,7 @@ Hash#update
 Hash#values
 Integer#chr
 Integer#upto
-Kernel#==
+x Kernel#==
 Kernel#clone
 Kernel#eql?
 Kernel#hash
@@ -45,7 +45,7 @@ Module#attr_accessor
 Module#attr_reader
 Module#include
 NameError#initialize
-NilClass#nil?
+x NilClass#nil?
 NoMethodError#initialize
 Numeric#eql?
 Range#===

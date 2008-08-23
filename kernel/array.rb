@@ -13,7 +13,7 @@ class Array
       i += 1
     end
   end
-
+  
   def each_with_index
     i = 0
     while i < size

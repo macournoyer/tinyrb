@@ -3,6 +3,10 @@ class Object
     object_id == other.object_id
   end
   
+  def nil?
+    false
+  end
+  
   # Do not use alias so this is inherited
   def ===(other)
     self == other

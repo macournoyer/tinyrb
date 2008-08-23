@@ -17,7 +17,13 @@ class FalseClass
 end
 
 class NilClass
+  def ==(other)
+    NilClass === other || FalseClass === other
+  end
   def !
+    true
+  end
+  def nil?
     true
   end
   def inspect
