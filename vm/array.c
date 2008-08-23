@@ -109,7 +109,7 @@ static tr_array_entry *tr_array_entry_at(VM, OBJ self, int i)
   tr_array_entry *e = a->first;
   off_t           c = 0;
   
-  if (i >= a->count)
+  if (i >= a->count || i < 0)
     return NULL;
   
   for (c = 0; c < i && e != NULL; ++c)

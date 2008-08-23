@@ -3,13 +3,22 @@ class String
     !(self == other)
   end
   
-  alias :original_slice :[]
   def [](f, l=nil)
     if Range === f
-      original_slice(f.first, size - f.last - 2)
+      start = f.first
+      if f.last < 0
+        len = size + f.last + 1
+      else
+        len = size - f.last - 2
+      end
     else
-      original_slice(f,l)
+      start = f
+      len   = l
     end
+    
+    len = size - start if len < 0 || start + len > size
+    
+    substring(start, len)
   end
   
   def inspect

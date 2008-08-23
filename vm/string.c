@@ -39,7 +39,7 @@ static OBJ tr_string_size(VM, OBJ self)
   return tr_fixnum_new(vm, TR_CSTRING(self)->len);
 }
 
-static OBJ tr_string_slice(VM, OBJ self, OBJ start, OBJ len)
+static OBJ tr_string_substring(VM, OBJ self, OBJ start, OBJ len)
 {
   int        s = TR_FIX(start), l = TR_FIX(len);
   tr_string *str   = TR_CSTRING(self);
@@ -72,7 +72,7 @@ void tr_string_init(VM)
   tr_def(vm, class, "+", tr_string_concat, 1);
   tr_def(vm, class, "to_s", tr_string_self, 0);
   tr_def(vm, class, "size", tr_string_size, 0);
-  tr_def(vm, class, "[]", tr_string_slice, 2);
+  tr_def(vm, class, "substring", tr_string_substring, 2);
   tr_def(vm, class, "==", tr_string_eq, 1);
 }
 

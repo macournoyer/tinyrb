@@ -39,12 +39,11 @@ static u_int tr_hashcode(VM, OBJ v)
   u_int i;
   
   switch (TR_TYPE(v)) {
-    case TR_STRING: i = tr_string_hash(TR_STR(v)); break;
-    case TR_FIXNUM: i = TR_FIX(v); break;
-    case TR_SYMBOL: i = v; break;
-    default:
-      tr_raise(vm, "no hash method for type: %d", TR_TYPE(v));
-      i = (u_int) v;
+    case TR_STRING:  i = tr_string_hash(TR_STR(v)); break;
+    case TR_FIXNUM:  i = TR_FIX(v); break;
+    case TR_SYMBOL:
+    case TR_SPECIAL: i = v; break;
+    default:         tr_raise(vm, "no hash method for type: %d", TR_TYPE(v));
   }
   
   /* Aim to protect against poor hash functions by adding logic here

@@ -23,30 +23,54 @@ describe String do
   end
   it "should slice" do
     "ohaie"[0,2].should == "oh"
+  end
+  it "should slice over end" do
     "ohaie"[2,10].should == "aie"
   end
-  xit "should slice with Range" do
+  it "should slice with Range" do
     "ohaie"[0..1].should == "oh"
     "ohaie"[2..10].should == "aie"
   end
+  it "should slice with negative" do
+    # "ohaie"[2..-1].should == "aie"
+    "ohaie"[0..-4].should == "oh"
+  end
+end
+
+class Poop
+  def initialize(ivar, cvar=nil)
+    @ivar  = ivar
+    @@cvar = cvar
+  end
+  def ivar; @ivar end
+  def cvar; @@cvar end
 end
 
 describe Class do
   it "should have a name" do
-    String.name.should == "String"
-    Fixnum.name.should == "Fixnum"
+    Poop.name.should == "Poop"
   end
   it "should equal same class" do
-    String.should == String
-    String.should_not == "hi"
+    Poop.should == Poop
+    Poop.should_not == "hi"
   end
   it "should === object of same class" do
     String.should === "hi"
     Fixnum.should_not === "hi"
   end
+  it "should call initializer" do
+    Poop.new("ivar").ivar.should == "ivar"
+  end
+  it "should set class var initializer" do
+    Poop.new("ivar", "cvar").cvar.should == "cvar"
+  end
 end
 
 describe Fixnum do
+  it "should equal same" do
+    7.should == 7
+    -7.should == -7
+  end
   it "should convert to string" do
     1.to_s.should == "1"
   end
@@ -140,19 +164,3 @@ describe Proc do
 end
 
 print_spec_summary!
-
-# # class
-# class Poop
-#   def initialize(answer)
-#     @smell = "smell"
-#     @@answer = answer
-#   end
-#   def do_you_smell?
-#     "do you " + @smell + "? "
-#   end
-#   def answer(excl)
-#     @@answer + excl
-#   end
-# end
-# p = Poop.new("yes")
-# puts p.do_you_smell? + p.answer("!!!")

@@ -2,8 +2,9 @@
 # I'll try to make it compatible w/ mspec so I copy them when I'm finished.
 # Some of it is ugly cause I don't have Exception rescue yet.
 
-$__spec_failures = 0
-$__spec_count = 0
+$spec_count = 0
+$spec_fail = 0
+$spec_ignore = 0
 
 def describe(name)
   puts name.to_s
@@ -18,11 +19,13 @@ end
 
 def xit(name)
   puts "  ignoring: it " + name
+  $spec_ignore += 1
 end
 
 def print_spec_summary!
-  puts $__spec_count.to_s + " examples, " +
-       $__spec_failures.to_s + " failures"
+  puts $spec_count.to_s + " examples, " +
+       $spec_fail.to_s + " failures, " +
+       $spec_ignore.to_s + " ignored"
 end
 
 class SpecMatcher
@@ -41,8 +44,8 @@ class SpecMatcher
     @negate ? !cond : cond
   end
   def _match(op, other, result)
-    $__spec_count = $__spec_count + 1
-    $__spec_failures = $__spec_failures + 1 unless _cond(result)
+    $spec_count += 1
+    $spec_fail += 1 unless _cond(result)
     puts "    " + @object.inspect + " " + (@negate ? "not " : "") + op + " " + other.inspect + ": " +
                   (_cond(result) ? "SUCCESS" : "FAIL")
   end
