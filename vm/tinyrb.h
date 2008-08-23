@@ -174,7 +174,6 @@ typedef struct tr_vm {
 void tr_init(VM, int argc, char *argv[]);
 OBJ tr_run(VM, OBJ filename, OBJ ops);
 void tr_raise(VM, char *msg, ...);
-OBJ tr_yield(VM, int argc, OBJ argv[]);
 void tr_next_frame(VM, OBJ obj, OBJ class);
 void tr_prev_frame(VM);
 

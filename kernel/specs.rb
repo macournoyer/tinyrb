@@ -112,6 +112,27 @@ describe "conditional" do
   end
 end
 
+describe Array do
+  it "should get" do
+    [1][0].should == 1
+  end
+  it "should set" do
+    a = []
+    a[0] = 1
+    a[0].should == 1
+  end
+  xit "+"
+  xit "each"
+  xit "each_with_index"
+  xit "hash"
+  xit "join"
+  xit "map"
+  xit "pop"
+  xit "push"
+  xit "push"
+  xit "length/size"
+end
+
 describe "stdio" do
   it "should return argv" do
     ARGV.class.should == Array
@@ -124,6 +145,9 @@ describe "method" do
   end
   def method_with_block
     "yield:" + yield
+  end
+  def method_with_block_args
+    "yield:" + yield("arg")
   end
 
   it "should call" do
@@ -140,6 +164,10 @@ describe "method" do
   
   it "should call with block" do
     method_with_block { "block" }.should == "yield:block"
+  end
+
+  it "should call with block arg" do
+    method_with_block_args { |arg| arg }.should == "yield:arg"
   end
 end
 

@@ -65,6 +65,26 @@ static OBJ tr_vm_newarray(VM, int argc)
   return a;
 }
 
+OBJ tr_vm_yield(VM, int argc)
+{
+  tr_frame *f = CUR_FRAME;
+  OBJ       ret;
+  OBJ      *argv = (OBJ *) tr_malloc(sizeof(OBJ) * argc);
+  size_t    i;
+  
+  if (f->block == TR_NIL)
+    tr_raise(vm, "No block given");
+  
+  for (i = argc; i > 0; --i)
+    argv[i-1] = STACK_POP();
+  
+  ret = tr_proc_call(vm, f->block, argc, argv);
+  
+  tr_free(argv);
+  
+  return ret;
+}
+
 static void tr_dump_stack(VM)
 {
   tr_array       *a = TR_CARRAY(CUR_FRAME->stack);
@@ -209,7 +229,7 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
                                STACK_POP()); /* new name */
         break;
       case INVOKEBLOCK:
-        STACK_PUSH(tr_yield(vm, 0, 0));
+        STACK_PUSH(tr_vm_yield(vm, TR_FIX(CMD(0))));
         break;
       
       /* class */
@@ -270,17 +290,6 @@ void tr_raise(VM, char *msg, ...)
   assert(0);
   tr_vm_print_stack();
   exit(-1);
-}
-
-OBJ tr_yield(VM, int argc, OBJ argv[])
-{
-  tr_frame *f = CUR_FRAME;
-  OBJ       ret;
-  
-  if (f->block == TR_NIL)
-    tr_raise(vm, "No block given");
-  
-  return tr_proc_call(vm, f->block, argc, argv);
 }
 
 void tr_next_frame(VM, OBJ obj, OBJ class)

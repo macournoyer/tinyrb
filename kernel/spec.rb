@@ -18,7 +18,7 @@ def it(name)
 end
 
 def xit(name)
-  puts "  ignoring: it " + name
+  puts "    ignoring: it " + name
   $spec_ignore += 1
 end
 
