@@ -25,6 +25,10 @@ class String
     substring(start, len)
   end
   
+  def to_s
+    self
+  end
+  
   def inspect
     '"' + self + '"'
   end

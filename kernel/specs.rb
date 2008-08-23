@@ -18,6 +18,12 @@ describe String do
     "ohaie".should_not == "ohaie2"
     "ohaie".should != "ohaie2"
   end
+  it "should compare" do
+    "a".should < "z"
+    "a".should <= "a"
+    "z".should > "a"
+    "z".should >= "a"
+  end
   it "should concatenate" do
     ("oh" + "aie").should == "ohaie"
   end

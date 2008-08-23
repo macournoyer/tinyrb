@@ -29,11 +29,6 @@ OBJ tr_string_concat(VM, OBJ self, OBJ str2)
   return (OBJ) str;
 }
 
-static OBJ tr_string_self(VM, OBJ self)
-{
-  return self;
-}
-
 static OBJ tr_string_size(VM, OBJ self)
 {
   return tr_fixnum_new(vm, TR_CSTRING(self)->len);
@@ -56,13 +51,13 @@ static OBJ tr_string_substring(VM, OBJ self, OBJ start, OBJ len)
   return slice;
 }
 
-static OBJ tr_string_eq(VM, OBJ self, OBJ other)
+static OBJ tr_string_cmp(VM, OBJ self, OBJ other)
 {
   if (TR_TYPE(other) != TR_STRING)
-    return TR_FALSE;
+    return tr_fixnum_new(vm, -1);
   
   char *s1 = TR_STR(self), *s2 = TR_STR(other);
-  return TR_CBOOL(strcmp(s1, s2) == 0);
+  return tr_fixnum_new(vm, strcmp(s1, s2));
 }
 
 void tr_string_init(VM)
@@ -70,10 +65,9 @@ void tr_string_init(VM)
   OBJ class = tr_class_new(vm, "String", tr_const_get(vm, "Object"));
   
   tr_def(vm, class, "+", tr_string_concat, 1);
-  tr_def(vm, class, "to_s", tr_string_self, 0);
   tr_def(vm, class, "size", tr_string_size, 0);
   tr_def(vm, class, "substring", tr_string_substring, 2);
-  tr_def(vm, class, "==", tr_string_eq, 1);
+  tr_def(vm, class, "<=>", tr_string_cmp, 1);
 }
 
 /* symbol */

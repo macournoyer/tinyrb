@@ -36,7 +36,9 @@ class SpecMatcher
   
   def ==(other);  _match "==",  other, @object == other  end
   def >(other);   _match ">",   other, @object > other   end
+  def >=(other);  _match ">=",  other, @object >= other  end
   def <(other);   _match "<",   other, @object < other   end
+  def <=(other);  _match "<=",  other, @object <= other  end
   def !=(other);  _match "!=",  other, @object != other  end
   def ===(other); _match "===", other, @object === other end
   
