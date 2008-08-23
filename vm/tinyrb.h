@@ -46,6 +46,7 @@
 /* shortcuts */
 #define TR_STR(s)        (TR_TYPE(s)==TR_STRING ? TR_CSTRING(s)->ptr : TR_CSYMBOL(s)->ptr)
 #define TR_FIX(n)        (TR_CFIXNUM(n)->val)
+#define TR_SYM(s)        (TR_TYPE(s)==TR_STRING ? tr_intern(vm, TR_CSTRING(s)->ptr) : s)
 #define VM               tr_vm *vm
 #define CUR_FRAME        (&vm->frames[vm->cf])
 #define TR_ASSERT(c,...) ((c) ? NULL : tr_raise(vm, __VA_ARGS__))

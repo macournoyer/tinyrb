@@ -235,6 +235,11 @@ static OBJ tr_object_id(VM, OBJ self)
   return tr_fixnum_new(vm, (int) self);
 }
 
+static OBJ tr_object_send(VM, OBJ self, int argc, OBJ argv[])
+{
+  return tr_send(vm, self, TR_SYM(argv[0]), argc-1, (OBJ *) argv + sizeof(OBJ), TR_NIL);
+}
+
 void tr_object_init(VM)
 {
   OBJ object = tr_class_new(vm, "Object", TR_NIL);
@@ -242,6 +247,7 @@ void tr_object_init(VM)
   tr_def(vm, object, "object_id", tr_object_id, 0);
   tr_def(vm, object, "class", tr_object_class, 0);
   tr_def(vm, object, "initialize", tr_object_nop, -1);
+  tr_def(vm, object, "send", tr_object_send, -1);
 }
 
 /* special objects (true, false, nil) */

@@ -12,7 +12,7 @@ describe Object do
     "ohaie".is_a?(String).should == true
     "ohaie".is_a?(Fixnum).should == false
   end
-  xit "should send message" do
+  it "should send message" do
     1.send(:to_s).should == "1"
     1.send("to_s").should == "1"
   end

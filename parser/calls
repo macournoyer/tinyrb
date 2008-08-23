@@ -38,7 +38,7 @@ Kernel#clone
 x Kernel#eql?
 Kernel#hash
 x Kernel#is_a?
-Kernel#send
+x Kernel#send
 Module#===
 Module#attr_accessor
 Module#attr_reader
