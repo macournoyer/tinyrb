@@ -1,6 +1,6 @@
 Array#+
 x Array#[]
-Array#[]=
+x Array#[]=
 x Array#each
 Array#each_index
 Array#eql?
@@ -14,15 +14,15 @@ x Array#push
 x Array#size
 Enumerable#any?
 Exception#initialize
-Fixnum#&
+x Fixnum#&
 x Fixnum#+
 x Fixnum#-
 x Fixnum#<
-Fixnum#<<
+x Fixnum#<<
 x Fixnum#==
 x Fixnum#>=
-Fixnum#|
-Fixnum#~
+x Fixnum#|
+x Fixnum#~
 Hash#[]
 Hash#[]=
 Hash#each_key
@@ -35,10 +35,9 @@ Integer#chr
 Integer#upto
 x Kernel#==
 Kernel#clone
-Kernel#eql?
+x Kernel#eql?
 Kernel#hash
-Kernel#is_a?
-Kernel#method_missing
+x Kernel#is_a?
 Kernel#send
 Module#===
 Module#attr_accessor

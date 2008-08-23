@@ -2,6 +2,9 @@ class TrueClass
   def !
     false
   end
+  def to_s
+    "true"
+  end
   def inspect
     "true"
   end
@@ -10,6 +13,9 @@ end
 class FalseClass
   def !
     true
+  end
+  def to_s
+    "false"
   end
   def inspect
     "false"
@@ -25,6 +31,9 @@ class NilClass
   end
   def nil?
     true
+  end
+  def to_s
+    ""
   end
   def inspect
     "nil"

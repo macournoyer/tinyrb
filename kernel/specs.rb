@@ -8,6 +8,14 @@ describe Object do
   it "should have a unique id" do
     Object.new.object_id.should > 10
   end
+  it "should be a class" do
+    "ohaie".is_a?(String).should == true
+    "ohaie".is_a?(Fixnum).should == false
+  end
+  xit "should send message" do
+    1.send(:to_s).should == "1"
+    1.send("to_s").should == "1"
+  end
 end
 
 describe String do
@@ -102,6 +110,9 @@ describe Fixnum do
   end
   it "should bitwise not" do
     (~1).should == -2
+  end
+  it "should negate" do
+    (!1).should == false
   end
 end
 

@@ -92,7 +92,7 @@ static OBJ tr_lookup_method(VM, OBJ obj, OBJ name)
   
   /* method not found */
   /* TODO call method_missing */
-  tr_raise(vm, "method not found: %s on %s", TR_STR(name), TR_STR(tr_object_inspect(vm, obj)));
+  tr_raise(vm, "method not found: %s on %s", TR_STR(name), TR_STR(tr_send2(vm, obj, "inspect", 0)));
   
   return TR_NIL;
 }
@@ -220,15 +220,6 @@ OBJ tr_new2(VM, OBJ class)
   return tr_new(vm, class, 0, argv);
 }
 
-OBJ tr_object_inspect(VM, OBJ self)
-{
-  OBJ str = tr_string_new(vm, "#<Object:0x000000>");
-  
-  /* TODO buffer overflow!!! */
-  sprintf(TR_STR(str), "#<%s:%p>", TR_STR(TR_COBJ(self)->class->name), (int) self);
-  return str;
-}
-
 static OBJ tr_object_class(VM, OBJ self)
 {
   return (OBJ) TR_COBJ(self)->class;
@@ -248,43 +239,17 @@ void tr_object_init(VM)
 {
   OBJ object = tr_class_new(vm, "Object", TR_NIL);
   
-  tr_def(vm, object, "inspect", tr_object_inspect, 0);
   tr_def(vm, object, "object_id", tr_object_id, 0);
-  tr_def(vm, object, "to_s", tr_object_inspect, 0);
   tr_def(vm, object, "class", tr_object_class, 0);
   tr_def(vm, object, "initialize", tr_object_nop, -1);
 }
 
 /* special objects (true, false, nil) */
 
-static OBJ tr_nil_to_s(VM, OBJ self)
-{
-  return tr_string_new(vm, "");
-}
-
-static OBJ tr_true_to_s(VM, OBJ self)
-{
-  return tr_string_new(vm, "true");
-}
-
-static OBJ tr_false_to_s(VM, OBJ self)
-{
-  return tr_string_new(vm, "false");
-}
-
 void tr_special_init(VM)
 {
   OBJ objectclass = tr_const_get(vm, "Object");
-  
-  OBJ nilclass = tr_class_new(vm, "NilClass", objectclass);
-  tr_def(vm, nilclass, "to_s", tr_nil_to_s, 0);
-  tr_const_set(vm, "NIL", tr_new2(vm, nilclass));
-  
-  OBJ trueclass = tr_class_new(vm, "TrueClass", objectclass);
-  tr_def(vm, trueclass, "to_s", tr_true_to_s, 0);
-  tr_const_set(vm, "TRUE", tr_new2(vm, trueclass));
-  
-  OBJ falseclass = tr_class_new(vm, "FalseClass", objectclass);
-  tr_def(vm, falseclass, "to_s", tr_false_to_s, 0);
-  tr_const_set(vm, "FALSE", tr_new2(vm, falseclass));
+  tr_const_set(vm, "NIL",   tr_new2(vm, tr_class_new(vm, "NilClass", objectclass)));
+  tr_const_set(vm, "TRUE",  tr_new2(vm, tr_class_new(vm, "TrueClass", objectclass)));
+  tr_const_set(vm, "FALSE", tr_new2(vm, tr_class_new(vm, "FalseClass", objectclass)));
 }

@@ -201,7 +201,6 @@ tr_type tr_type_get(OBJ obj);
 void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class);
 OBJ tr_new(VM, OBJ class, int argc, OBJ argv[]);
 OBJ tr_new2(VM, OBJ class);
-OBJ tr_object_inspect(VM, OBJ self);
 
 /* proc */
 OBJ tr_proc_new(VM, OBJ ops);
