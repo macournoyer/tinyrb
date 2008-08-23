@@ -17,7 +17,7 @@ Exception#initialize
 Fixnum#&
 x Fixnum#+
 x Fixnum#-
-Fixnum#<
+x Fixnum#<
 Fixnum#<<
 x Fixnum#==
 x Fixnum#>=

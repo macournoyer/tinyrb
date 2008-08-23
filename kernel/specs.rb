@@ -77,12 +77,31 @@ describe Class do
 end
 
 describe Fixnum do
+  it "should add" do
+    (3 + 4).should == 7
+  end
+  it "should sub" do
+    (3 - 4).should == -1
+  end
   it "should equal same" do
     7.should == 7
     -7.should == -7
   end
   it "should convert to string" do
     1.to_s.should == "1"
+  end
+  it "should bit shift" do
+    (1 << 3).should == 8
+    (8 >> 3).should == 1
+  end
+  it "should bitwise and" do
+    (3 & 2).should == 2
+  end
+  it "should bitwise or" do
+    (3 | 2).should == 3
+  end
+  it "should bitwise not" do
+    (~1).should == -2
   end
 end
 
