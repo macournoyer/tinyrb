@@ -36,7 +36,7 @@ OBJ tr_alias(VM, OBJ obj, OBJ new_name, OBJ name)
   if (met->func)
     return tr_def(vm, obj, TR_STR(new_name), met->func, met->argc);
   else
-    return tr_ops_def(vm, obj, new_name, met->ops, met->filename, met->arg_names, met->argc, met->labels);
+    return tr_ops_def(vm, obj, new_name, met->ops, met->filename, met->arg_names, tr_fixnum_new(vm, met->argc), met->labels);
 }
 
 OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ arg_names, OBJ argc, OBJ labels)
@@ -96,10 +96,20 @@ OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type
   OBJ   class;
   char *n = TR_STR(name);
   
-  if (tr_const_defined(vm, n))
+  if (tr_const_defined(vm, n)) {
     class = tr_const_get(vm, n);
-  else
-    class = tr_class_new(vm, n, super == TR_NIL ? tr_const_get(vm, "Object") : super);
+  } else {
+    switch (define_type) {
+      case 0: /* class */
+        class = tr_class_new(vm, n, super == TR_NIL ? tr_const_get(vm, "Object") : super);
+        break;
+      case 2: /* module */
+        class = tr_module_new(vm, n);
+        break;
+      default:
+        tr_raise(vm, "Unknown Class define_type: %d", define_type);
+    }
+  }
   
   tr_next_frame(vm, class, class);
   OBJ ret = tr_run(vm, tr_string_new(vm, "?"), ops);
@@ -154,5 +164,5 @@ void tr_module_init(VM)
 {
   OBJ module = tr_class_new(vm, "Module", tr_const_get(vm, "Object"));
   
-  tr_metadef(vm, module, "include", tr_module_include, 1);
+  tr_def(vm, module, "include", tr_module_include, 1);
 }

@@ -19,7 +19,6 @@ Fixnum#+
 Fixnum#-
 Fixnum#<
 Fixnum#<<
-Fixnum#<=>
 Fixnum#==
 Fixnum#>=
 Fixnum#|
@@ -36,7 +35,6 @@ Integer#chr
 Integer#upto
 Kernel#==
 Kernel#clone
-Kernel#dup
 Kernel#eql?
 Kernel#hash
 Kernel#is_a?
@@ -58,8 +56,8 @@ Set#each
 Set#initialize
 Set#merge
 Set#subtract
-String#+
-String#==
-String#[]
-String#length
-Symbol#===
+x String#+
+x String#==
+x String#[]
+x String#length
+x Symbol#===

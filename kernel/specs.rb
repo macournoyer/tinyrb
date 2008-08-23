@@ -35,6 +35,10 @@ describe String do
     # TODO hangs!11!!??: "ohaie"[2..-1].should == "aie"
     "ohaie"[0..-4].should == "oh"
   end
+  it "should have size" do
+    "ohaie".size.should == 5
+    "ohaie".length.should == 5
+  end
 end
 
 class Poop
@@ -143,6 +147,7 @@ describe "method" do
   def some_method!(x, y="cool")
     x + y
   end
+  alias :some_alias :some_method!
   def method_with_block
     "yield:" + yield
   end
@@ -168,6 +173,10 @@ describe "method" do
 
   it "should call with block arg" do
     method_with_block_args { |arg| arg }.should == "yield:arg"
+  end
+  
+  it "should be aliasable" do
+    some_alias("var").should == "varcool"
   end
 end
 

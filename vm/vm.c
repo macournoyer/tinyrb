@@ -16,6 +16,7 @@ const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPEC
 #define STACK_POP()    tr_array_pop(vm, CUR_FRAME->stack)
 
 #define TR_SEND_ARGS_SPLAT_FLAG 2
+#define TR_SEND_FCALL_FLAG      8
 
 static OBJ tr_vm_send(VM, OBJ method, int argc, OBJ block_ops, int opflag)
 {
@@ -27,7 +28,7 @@ static OBJ tr_vm_send(VM, OBJ method, int argc, OBJ block_ops, int opflag)
     argv[i-1] = STACK_POP();
   obj = STACK_POP();
   
-  if (obj == TR_NIL)
+  if (opflag & TR_SEND_FCALL_FLAG)
     obj = CUR_FRAME->self;
   
   if (opflag & TR_SEND_ARGS_SPLAT_FLAG) {

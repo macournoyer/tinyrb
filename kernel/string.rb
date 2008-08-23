@@ -1,4 +1,8 @@
 class String
+  include Comparable
+  
+  alias :length :size
+  
   def !=(other)
     !(self == other)
   end
