@@ -60,6 +60,17 @@ static OBJ tr_string_cmp(VM, OBJ self, OBJ other)
   return tr_fixnum_new(vm, strcmp(s1, s2));
 }
 
+static OBJ tr_string_replace(VM, OBJ self, OBJ other)
+{
+  tr_string *s = TR_CSTRING(self);
+  tr_string *o = TR_CSTRING(other);
+  
+  s->ptr = o->ptr;
+  s->len = o->len;
+  
+  return other;
+}
+
 void tr_string_init(VM)
 {
   OBJ class = tr_class_new(vm, "String", tr_const_get(vm, "Object"));
@@ -68,6 +79,7 @@ void tr_string_init(VM)
   tr_def(vm, class, "size", tr_string_size, 0);
   tr_def(vm, class, "substring", tr_string_substring, 2);
   tr_def(vm, class, "<=>", tr_string_cmp, 1);
+  tr_def(vm, class, "replace", tr_string_replace, 1);
 }
 
 /* symbol */

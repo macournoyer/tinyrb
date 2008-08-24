@@ -138,8 +138,9 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops)
       CUR_FRAME->block = tr_proc_new(vm, block_ops);
     
     /* move method args to locals */
+    int local_offset = labels->count > 0 & m->localc > labels->count + 1 ? 2 : 0;
     for (i = 0; i < m->argc; ++i)
-      tr_hash_set(vm, CUR_FRAME->locals, tr_fixnum_new(vm, m->argc-i+1), argv[i]);
+      tr_hash_set(vm, CUR_FRAME->locals, tr_fixnum_new(vm, m->argc-i+1+local_offset), argv[i]);
     
     /* insert a jump instruct to skip default val in method sign */
     if (labels->count > 0) {
@@ -149,7 +150,7 @@ OBJ tr_send(VM, OBJ obj, OBJ message, int argc, OBJ argv[], OBJ block_ops)
     
     ret = tr_run(vm, m->filename, m->ops);
     
-    /* TODO remote the injected instruction */
+    /* TODO remove the injected instruction */
     
     tr_prev_frame(vm);
     return ret;

@@ -53,6 +53,9 @@ describe String do
     "ohaie".size.should == 5
     "ohaie".length.should == 5
   end
+  it "should replace" do
+    "ohaie".replace("lol").should == "lol"
+  end
 end
 
 class Poop
@@ -190,6 +193,10 @@ describe Array do
     end
     $i.should == 3
   end
+  xit "should include?" do
+    [1, 2].include?(2).should == true
+    [1, 2].include?(3).should == false
+  end
   xit "hash"
   xit "join"
   xit "map"
@@ -205,6 +212,9 @@ describe Array do
   end
   it "should have a size" do
     [1, 2, 3].size.should == 3
+  end
+  xit "should inspect" do
+    [1, "hi"].inspect.should == '[1, "hi"]'
   end
 end
 

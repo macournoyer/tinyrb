@@ -1,8 +1,10 @@
 class Array
+  include Enumerable
+  
   alias :length :size
   alias :push :<<
   
-  def first
+  def first(arg)
     self[0]
   end
   
@@ -14,11 +16,13 @@ class Array
     end
   end
   
-  def each_with_index
-    i = 0
-    while i < size
-      yield self[i], i
-      i += 1
+  def inspect
+    out = "["
+    each do |i|
+      out << i.inspect
+      out << ", "
     end
+    out << "]"
+    out
   end
 end

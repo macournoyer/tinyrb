@@ -147,8 +147,8 @@ typedef struct tr_method {
   OBJ     filename;
   OBJ   (*func)();
   int     argc;
+  int     localc;
   OBJ     ops;
-  OBJ     arg_names;
   OBJ     labels;
 } tr_method;
 
@@ -182,7 +182,7 @@ void tr_prev_frame(VM);
 OBJ tr_def(VM, OBJ obj, char *name, OBJ (*func)(), int argc);
 OBJ tr_metadef(VM, OBJ obj, char *name, OBJ (*func)(), int argc);
 OBJ tr_alias(VM, OBJ obj, OBJ new_name, OBJ name);
-OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ arg_names, OBJ argc, OBJ labels);
+OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ argc, OBJ localc, OBJ labels);
 OBJ tr_class_new(VM, char* name, OBJ super);
 OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type);
 OBJ tr_metaclass_new(VM);

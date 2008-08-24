@@ -221,8 +221,8 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
         tr_ops_def(vm, f->class, CMD(0),  /* name */
                                  CMD(1),  /* opcode */
                                  CMD(2),  /* filename */
-                                 CMD(3),  /* arg names */
-                                 CMD(4),  /* argc */
+                                 CMD(3),  /* argc */
+                                 CMD(4),  /* localc */
                                  CMD(5)); /* labels */
         break;
       case ALIAS:
@@ -256,9 +256,13 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
         break;
       case LABEL:
         break;
+      case THROW:
+        STACK_POP();
+        /* tr_send2(vm, f->stack, "inspect", 0); */
+        break;
       
       default:
-        tr_log("unsupported instruction: %d (ip=%d)", OPCODE, ip);
+        tr_log("unsupported instruction: %d (cf=%d, ip=%d)", OPCODE, vm->cf, ip);
     }
     
     #ifdef TRACE_STACK

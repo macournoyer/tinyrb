@@ -52,8 +52,8 @@ class InstructionConverter
       op :definemethod, cmds[0],     # name
                         cmds[1],     # opcode
                         cmds[1][6],  # filename
-                        cmds[1][8],  # arg names
-                        cmds[1][8].size,  # argc
+                        cmds[1][4][:arg_size],   # argc
+                        cmds[1][4][:local_size], # localc
                         cmds[1][9].is_a?(Array) ? cmds[1][9][1] : [] # labels
     end
   end

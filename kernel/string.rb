@@ -1,10 +1,15 @@
 class String
   include Comparable
+  include Enumerable
   
   alias :length :size
   
   def !=(other)
     !(self == other)
+  end
+  
+  def <<(s)
+    replace self + s
   end
   
   def [](f, l=nil)

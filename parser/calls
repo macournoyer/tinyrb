@@ -39,14 +39,14 @@ x Kernel#eql?
 Kernel#hash
 x Kernel#is_a?
 x Kernel#send
-Module#===
+x Module#===
 Module#attr_accessor
 Module#attr_reader
-Module#include
+x Module#include
 NameError#initialize
 x NilClass#nil?
 NoMethodError#initialize
-Numeric#eql?
+x Numeric#eql?
 Range#===
 Range#include?
 Set#+

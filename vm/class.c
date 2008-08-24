@@ -36,10 +36,10 @@ OBJ tr_alias(VM, OBJ obj, OBJ new_name, OBJ name)
   if (met->func)
     return tr_def(vm, obj, TR_STR(new_name), met->func, met->argc);
   else
-    return tr_ops_def(vm, obj, new_name, met->ops, met->filename, met->arg_names, tr_fixnum_new(vm, met->argc), met->labels);
+    return tr_ops_def(vm, obj, new_name, met->ops, met->filename, tr_fixnum_new(vm, met->argc), tr_fixnum_new(vm, met->localc), met->labels);
 }
 
-OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ arg_names, OBJ argc, OBJ labels)
+OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ argc, OBJ localc, OBJ labels)
 {
   tr_method *met = (tr_method *) tr_malloc(sizeof(tr_method));
   
@@ -48,8 +48,8 @@ OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ arg_names, OB
   met->func      = NULL;
   met->ops       = ops;
   met->argc      = TR_FIX(argc);
+  met->localc    = TR_FIX(localc);
   met->filename  = filename;
-  met->arg_names = arg_names;
   met->labels    = labels;
   
   tr_hash_set(vm, TR_CCLASS(class)->methods, met->name, (OBJ) met);
