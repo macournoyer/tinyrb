@@ -6,5 +6,6 @@ comparable.rb
 fixnum.rb
 string.rb
 array.rb
+range.rb
 spec.rb
 specs.rb

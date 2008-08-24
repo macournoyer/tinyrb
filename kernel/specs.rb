@@ -37,16 +37,21 @@ describe String do
   end
   it "should slice" do
     "ohaie"[0,2].should == "oh"
+    "ohaie"[2,3].should == "aie"
   end
   it "should slice over end" do
     "ohaie"[2,10].should == "aie"
   end
   it "should slice with Range" do
     "ohaie"[0..1].should == "oh"
+    "ohaie"[0..2].should == "oha"
+  end
+  it "should slice with Range over end" do
     "ohaie"[2..10].should == "aie"
   end
   it "should slice with negative" do
-    # TODO hangs!11!!??: "ohaie"[2..-1].should == "aie"
+    "ohaie"[2..-1].should == "aie"
+    "ohaie"[2..-2].should == "ai"
     "ohaie"[0..-4].should == "oh"
   end
   it "should have size" do
@@ -228,6 +233,12 @@ describe "method" do
   def some_method!(x, y="cool")
     x + y
   end
+  def some_method2(x, y="cool", z="yes")
+    a = 1.to_s
+    b = :local.to_s
+    c = "ok?"
+    a + b + c + x + y + z
+  end
   alias :some_alias :some_method!
   def method_with_block
     "yield:" + yield
@@ -246,6 +257,10 @@ describe "method" do
   
   it "should use default value" do
     some_method!("var").should == "varcool"
+  end
+  
+  it "should use default value with localvars" do
+    some_method2("var", "wow").should == "1localok?varwowyes"
   end
   
   it "should call with block" do

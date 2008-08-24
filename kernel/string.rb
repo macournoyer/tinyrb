@@ -15,11 +15,8 @@ class String
   def [](f, l=nil)
     if Range === f
       start = f.first
-      if f.last < 0
-        len = size + f.last + 1
-      else
-        len = size - f.last - 2
-      end
+      last  = f.last < 0 ? size + f.last : f.last
+      len   = last - start + 1
     else
       start = f
       len   = l
