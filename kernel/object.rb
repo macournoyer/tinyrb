@@ -27,7 +27,7 @@ class Object
   end
   
   def inspect
-    '#<' + self.class.name + '0x' + object_id.to_s + '>'
+    '#<' + self.class.name + ':0x' + object_id.to_s + '>'
   end
   
   alias :to_s :inspect

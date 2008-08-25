@@ -95,6 +95,10 @@ describe Class do
     Poop.new("ivar", "cvar")
     Poop.cmethod.should == nil
   end
+  it "should define method dynamicly" do
+    Poop.define_method(:dyn) { |e| "I'm " + e.to_s }
+    Poop.new.dyn("dynamic").should == "I'm dynamic"
+  end
 end
 
 describe Fixnum do

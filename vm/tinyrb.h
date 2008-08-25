@@ -137,8 +137,11 @@ typedef struct tr_range {
 
 typedef struct tr_proc {
   ACTS_AS_TR_OBJ;
-  OBJ       ops;
   off_t     cf;
+  OBJ       ops;
+  int       argc;
+  int       localc;
+  OBJ       labels;
 } tr_proc;
 
 typedef struct tr_method {

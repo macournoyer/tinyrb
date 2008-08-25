@@ -118,16 +118,10 @@ OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type
   return ret;
 }
 
-static OBJ tr_class_name(VM, OBJ self)
-{
-  return (OBJ) TR_CSYMBOL(TR_CCLASS(self)->name);
-}
-
 void tr_class_init(VM)
 {
   OBJ class = tr_class_new(vm, "Class", TR_NIL);
   
-  tr_def(vm, class, "name", tr_class_name, 0);
   tr_def(vm, class, "new", tr_new, -1);
 }
 
@@ -151,6 +145,11 @@ OBJ tr_module_new(VM, char* name)
   return (OBJ) c;
 }
 
+static OBJ tr_module_name(VM, OBJ self)
+{
+  return (OBJ) TR_CSYMBOL(TR_CCLASS(self)->name);
+}
+
 OBJ tr_module_include(VM, OBJ self, OBJ module)
 {
   tr_obj *obj = TR_COBJ(self);
@@ -160,9 +159,22 @@ OBJ tr_module_include(VM, OBJ self, OBJ module)
   return TR_NIL;
 }
 
+static OBJ tr_module_define_method(VM, OBJ self, OBJ name)
+{
+  tr_proc *proc = TR_CPROC(CUR_FRAME->block);
+  
+  return tr_ops_def(vm, self, name, proc->ops,
+                                    CUR_FRAME->filename,
+                                    tr_fixnum_new(vm, proc->argc),
+                                    tr_fixnum_new(vm, proc->localc),
+                                    proc->labels);
+}
+
 void tr_module_init(VM)
 {
   OBJ module = tr_class_new(vm, "Module", tr_const_get(vm, "Object"));
   
+  tr_def(vm, module, "name", tr_module_name, 0);
   tr_def(vm, module, "include", tr_module_include, 1);
+  tr_def(vm, module, "define_method", tr_module_define_method, 1);
 }

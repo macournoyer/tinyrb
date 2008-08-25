@@ -212,8 +212,9 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
       case LEAVE:
         return STACK_POP();
       case DEFINEMETHOD:
+        /* TODO!!!!!! extract argc, localc, labels and filename from CMD(1) */
         tr_vm_definemethod(vm, STACK_POP(), CMD(0),  /* name */
-                                            CMD(1),  /* opcode */
+                                            tr_array_at(vm, CMD(1), 0),  /* opcode */
                                             CMD(2),  /* filename */
                                             CMD(3),  /* argc */
                                             CMD(4),  /* localc */
@@ -229,10 +230,11 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
       
       /* class */
       case DEFINECLASS:
+        /* TODO!!!!!! extract argc, localc, labels and filename from CMD(1) */
         tr_class_define(vm, CMD(0),           /* name */
                             STACK_POP(),      /* cbase */
                             STACK_POP(),      /* super */
-                            CMD(1),           /* opcode */
+                            tr_array_at(vm, CMD(1), 0),           /* opcode */
                             TR_FIX(CMD(2)));  /* define_type */
         break;
       

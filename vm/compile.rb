@@ -88,7 +88,8 @@ class InstructionConverter
       if v.first == "YARVInstructionSequence/SimpleDataFormat"
         key = "#{@name}_b#{@blocks.size+1}"
         @blocks << InstructionConverter.new(key, v).to_s
-        key + "(vm)"
+        values = [v[4][:arg_size], v[4][:local_size]]
+        "tr_array_create(vm, #{values.size+1}, #{key}(vm), #{values.map { |i| convert_type(code, i) }.join(", ")})"
       else
         "tr_array_create(vm, #{v.size}#{', ' if v.size > 0}#{v.map { |i| convert_type(code, i) }.join(", ")})"
       end

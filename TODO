@@ -1,6 +1,5 @@
 TODOs (by priority)
 ===================
-- def self.yo; ...
 - attr_accessor
 - array splat (eg.: name, *args = name_args)
 - Run parser through tinyrb
