@@ -23,7 +23,7 @@ OBJ tr_proc_call(VM, OBJ self, int argc, OBJ argv[])
   for (i = 0; i < argc; ++i)
     tr_hash_set(vm, vm->frames[proc->cf].locals, tr_fixnum_new(vm, argc-i), argv[i]);
   
-  ret = tr_run(vm, tr_string_new(vm, "?"), proc->ops);
+  ret = tr_run(vm, tr_string_new(vm, "block"), proc->ops);
   
   vm->cf = cf;
   

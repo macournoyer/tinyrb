@@ -1,8 +1,5 @@
 #include "tinyrb.h"
 
-/* #define TRACE_STACK */
-
-#ifdef TRACE_STACK
 const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPECIAL","GETDYNAMIC","SETDYNAMIC",
   "GETINSTANCEVARIABLE","SETINSTANCEVARIABLE","GETCLASSVARIABLE","SETCLASSVARIABLE","GETCONSTANT","SETCONSTANT",
   "GETGLOBAL","SETGLOBAL","PUTNIL","PUTSELF","PUTUNDEF","PUTOBJECT","PUTSTRING","CONCATSTRINGS","TOSTRING",
@@ -10,7 +7,6 @@ const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPEC
   "NEWRANGE","PUTNOT","POP","DUP","DUPN","SWAP","REPUT","TOPN","EMPTSTACK","DEFINEMETHOD","ALIAS","UNDEF","DEFINED",
   "POSTEXE","TRACE","DEFINECLASS","SEND","INVOKESUPER","INVOKEBLOCK","LEAVE","FINISH","THROW","JUMP","BRANCHIF",
   "BRANCHUNLESS", "SETN", /* mine */ "LABEL","PUTFIXNUM","PUTSYMBOL","PUTSPECIAL"};
-#endif
 
 #define STACK_PUSH(o)  tr_array_push(vm, CUR_FRAME->stack, (o))
 #define STACK_POP()    tr_array_pop(vm, CUR_FRAME->stack)
@@ -86,18 +82,6 @@ OBJ tr_vm_yield(VM, int argc)
   return ret;
 }
 
-static void tr_dump_stack(VM)
-{
-  tr_array       *a = TR_CARRAY(CUR_FRAME->stack);
-  tr_array_entry *e = a->first;
-  size_t          i = 0;
-  
-  while (e != NULL) {
-    printf("    [%d] %p\n", i++, e->value);
-    e = e->next;
-  }
-}
-
 #define VM_FRAME(n)    (&vm->frames[vm->cf-TR_FIX(n)])
 #define JUMP_TO(label) ip = (int) tr_hash_get(vm, label2ip, label)
 #define LINENUM        TR_FIX(tr_array_at(vm, op, 0))
@@ -112,6 +96,9 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
   size_t    n = TR_FIX(tr_array_count(vm, ops));
   OBJ       label2ip = tr_hash_new(vm);
   
+  if (vm->cf > TR_MAX_FRAMES)
+    tr_raise(vm, "Stack overflow");
+  
   f->filename = filename;
   
   /* store labels=>ip mapping for later jumping */
@@ -124,10 +111,6 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
   for (ip = 0; ip < n; ++ip) {
     op = tr_array_at(vm, ops, ip);
     f->line = LINENUM;
-    
-    #ifdef TRACE_STACK
-    printf("[%d] %s   (line %d)\n", ip, tr_inst_names[OPCODE], LINENUM);
-    #endif
     
     switch (OPCODE) {
       /* nop */
@@ -264,23 +247,7 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
       default:
         tr_log("unsupported instruction: %d (cf=%d, ip=%d)", OPCODE, vm->cf, ip);
     }
-    
-    #ifdef TRACE_STACK
-    tr_dump_stack(vm);
-    #endif
   }
-}
-
-static void tr_vm_print_stack() {
-  void  *trace[16];
-  char **messages = (char **) NULL;
-  int    i, trace_size = 0;
-
-  trace_size = backtrace(trace, 16);
-  messages   = (char **) backtrace_symbols(trace, trace_size);
-  printf("VM backtrace:\n");
-  for (i = 0; i < trace_size; ++i)
-	  printf("  %s\n", messages[i]);
 }
 
 void tr_raise(VM, char *msg, ...)
@@ -293,16 +260,12 @@ void tr_raise(VM, char *msg, ...)
   fprintf(stderr, "     from %s:%d\n", TR_STR(CUR_FRAME->filename), CUR_FRAME->line);
   va_end(args);
   assert(0);
-  tr_vm_print_stack();
   exit(-1);
 }
 
 void tr_next_frame(VM, OBJ obj, OBJ class)
 {
   vm->cf ++;
-  #ifdef TRACE_STACK
-  printf("moving to frame: %d\n", vm->cf);
-  #endif
   tr_frame  *f = CUR_FRAME;
   
   /* TODO ??? f->consts = tr_hash_new(vm); */
@@ -318,9 +281,6 @@ void tr_next_frame(VM, OBJ obj, OBJ class)
 void tr_prev_frame(VM)
 {
   vm->cf --;
-  #ifdef TRACE_STACK
-  printf("back to frame: %d\n", vm->cf);
-  #endif
 }
 
 static tr_define_builtins(VM)

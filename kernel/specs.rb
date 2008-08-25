@@ -294,6 +294,32 @@ describe Proc do
   it "should call with arg" do
     Proc.new { |hi| hi + " from proc" }.call("hi").should == "hi from proc"
   end
+  
+  def doubler
+    yield
+    yield
+  end
+  it "should use localvar in block" do
+    i = 0
+    doubler do
+      i += 1
+    end
+    i.should == 2
+  end
+  
+  def doubler_yielder
+    i = 0
+    yield
+    doubler do
+      yield
+      i += 1
+    end
+    i
+  end
+  xit "should use localvar in yielder block" do
+    i = doubler_yielder {}
+    i.should == 2
+  end
 end
 
 
