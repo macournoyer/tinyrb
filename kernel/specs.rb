@@ -70,6 +70,7 @@ class Poop
   end
   def ivar; @ivar end
   def cvar; @@cvar end
+  def self.cmethod; end
 end
 
 describe Class do
@@ -89,6 +90,10 @@ describe Class do
   end
   it "should set class var initializer" do
     Poop.new("ivar", "cvar").cvar.should == "cvar"
+  end
+  it "should define class method" do
+    Poop.new("ivar", "cvar")
+    Poop.cmethod.should == nil
   end
 end
 
@@ -273,6 +278,13 @@ describe "method" do
   
   it "should be aliasable" do
     some_alias("var").should == "varcool"
+  end
+  
+  it "should define singleton method" do
+    a = "hi"
+    def a.to_s; true end
+    a.to_s.should == true
+    "a".to_s.should == "a"
   end
 end
 

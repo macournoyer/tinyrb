@@ -10,6 +10,7 @@ const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPEC
 
 #define STACK_PUSH(o)  tr_array_push(vm, CUR_FRAME->stack, (o))
 #define STACK_POP()    tr_array_pop(vm, CUR_FRAME->stack)
+#define STACK_PEEK()   tr_array_last(vm, CUR_FRAME->stack)
 
 #define TR_SEND_ARGS_SPLAT_FLAG 2
 #define TR_SEND_FCALL_FLAG      8
@@ -80,6 +81,16 @@ OBJ tr_vm_yield(VM, int argc)
   tr_free(argv);
   
   return ret;
+}
+
+static void tr_vm_definemethod(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ argc, OBJ localc, OBJ labels)
+{
+  if (class == TR_NIL)
+    class = CUR_FRAME->class;
+  else
+    class = (OBJ) TR_COBJ(class)->metaclass;
+  
+  tr_ops_def(vm, class, name, ops, filename, argc, localc, labels);
 }
 
 #define VM_FRAME(n)    (&vm->frames[vm->cf-TR_FIX(n)])
@@ -185,7 +196,7 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
         STACK_POP();
         break;
       case DUP:
-        STACK_PUSH(tr_array_last(vm, f->stack));
+        STACK_PUSH(STACK_PEEK());
         break;
       case SETN:
         STACK_POP(); /* ignore */
@@ -201,12 +212,12 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
       case LEAVE:
         return STACK_POP();
       case DEFINEMETHOD:
-        tr_ops_def(vm, f->class, CMD(0),  /* name */
-                                 CMD(1),  /* opcode */
-                                 CMD(2),  /* filename */
-                                 CMD(3),  /* argc */
-                                 CMD(4),  /* localc */
-                                 CMD(5)); /* labels */
+        tr_vm_definemethod(vm, STACK_POP(), CMD(0),  /* name */
+                                            CMD(1),  /* opcode */
+                                            CMD(2),  /* filename */
+                                            CMD(3),  /* argc */
+                                            CMD(4),  /* localc */
+                                            CMD(5)); /* labels */
         break;
       case ALIAS:
         tr_alias(vm, f->class, STACK_POP(),  /* cur name */
