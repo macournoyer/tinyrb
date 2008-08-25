@@ -1,6 +1,6 @@
 = TinyRb
 
-My lame attempt to copy tinypy and create tiny Ruby VM.
+My lame attempt to copy tinypy and create a tiny Ruby VM.
 I'm not a VM or language expert so expect the worst from this.
 
 == Getting started
