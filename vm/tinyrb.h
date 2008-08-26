@@ -88,7 +88,7 @@ typedef struct tr_string {
   ACTS_AS_TR_OBJ;
   char    *ptr;
   size_t   len;
-  unsigned interned: 1;
+  OBJ      symbol;
 } tr_string;
 
 typedef struct tr_fixnum {

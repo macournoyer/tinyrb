@@ -61,6 +61,9 @@ describe String do
   it "should replace" do
     "ohaie".replace("lol").should == "lol"
   end
+  it "should convert to symbol" do
+    "ohaie".to_sym.should == :ohaie
+  end
 end
 
 class Poop
@@ -155,6 +158,7 @@ end
 
 describe Symbol do
   it "should convert to string" do
+    :that.to_s.class.should == String
     :that.to_s.should == "that"
   end
 end

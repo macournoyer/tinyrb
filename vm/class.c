@@ -147,7 +147,7 @@ OBJ tr_module_new(VM, char* name)
 
 static OBJ tr_module_name(VM, OBJ self)
 {
-  return (OBJ) TR_CSYMBOL(TR_CCLASS(self)->name);
+  return tr_string_new(vm, TR_STR(TR_CCLASS(self)->name));
 }
 
 OBJ tr_module_include(VM, OBJ self, OBJ module)

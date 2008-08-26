@@ -10,9 +10,9 @@ OBJ tr_string_new2(VM, char *ptr, size_t len)
   tr_string *str = (tr_string *) tr_malloc(sizeof(tr_string));
   
   tr_obj_init(vm, TR_STRING, (OBJ) str, tr_const_get(vm, "String"));
-  str->len  = len;
-  str->ptr  = tr_malloc(str->len * sizeof(char));
-  str->interned = 0;
+  str->len    = len;
+  str->ptr    = tr_malloc(str->len * sizeof(char));
+  str->symbol = TR_NIL;
   strcpy(str->ptr, ptr);
   
   return (OBJ) str;
@@ -57,6 +57,7 @@ static OBJ tr_string_cmp(VM, OBJ self, OBJ other)
     return tr_fixnum_new(vm, -1);
   
   char *s1 = TR_STR(self), *s2 = TR_STR(other);
+  
   return tr_fixnum_new(vm, strcmp(s1, s2));
 }
 
@@ -71,6 +72,11 @@ static OBJ tr_string_replace(VM, OBJ self, OBJ other)
   return other;
 }
 
+static OBJ tr_string_to_sym(VM, OBJ self)
+{
+  return tr_symbol_get(vm, tr_intern(vm, TR_CSTRING(self)->ptr));
+}
+
 void tr_string_init(VM)
 {
   OBJ class = tr_class_new(vm, "String", tr_const_get(vm, "Object"));
@@ -80,6 +86,7 @@ void tr_string_init(VM)
   tr_def(vm, class, "substring", tr_string_substring, 2);
   tr_def(vm, class, "<=>", tr_string_cmp, 1);
   tr_def(vm, class, "replace", tr_string_replace, 1);
+  tr_def(vm, class, "to_sym", tr_string_to_sym, 0);
 }
 
 /* symbol */
@@ -95,10 +102,8 @@ OBJ tr_symbol_get(VM, OBJ obj)
   assert(TR_TYPE(obj) == TR_SYMBOL);
   assert((OBJ) str != TR_NIL);
   
-  if (!str->interned) {
+  if (str->class == NULL)
     tr_obj_init(vm, TR_STRING, (OBJ) str, tr_const_get(vm, "Symbol"));
-    str->interned = 1;
-  }
   
   return (OBJ) str;
 }
@@ -119,17 +124,25 @@ OBJ tr_intern(VM, char *ptr)
   
   /* new symbol */
   str = (tr_string *) tr_malloc(sizeof(tr_string));
-  str->type = TR_STRING;
-  str->len  = strlen(ptr);
-  str->ptr  = tr_malloc(str->len * sizeof(char));
-  str->interned = 0;
+  str->type   = TR_STRING;
+  str->class  = NULL;
+  str->len    = strlen(ptr);
+  str->ptr    = tr_malloc(str->len * sizeof(char));
+  str->symbol = INDEX2SYM(i);
   strcpy(str->ptr, ptr);
   tr_array_push(vm, (OBJ) vm->symbols, (OBJ) str);
   
-  return INDEX2SYM(i);
+  return str->symbol;
+}
+
+static OBJ tr_symbol_eq(VM, OBJ self, OBJ other)
+{
+  OBJ other_sym = TR_TYPE(other) == TR_STRING ? TR_CSTRING(other)->symbol : other;  
+  return TR_CBOOL(TR_TYPE(other) == TR_SYMBOL && TR_CSTRING(self)->symbol == other);
 }
 
 void tr_symbol_init(VM)
 {
   OBJ class = tr_class_new(vm, "Symbol", tr_const_get(vm, "String"));
+  tr_def(vm, class, "==", tr_symbol_eq, 1);
 }

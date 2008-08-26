@@ -1,10 +1,12 @@
 boolean.rb
 object.rb
+module.rb
 class.rb
 enumerable.rb
 comparable.rb
 fixnum.rb
 string.rb
+symbol.rb
 array.rb
 range.rb
 spec.rb

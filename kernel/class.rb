@@ -1,6 +1,6 @@
 class Class
   def ==(other)
-    other.class.to_s == "Class" && name == other.name
+    other.class.name == "Class" && name == other.name
   end
   
   # TODO move to Module
