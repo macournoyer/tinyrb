@@ -74,7 +74,7 @@ static OBJ tr_string_replace(VM, OBJ self, OBJ other)
 
 static OBJ tr_string_to_sym(VM, OBJ self)
 {
-  return tr_symbol_get(vm, tr_intern(vm, TR_CSTRING(self)->ptr));
+  return tr_intern(vm, TR_CSTRING(self)->ptr);
 }
 
 void tr_string_init(VM)
