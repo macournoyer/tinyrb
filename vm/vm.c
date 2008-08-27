@@ -44,6 +44,20 @@ static int tr_vm_branch(VM, int b, OBJ val)
   return val == TR_NIL || val == TR_FALSE;   /* unless */
 }
 
+static OBJ tr_vm_newhash(VM, int argc)
+{
+  OBJ    h = tr_hash_new(vm);
+  OBJ    v;
+  size_t i;
+  
+  for (i = 0; i < argc; i+=2) {
+    v = STACK_POP();
+    tr_hash_set(vm, h, STACK_POP(), v);
+  }
+  
+  return h;
+}
+
 static OBJ tr_vm_newarray(VM, int argc)
 {
   OBJ    a = tr_array_new(vm);
@@ -97,7 +111,7 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
   OBJ       op;
   size_t    ip;
   size_t    n = TR_FIX(tr_array_count(vm, ops));
-  OBJ       label2ip = tr_hash_new(vm);
+  OBJ       label2ip = (OBJ) tr_hash_struct(vm);
   
   if (vm->cf > TR_MAX_FRAMES)
     tr_raise(vm, "Stack overflow");
@@ -154,6 +168,9 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
       case GETCONSTANT:
         STACK_POP(); /* TODO class */
         STACK_PUSH(tr_const_get(vm, TR_STR(CMD(0))));
+        break;
+      case NEWHASH:
+        STACK_PUSH(tr_vm_newhash(vm, TR_FIX(CMD(0))));
         break;
       case NEWARRAY:
         STACK_PUSH(tr_vm_newarray(vm, TR_FIX(CMD(0))));
@@ -245,7 +262,8 @@ void tr_raise(VM, char *msg, ...)
   fprintf(stderr, "Exception: ");
   vfprintf(stderr, msg, args);
   fprintf(stderr, "\n");
-  fprintf(stderr, "     from %s:%d\n", TR_STR(CUR_FRAME->filename), CUR_FRAME->line);
+  if (CUR_FRAME->filename > TR_NIL)
+    fprintf(stderr, "     from %s:%d\n", TR_STR(CUR_FRAME->filename), CUR_FRAME->line);
   va_end(args);
   assert(0);
   exit(-1);
@@ -257,13 +275,14 @@ void tr_next_frame(VM, OBJ obj, OBJ class)
   tr_frame  *f = CUR_FRAME;
   
   /* TODO ??? f->consts = tr_hash_new(vm); */
-  f->consts = vm->frames[vm->cf-1].consts;
-  f->stack  = tr_array_new(vm);
-  f->locals = tr_hash_new(vm);
-  f->self   = obj;
-  f->class  = class;
-  f->line   = 0;
-  f->block  = TR_NIL;
+  f->consts   = vm->frames[vm->cf-1].consts;
+  f->stack    = tr_array_new(vm);
+  f->locals   = tr_hash_new(vm);
+  f->self     = obj;
+  f->class    = class;
+  f->line     = 0;
+  f->filename = TR_NIL;
+  f->block    = TR_NIL;
 }
 
 void tr_prev_frame(VM)
@@ -294,6 +313,7 @@ static tr_define_builtins(VM)
   tr_symbol_init(vm);
   tr_fixnum_init(vm);
   tr_array_init(vm);
+  tr_hash_init(vm);
   tr_range_init(vm);
   tr_io_init(vm);
   tr_special_init(vm);
@@ -307,20 +327,21 @@ void tr_init(VM, int argc, char *argv[])
   tr_frame *f;
   
   vm->cf = 0;
-  vm->globals = tr_hash_new(vm);
+  vm->globals = (OBJ) tr_hash_struct(vm);
   vm->symbols = tr_array_struct(vm);
   
   f = CUR_FRAME;
-  f->consts = tr_hash_new(vm);
-  f->locals = tr_hash_new(vm);
+  f->consts = (OBJ) tr_hash_struct(vm);
+  f->locals = (OBJ) tr_hash_struct(vm);
   
   tr_define_builtins(vm);
   
-  f->stack   = tr_array_new(vm);
-  f->class   = tr_const_get(vm, "Object");
-  f->self    = tr_new2(vm, f->class);
-  f->line    = 0;
-  f->block   = TR_NIL;
+  f->stack    = tr_array_new(vm);
+  f->class    = tr_const_get(vm, "Object");
+  f->self     = tr_new2(vm, f->class);
+  f->filename = TR_NIL;
+  f->line     = 0;
+  f->block    = TR_NIL;
   
   /* init argv */
   OBJ argv_ary = tr_array_new(vm);

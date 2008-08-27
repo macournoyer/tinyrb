@@ -43,7 +43,7 @@ static u_int tr_hashcode(VM, OBJ v)
     case TR_FIXNUM:  i = TR_FIX(v); break;
     case TR_SYMBOL:
     case TR_SPECIAL: i = v; break;
-    default:         tr_raise(vm, "no hash method for type: %d", TR_TYPE(v));
+    default:         TR_FIX(tr_send2(vm, v, "hash", 0));
   }
   
   /* Aim to protect against poor hash functions by adding logic here
@@ -67,7 +67,7 @@ static int tr_hash_keys_compare(VM, OBJ key1, OBJ key2)
   return 0;
 }
 
-OBJ tr_hash_new(VM)
+tr_hash *tr_hash_struct(VM)
 {
   tr_hash *h;
   u_int    pindex, size = primes[0];
@@ -81,14 +81,8 @@ OBJ tr_hash_new(VM)
   }
   
   h = (tr_hash *) tr_malloc(sizeof(tr_hash));
-  if (NULL == h)
-    return TR_NIL; /*oom*/
     
   h->table = (tr_hash_entry **) tr_malloc(sizeof(tr_hash_entry*) * size);
-  if (NULL == h->table) {
-    tr_free(h);
-    return TR_NIL;
-  } /*oom*/
   
   memset(h->table, 0, size * sizeof(tr_hash_entry *));
   h->type            = TR_HASH;
@@ -97,6 +91,15 @@ OBJ tr_hash_new(VM)
   h->hash_entrycount = 0;
   h->loadlimit       = (u_int) ceil(size * max_load_factor);
   
+  return h;
+}
+
+OBJ tr_hash_new(VM)
+{
+  tr_hash *h = tr_hash_struct(vm);
+  
+  tr_obj_init(vm, TR_HASH, (OBJ) h, tr_const_get(vm, "Hash"));
+
   return (OBJ) h;
 }
 
@@ -271,4 +274,16 @@ OBJ tr_hash_clear(VM, OBJ o)
   tr_free(h);
   
   return TR_NIL;
+}
+
+void tr_hash_init(VM)
+{
+  OBJ class = tr_class_new(vm, "Hash", tr_const_get(vm, "Object"));
+  
+  tr_def(vm, class, "[]", tr_hash_get, 1);
+  tr_def(vm, class, "[]=", tr_hash_set, 2);
+  tr_def(vm, class, "delete", tr_hash_delete, 1);
+  tr_def(vm, class, "count", tr_hash_count, 0);
+  tr_def(vm, class, "size", tr_hash_count, 0);
+  tr_def(vm, class, "clear", tr_hash_clear, 0);
 }

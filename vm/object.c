@@ -197,7 +197,7 @@ void tr_obj_init(VM, tr_type type, OBJ obj, OBJ class)
   tr_obj *o = (tr_obj *) obj;
   
   o->type      = type;
-  o->ivars     = tr_hash_new(vm);
+  o->ivars     = (OBJ) tr_hash_struct(vm);
   o->class     = TR_CCLASS(class);
   o->metaclass = (tr_class *) tr_metaclass_new(vm);
   o->modules   = tr_array_struct(vm);

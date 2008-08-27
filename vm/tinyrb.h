@@ -229,6 +229,7 @@ OBJ tr_symbol_get(VM, OBJ obj);
 OBJ tr_fixnum_new(VM, int val);
 
 /* hash */
+tr_hash *tr_hash_struct(VM);
 OBJ tr_hash_new(VM);
 OBJ tr_hash_set(VM, OBJ h, OBJ k, OBJ v);
 OBJ tr_hash_get(VM, OBJ h, OBJ k);
@@ -247,7 +248,6 @@ OBJ tr_array_count(VM, OBJ a);
 OBJ tr_array_at(VM, OBJ self, int i);
 OBJ tr_array_set(VM, OBJ self, int i, OBJ item);
 OBJ tr_array_insert(VM, OBJ self, int i, OBJ item);
-void tr_array_init(VM);
 
 /* range */
 OBJ tr_range_new(VM, OBJ first, OBJ last);
@@ -267,5 +267,7 @@ void tr_string_init(VM);
 void tr_fixnum_init(VM);
 void tr_range_init(VM);
 void tr_io_init(VM);
+void tr_array_init(VM);
+void tr_hash_init(VM);
 
 #endif /* _TINYRB_H_ */

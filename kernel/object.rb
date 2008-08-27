@@ -26,6 +26,10 @@ class Object
     self == other
   end
   
+  def hash
+    object_id
+  end
+  
   def inspect
     '#<' + self.class.name + ':0x' + object_id.to_s + '>'
   end

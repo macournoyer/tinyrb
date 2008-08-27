@@ -232,6 +232,21 @@ describe Array do
   end
 end
 
+describe Hash do
+  it "should create hash" do
+    Hash.should === {}
+  end
+  it "should create hash with init values" do
+    h = { :k => "v" }
+    h[:k].should == "v"
+  end
+  it "should hash Object" do
+    o = Object.new
+    h = { :k => o }
+    h[:k].should == o
+  end
+end
+
 describe "stdio" do
   it "should return argv" do
     ARGV.class.should == Array

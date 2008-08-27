@@ -64,8 +64,8 @@ OBJ tr_metaclass_new(VM)
   c->type      = TR_CLASS;
   c->name      = tr_intern(vm, "");
   c->super     = (tr_class *) TR_NIL;
-  c->ivars     = tr_hash_new(vm);
-  c->methods   = tr_hash_new(vm);
+  c->ivars     = (OBJ) tr_hash_struct(vm);
+  c->methods   = (OBJ) tr_hash_struct(vm);
   c->class     = (tr_class *) TR_NIL;
   c->metaclass = (tr_class *) TR_NIL;
   
@@ -79,8 +79,8 @@ OBJ tr_class_new(VM, char* name, OBJ super)
   c->type      = TR_CLASS;
   c->name      = tr_intern(vm, name);
   c->super     = (tr_class *) super;
-  c->ivars     = tr_hash_new(vm);
-  c->methods   = tr_hash_new(vm);
+  c->ivars     = (OBJ) tr_hash_struct(vm);
+  c->methods   = (OBJ) tr_hash_struct(vm);
   c->metaclass = (tr_class *) tr_metaclass_new(vm);
   c->modules   = tr_array_struct(vm);
   if (strcmp(name, "Class") != 0) /* HACK */
@@ -134,8 +134,8 @@ OBJ tr_module_new(VM, char* name)
   c->type      = TR_CLASS;
   c->name      = tr_intern(vm, name);
   c->super     = NULL;
-  c->ivars     = tr_hash_new(vm);
-  c->methods   = tr_hash_new(vm);
+  c->ivars     = (OBJ) tr_hash_struct(vm);
+  c->methods   = (OBJ) tr_hash_struct(vm);
   c->metaclass = (tr_class *) tr_metaclass_new(vm);
   c->modules   = tr_array_struct(vm);
   c->class     = (tr_class *) tr_const_get(vm, "Module");
