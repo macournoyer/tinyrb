@@ -329,26 +329,27 @@ void tr_init(VM, int argc, char *argv[])
   tr_const_set(vm, "ARGV", argv_ary);
 }
 
-static OBJ tr_vm_run(VM, OBJ self, OBJ filename, OBJ ops)
+static OBJ tr_vm_run(VM, OBJ self, int argc, OBJ argv[])
 {
-  /* TODO customize self and class */
-  tr_next_frame(vm, CUR_FRAME->self, CUR_FRAME->class);
+  TR_ASSERT(argc > 0, "Must provide ops to run");
+  OBJ ops      = argv[0];
+  OBJ filename = argc > 1 ? argv[1] : CUR_FRAME->filename;
+  OBJ obj      = argc > 2 ? argv[2] : 0;
+  OBJ class    = argc > 3 ? argv[3] : 0;
+  
+  if (obj && class)
+    tr_next_frame(vm, obj, class);
+  
   OBJ ret = tr_run(vm, filename, ops);
-  tr_prev_frame(vm);
+  
+  if (obj && class)
+    tr_prev_frame(vm);
+  
   return ret;
-}
-
-static OBJ tr_vm_to_s(VM, OBJ self)
-{
-  return tr_string_new(vm, "VM");
 }
 
 void tr_vm_init(VM)
 {
-  OBJ obj = tr_new2(vm, tr_const_get(vm, "Object"));
-  
-  tr_metadef(vm, obj, "run", tr_vm_run, 2);
-  tr_metadef(vm, obj, "to_s", tr_vm_to_s, 0);
-  
-  tr_const_set(vm, "VM", obj);
+  OBJ class = tr_class_new(vm, "VM", tr_const_get(vm, "Object"));
+  tr_metadef(vm, class, "run", tr_vm_run, -1);
 }

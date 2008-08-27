@@ -9,5 +9,6 @@ string.rb
 symbol.rb
 array.rb
 range.rb
+vm.rb
 spec.rb
 specs.rb

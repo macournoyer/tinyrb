@@ -294,9 +294,10 @@ end
 
 describe VM do
   it "should run opcode" do
-    VM.run("boot.rb", [
-      [1, 18, "yeah!"]
-    ]).should == "yeah!"
+    VM.run([[1, 18, "yeah!"]]).should == "yeah!"
+  end
+  it "should run opcode in different frame" do
+    VM.run([[1, 16]], "boot.rb", String, String).should == String
   end
 end
 
