@@ -1,17 +1,16 @@
 #include "tinyrb.h"
 
-#define PROC_INFO(p, i) tr_array_at(vm, p, i)
-
 OBJ tr_proc_new(VM, OBJ ops)
 {
   tr_proc *proc = (tr_proc *) tr_malloc(sizeof(tr_proc));
   
   tr_obj_init(vm, TR_PROC, (OBJ) proc, tr_const_get(vm, "Proc"));
-  proc->cf     = vm->cf;
-  proc->ops    = PROC_INFO(ops, 0);
-  proc->argc   = TR_FIX(PROC_INFO(ops, 1));
-  proc->localc = TR_FIX(PROC_INFO(ops, 2));
-  proc->labels = tr_array_new(vm); /* TODO? */
+  proc->cf       = vm->cf;
+  proc->ops      = TR_OPS(ops, CODE);
+  proc->filename = TR_OPS(ops, FILENAME);
+  proc->argc     = TR_FIX(TR_OPS(ops, ARGC));
+  proc->localc   = TR_FIX(TR_OPS(ops, LOCALC));
+  proc->labels   = TR_OPS(ops, LABELS);
   
   return (OBJ) proc;
 }

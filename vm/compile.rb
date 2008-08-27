@@ -36,10 +36,15 @@ class InstructionConverter
     @line       = 0
     @blocks     = []
     
-    # TODO remove, put back to putobject
     # special convertions
+    # convert :putobject do |cmds|
+    #   op :put, cmds[0]
+    # end
+    # convert :putstring do |cmds|
+    #   op :put, cmds[0]
+    # end
     convert :putobject do |cmds|
-      type = case cmds[0]
+       type = case cmds[0]
       when Fixnum
         op :putfixnum, cmds[0]
       when Symbol
@@ -47,15 +52,8 @@ class InstructionConverter
       else
         op :putspecial, cmds[0]
       end
-    end
-    convert :definemethod do |cmds|
-      op :definemethod, cmds[0],     # name
-                        cmds[1],     # opcode
-                        cmds[1][6],  # filename
-                        cmds[1][4][:arg_size],   # argc
-                        cmds[1][4][:local_size], # localc
-                        cmds[1][9].is_a?(Array) ? cmds[1][9][1] : [] # labels
-    end
+      # op :put, cmds[0]
+    end  
   end
   
   def convert(code, &block)
@@ -88,7 +86,12 @@ class InstructionConverter
       if v.first == "YARVInstructionSequence/SimpleDataFormat"
         key = "#{@name}_b#{@blocks.size+1}"
         @blocks << InstructionConverter.new(key, v).to_s
-        values = [v[4][:arg_size], v[4][:local_size]]
+        values = [
+          v[6], #filename
+          v[4][:arg_size],
+          v[4][:local_size],
+          v[9].is_a?(Array) ? v[9][1] : [] # labels
+        ]
         "tr_array_create(vm, #{values.size+1}, #{key}(vm), #{values.map { |i| convert_type(code, i) }.join(", ")})"
       else
         "tr_array_create(vm, #{v.size}#{', ' if v.size > 0}#{v.map { |i| convert_type(code, i) }.join(", ")})"

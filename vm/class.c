@@ -36,21 +36,21 @@ OBJ tr_alias(VM, OBJ obj, OBJ new_name, OBJ name)
   if (met->func)
     return tr_def(vm, obj, TR_STR(new_name), met->func, met->argc);
   else
-    return tr_ops_def(vm, obj, new_name, met->ops, met->filename, tr_fixnum_new(vm, met->argc), tr_fixnum_new(vm, met->localc), met->labels);
+    return tr_def_ops(vm, obj, new_name, TR_2OPS(met));
 }
 
-OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ argc, OBJ localc, OBJ labels)
+OBJ tr_def_ops(VM, OBJ class, OBJ name, OBJ ops)
 {
   tr_method *met = (tr_method *) tr_malloc(sizeof(tr_method));
   
   met->type      = TR_METHOD;
   met->name      = name;
   met->func      = NULL;
-  met->ops       = ops;
-  met->argc      = TR_FIX(argc);
-  met->localc    = TR_FIX(localc);
-  met->filename  = filename;
-  met->labels    = labels;
+  met->ops       = TR_OPS(ops, CODE);
+  met->argc      = TR_FIX(TR_OPS(ops, ARGC));
+  met->localc    = TR_FIX(TR_OPS(ops, LOCALC));
+  met->filename  = TR_OPS(ops, FILENAME);
+  met->labels    = TR_OPS(ops, LABELS);
   
   tr_hash_set(vm, TR_CCLASS(class)->methods, met->name, (OBJ) met);
   
@@ -112,7 +112,7 @@ OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type
   }
   
   tr_next_frame(vm, class, class);
-  OBJ ret = tr_run(vm, tr_string_new(vm, "?"), ops);
+  OBJ ret = tr_run(vm, TR_OPS(ops, FILENAME), TR_OPS(ops, CODE));
   tr_prev_frame(vm);
   
   return ret;
@@ -163,11 +163,7 @@ static OBJ tr_module_define_method(VM, OBJ self, OBJ name)
 {
   tr_proc *proc = TR_CPROC(CUR_FRAME->block);
   
-  return tr_ops_def(vm, self, name, proc->ops,
-                                    CUR_FRAME->filename,
-                                    tr_fixnum_new(vm, proc->argc),
-                                    tr_fixnum_new(vm, proc->localc),
-                                    proc->labels);
+  return tr_def_ops(vm, self, name, TR_2OPS(proc));
 }
 
 void tr_module_init(VM)

@@ -41,7 +41,7 @@
 #define TR_CRANGE(o)     TR_CTYPE(o, TR_RANGE, tr_range)
 #define TR_CIO(o)        TR_CTYPE(o, TR_IO, tr_io)
 #define TR_CBOOL(o)      ((o)?TR_TRUE:TR_FALSE);
-#define TR_CSYMBOL(o)    (TR_ASSERT(TR_TYPE(o)==TR_SYMBOL, "not a symbol"), (tr_string*) tr_symbol_get(vm, o))
+#define TR_CSYMBOL(o)    (TR_ASSERT(TR_TYPE(o)==TR_SYMBOL, "not a symbol (%d)", TR_TYPE(o)), (tr_string*) tr_symbol_get(vm, o))
 
 /* shortcuts */
 #define TR_STR(s)        (TR_TYPE(s)==TR_STRING ? TR_CSTRING(s)->ptr : TR_CSYMBOL(s)->ptr)
@@ -50,6 +50,10 @@
 #define VM               tr_vm *vm
 #define CUR_FRAME        (&vm->frames[vm->cf])
 #define TR_ASSERT(c,...) ((c) ? NULL : tr_raise(vm, __VA_ARGS__))
+
+enum { CODE = 0, FILENAME, ARGC, LOCALC, LABELS };
+#define TR_OPS(p,i) tr_array_at(vm,p,i)
+#define TR_2OPS(p)  tr_array_create(vm,5,p->ops,p->filename,tr_fixnum_new(vm,p->argc),tr_fixnum_new(vm,p->localc),p->labels)
 
 /* mem stuff */
 #define tr_malloc(s)     malloc(s)
@@ -139,6 +143,7 @@ typedef struct tr_proc {
   ACTS_AS_TR_OBJ;
   off_t     cf;
   OBJ       ops;
+  OBJ       filename;
   int       argc;
   int       localc;
   OBJ       labels;
@@ -185,7 +190,7 @@ void tr_prev_frame(VM);
 OBJ tr_def(VM, OBJ obj, char *name, OBJ (*func)(), int argc);
 OBJ tr_metadef(VM, OBJ obj, char *name, OBJ (*func)(), int argc);
 OBJ tr_alias(VM, OBJ obj, OBJ new_name, OBJ name);
-OBJ tr_ops_def(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ argc, OBJ localc, OBJ labels);
+OBJ tr_def_ops(VM, OBJ class, OBJ name, OBJ ops);
 OBJ tr_class_new(VM, char* name, OBJ super);
 OBJ tr_class_define(VM, OBJ name, OBJ cbase, OBJ super, OBJ ops, int define_type);
 OBJ tr_metaclass_new(VM);

@@ -1,13 +1,5 @@
 #include "tinyrb.h"
 
-const char *tr_inst_names[] = {"NOP","GETLOCAL","SETLOCAL","GETSPECIAL","SETSPECIAL","GETDYNAMIC","SETDYNAMIC",
-  "GETINSTANCEVARIABLE","SETINSTANCEVARIABLE","GETCLASSVARIABLE","SETCLASSVARIABLE","GETCONSTANT","SETCONSTANT",
-  "GETGLOBAL","SETGLOBAL","PUTNIL","PUTSELF","PUTUNDEF","PUTOBJECT","PUTSTRING","CONCATSTRINGS","TOSTRING",
-  "TOREGEXP","NEWARRAY","DUPARRAY","EXPANDARRAY","CONCATARRAY","SPLATARRAY","CHECKINCLUDEARRAY","NEWHASH",
-  "NEWRANGE","PUTNOT","POP","DUP","DUPN","SWAP","REPUT","TOPN","EMPTSTACK","DEFINEMETHOD","ALIAS","UNDEF","DEFINED",
-  "POSTEXE","TRACE","DEFINECLASS","SEND","INVOKESUPER","INVOKEBLOCK","LEAVE","FINISH","THROW","JUMP","BRANCHIF",
-  "BRANCHUNLESS", "SETN", /* mine */ "LABEL","PUTFIXNUM","PUTSYMBOL","PUTSPECIAL"};
-
 #define STACK_PUSH(o)  tr_array_push(vm, CUR_FRAME->stack, (o))
 #define STACK_POP()    tr_array_pop(vm, CUR_FRAME->stack)
 #define STACK_PEEK()   tr_array_last(vm, CUR_FRAME->stack)
@@ -83,14 +75,14 @@ OBJ tr_vm_yield(VM, int argc)
   return ret;
 }
 
-static void tr_vm_definemethod(VM, OBJ class, OBJ name, OBJ ops, OBJ filename, OBJ argc, OBJ localc, OBJ labels)
+static void tr_vm_definemethod(VM, OBJ class, OBJ name, OBJ ops)
 {
   if (class == TR_NIL)
     class = CUR_FRAME->class;
   else
     class = (OBJ) TR_COBJ(class)->metaclass;
   
-  tr_ops_def(vm, class, name, ops, filename, argc, localc, labels);
+  tr_def_ops(vm, class, name, ops);
 }
 
 #define VM_FRAME(n)    (&vm->frames[vm->cf-TR_FIX(n)])
@@ -171,21 +163,20 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
         break;
       
       /* put */
-      case PUTNIL:
-        STACK_PUSH(TR_NIL);
+      case PUTSYMBOL:
+        STACK_PUSH(CMD(0));
         break;
       case PUTSTRING:
+        STACK_PUSH(CMD(0));
+        break;
+      case PUTSPECIAL:
         STACK_PUSH(CMD(0));
         break;
       case PUTFIXNUM:
         STACK_PUSH(CMD(0));
         break;
-      case PUTSYMBOL:
-        STACK_PUSH(CMD(0));
-        break;
-      case PUTSPECIAL:
-        /* STACK_PUSH(tr_special_get(vm, CMD(0))); */
-        STACK_PUSH(CMD(0));
+      case PUTNIL:
+        STACK_PUSH(TR_NIL);
         break;
       case PUTSELF:
         STACK_PUSH(f->self);
@@ -212,13 +203,8 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
       case LEAVE:
         return STACK_POP();
       case DEFINEMETHOD:
-        /* TODO!!!!!! extract argc, localc, labels and filename from CMD(1) */
         tr_vm_definemethod(vm, STACK_POP(), CMD(0),  /* name */
-                                            tr_array_at(vm, CMD(1), 0),  /* opcode */
-                                            CMD(2),  /* filename */
-                                            CMD(3),  /* argc */
-                                            CMD(4),  /* localc */
-                                            CMD(5)); /* labels */
+                                            CMD(1)); /* labels */
         break;
       case ALIAS:
         tr_alias(vm, f->class, STACK_POP(),  /* cur name */
@@ -230,11 +216,10 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
       
       /* class */
       case DEFINECLASS:
-        /* TODO!!!!!! extract argc, localc, labels and filename from CMD(1) */
         tr_class_define(vm, CMD(0),           /* name */
                             STACK_POP(),      /* cbase */
                             STACK_POP(),      /* super */
-                            tr_array_at(vm, CMD(1), 0),           /* opcode */
+                            CMD(1),           /* opcode */
                             TR_FIX(CMD(2)));  /* define_type */
         break;
       
@@ -253,8 +238,7 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
       case LABEL:
         break;
       case THROW:
-        STACK_POP();
-        /* tr_send2(vm, f->stack, "inspect", 0); */
+        STACK_POP(); /* TODO */
         break;
       
       default:
