@@ -98,6 +98,14 @@ describe Class do
     Poop.new("ivar", "cvar")
     Poop.cmethod.should == nil
   end
+  it "should get instance variable dynamicly" do
+    Poop.new("ivar").instance_variable_get(:@ivar).should == "ivar"
+  end
+  it "should set instance variable dynamicly" do
+    p = Poop.new("ivar")
+    p.instance_variable_set(:@ivar, "awesome!")
+    p.ivar.should == "awesome!"
+  end
 end
 
 describe Fixnum do

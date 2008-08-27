@@ -169,6 +169,10 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
         STACK_POP(); /* TODO class */
         STACK_PUSH(tr_const_get(vm, TR_STR(CMD(0))));
         break;
+      case SETCONSTANT:
+        STACK_POP(); /* TODO class */
+        tr_const_set(vm, TR_STR(CMD(0)), STACK_POP());
+        break;
       case NEWHASH:
         STACK_PUSH(tr_vm_newhash(vm, TR_FIX(CMD(0))));
         break;

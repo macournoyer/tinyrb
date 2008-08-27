@@ -1,4 +1,17 @@
 class Object
+  def instance_variable_get(name)
+    VM.run [
+      [0, OPCODES[:getinstancevariable], name]
+    ]
+  end
+  
+  def instance_variable_set(name, value)
+    VM.run [
+      [0, OPCODES[:putobject], value],
+      [0, OPCODES[:setinstancevariable], name]
+    ]
+  end
+  
   def ==(other)
     object_id == other.object_id
   end
