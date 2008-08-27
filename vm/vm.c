@@ -163,16 +163,7 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
         break;
       
       /* put */
-      case PUTSYMBOL:
-        STACK_PUSH(CMD(0));
-        break;
-      case PUTSTRING:
-        STACK_PUSH(CMD(0));
-        break;
-      case PUTSPECIAL:
-        STACK_PUSH(CMD(0));
-        break;
-      case PUTFIXNUM:
+      case PUTOBJECT:
         STACK_PUSH(CMD(0));
         break;
       case PUTNIL:

@@ -61,10 +61,7 @@ typedef enum {
   /* 55 */ SETN,
   
   /* my own lil instructions */
-  /* 55 */ LABEL,
-  /* 56 */ PUTSYMBOL,
-  /* 56 */ PUTFIXNUM,
-  /* 56 */ PUTSPECIAL,
+  /* 55 */ LABEL
 } tr_inst_e;
 
 #endif /* _INST_H_ */

@@ -37,23 +37,9 @@ class InstructionConverter
     @blocks     = []
     
     # special convertions
-    # convert :putobject do |cmds|
-    #   op :put, cmds[0]
-    # end
-    # convert :putstring do |cmds|
-    #   op :put, cmds[0]
-    # end
-    convert :putobject do |cmds|
-       type = case cmds[0]
-      when Fixnum
-        op :putfixnum, cmds[0]
-      when Symbol
-        op :putsymbol, cmds[0]
-      else
-        op :putspecial, cmds[0]
-      end
-      # op :put, cmds[0]
-    end  
+    convert :putstring do |cmds|
+      op :putobject, cmds[0]
+    end
   end
   
   def convert(code, &block)

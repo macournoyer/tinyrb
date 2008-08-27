@@ -307,7 +307,7 @@ end
 describe VM do
   it "should run opcode" do
     VM.run("boot.rb", [
-      [1, 19, "yeah!"]
+      [1, 18, "yeah!"]
     ]).should == "yeah!"
   end
 end
