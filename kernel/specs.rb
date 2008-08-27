@@ -98,18 +98,6 @@ describe Class do
     Poop.new("ivar", "cvar")
     Poop.cmethod.should == nil
   end
-  it "should define method dynamicly" do
-    Poop.define_method(:dyn) { |e| "I'm " + e.to_s }
-    Poop.new.dyn("dynamic").should == "I'm dynamic"
-  end
-  it "should get instance variables dynamicly" do
-    Poop.new("var").instance_variable_get(:@ivar).should == "var"
-  end
-  it "should set instance variables dynamicly" do
-    obj = Poop.new("var")
-    obj.instance_variable_set(:@ivar, "mod")
-    obj.ivar.should == "mod"
-  end
 end
 
 describe Fixnum do

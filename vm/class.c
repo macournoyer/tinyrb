@@ -159,18 +159,10 @@ OBJ tr_module_include(VM, OBJ self, OBJ module)
   return TR_NIL;
 }
 
-static OBJ tr_module_define_method(VM, OBJ self, OBJ name)
-{
-  tr_proc *proc = TR_CPROC(CUR_FRAME->block);
-  
-  return tr_def_ops(vm, self, name, TR_2OPS(proc));
-}
-
 void tr_module_init(VM)
 {
   OBJ module = tr_class_new(vm, "Module", tr_const_get(vm, "Object"));
   
   tr_def(vm, module, "name", tr_module_name, 0);
   tr_def(vm, module, "include", tr_module_include, 1);
-  tr_def(vm, module, "define_method", tr_module_define_method, 1);
 }
