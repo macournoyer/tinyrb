@@ -277,6 +277,19 @@ describe Hash do
     h[:k].should == nil
     h.size.should == 0
   end
+  it "should return keys" do
+    h = { :a => 1, :b => 2 }
+    h.keys.size.should == 2
+    h.keys[0].should == :a
+    h.keys[1].should == :b
+  end
+  # TODO require proc local vars
+  xit "should return values" do
+    h = { :a => 1, :b => 2 }
+    h.values.size.should == 2
+    h.values[0].should == 1
+    h.values[1].should == 2
+  end
 end
 
 describe "stdio" do

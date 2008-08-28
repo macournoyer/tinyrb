@@ -211,7 +211,7 @@ OBJ tr_hash_get(VM, OBJ o, OBJ k)
   e         = h->table[index];
   
   while (NULL != e) {
-    /* Check tr_hash value to short circuit heavier comparison */
+    /* Check hash value to short circuit heavier comparison */
     if ((hashvalue == e->h) && (tr_hash_keys_compare(vm, k, e->k)))
       return e->v;
     e = e->next;
@@ -260,7 +260,7 @@ OBJ tr_hash_clear(VM, OBJ o)
   tr_hash_entry  *e, *f;
   tr_hash_entry **table = h->table;
   
-  for (i = 0; i < h->tablelength; i++) {
+  for (i = 0; i <= h->tablelength; i++) {
     e = table[i];
     while (NULL != e) {
       f = e;
@@ -276,6 +276,25 @@ OBJ tr_hash_clear(VM, OBJ o)
   return TR_NIL;
 }
 
+OBJ tr_hash_keys(VM, OBJ self)
+{
+  tr_hash        *h = TR_CHASH(self);
+  tr_hash_entry  *e;
+  tr_hash_entry **table = h->table;
+  u_int           i;
+  OBJ             ary = tr_array_new(vm);
+  
+  for (i = 0; i <= h->tablelength; i++) {
+    e = table[i];
+    while (NULL != e) {
+      tr_array_push(vm, ary, e->k);
+      e = e->next;
+    }
+  }
+  
+  return ary;
+}
+
 void tr_hash_init(VM)
 {
   OBJ class = tr_class_new(vm, "Hash", tr_const_get(vm, "Object"));
@@ -286,4 +305,5 @@ void tr_hash_init(VM)
   tr_def(vm, class, "count", tr_hash_count, 0);
   tr_def(vm, class, "size", tr_hash_count, 0);
   tr_def(vm, class, "clear", tr_hash_clear, 0);
+  tr_def(vm, class, "keys", tr_hash_keys, 0);
 }
