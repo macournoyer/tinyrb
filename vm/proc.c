@@ -17,19 +17,23 @@ OBJ tr_proc_new(VM, OBJ ops)
 
 OBJ tr_proc_call(VM, OBJ self, int argc, OBJ argv[])
 {
-  tr_proc *proc = TR_CPROC(self);
-  tr_frame *f = &vm->frames[proc->cf];
-  OBJ      ret;
-  size_t   i;
-  
-  tr_next_frame(vm, f->self, f->class);
+  tr_proc  *proc  = TR_CPROC(self);
+  tr_frame *procf = &vm->frames[proc->cf];
+  OBJ       ret;
+  size_t    i;  
+  OBJ       orig_class = CUR_FRAME->class;
+  OBJ       orig_self  = CUR_FRAME->self;
 
+  CUR_FRAME->class = procf->class;
+  CUR_FRAME->self  = procf->self;
+  
   for (i = 0; i < argc; ++i)
     tr_hash_set(vm, CUR_FRAME->locals, tr_fixnum_new(vm, argc-i), argv[i]);
   
   ret = tr_run(vm, proc->filename, proc->ops);
   
-  tr_prev_frame(vm);
+  CUR_FRAME->class = orig_class;
+  CUR_FRAME->self  = orig_self;
   
   return ret;
 }

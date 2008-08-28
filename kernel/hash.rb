@@ -8,4 +8,8 @@ class Hash
   def empty?
     size == 0
   end
+  
+  def clear
+    keys.each { |k| delete(k) }
+  end
 end

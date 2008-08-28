@@ -271,7 +271,7 @@ describe Hash do
     h[:k] = 1
     h.size.should == 1
   end
-  xit "should clear" do
+  it "should clear" do
     h = { :k => 1 }
     h.clear
     h[:k].should == nil
@@ -283,8 +283,7 @@ describe Hash do
     h.keys[0].should == :a
     h.keys[1].should == :b
   end
-  # TODO require proc local vars
-  xit "should return values" do
+  it "should return values" do
     h = { :a => 1, :b => 2 }
     h.values.size.should == 2
     h.values[0].should == 1
@@ -376,7 +375,7 @@ describe Proc do
     yield
     yield
   end
-  xit "should use localvar in block" do
+  it "should use localvar in block" do
     i = 0
     doubler do
       i += 1

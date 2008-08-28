@@ -253,30 +253,7 @@ OBJ tr_hash_delete(VM, OBJ o, OBJ k)
   return TR_NIL;
 }
 
-OBJ tr_hash_clear(VM, OBJ o)
-{
-  tr_hash        *h = TR_CHASH(o);
-  u_int           i;
-  tr_hash_entry  *e, *f;
-  tr_hash_entry **table = h->table;
-  
-  for (i = 0; i <= h->tablelength; i++) {
-    e = table[i];
-    while (NULL != e) {
-      f = e;
-      e = e->next;
-      freekey(f->k);
-      tr_free(f);
-    }
-  }
-  
-  tr_free(h->table);
-  tr_free(h);
-  
-  return TR_NIL;
-}
-
-OBJ tr_hash_keys(VM, OBJ self)
+static OBJ tr_hash_keys(VM, OBJ self)
 {
   tr_hash        *h = TR_CHASH(self);
   tr_hash_entry  *e;
@@ -304,6 +281,5 @@ void tr_hash_init(VM)
   tr_def(vm, class, "delete", tr_hash_delete, 1);
   tr_def(vm, class, "count", tr_hash_count, 0);
   tr_def(vm, class, "size", tr_hash_count, 0);
-  tr_def(vm, class, "clear", tr_hash_clear, 0);
   tr_def(vm, class, "keys", tr_hash_keys, 0);
 }
