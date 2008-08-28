@@ -18,23 +18,23 @@ OBJ tr_proc_new(VM, OBJ ops)
 OBJ tr_proc_call(VM, OBJ self, int argc, OBJ argv[])
 {
   tr_proc *proc = TR_CPROC(self);
+  tr_frame *f = &vm->frames[proc->cf];
   OBJ      ret;
   size_t   i;
-  off_t    cf = vm->cf;
   
-  vm->cf = proc->cf;
-  
+  tr_next_frame(vm, f->self, f->class);
+
   for (i = 0; i < argc; ++i)
-    tr_hash_set(vm, vm->frames[proc->cf].locals, tr_fixnum_new(vm, argc-i), argv[i]);
+    tr_hash_set(vm, CUR_FRAME->locals, tr_fixnum_new(vm, argc-i), argv[i]);
   
-  ret = tr_run(vm, tr_string_new(vm, "block"), proc->ops);
+  ret = tr_run(vm, proc->filename, proc->ops);
   
-  vm->cf = cf;
+  tr_prev_frame(vm);
   
   return ret;
 }
 
-static OBJ tr_proc_new2(VM, OBJ class)
+static OBJ tr_proc_current(VM, OBJ class)
 {
   return CUR_FRAME->block;
 }
@@ -43,7 +43,7 @@ void tr_proc_init(VM)
 {
   OBJ class = tr_class_new(vm, "Proc", tr_const_get(vm, "Object"));
   
-  tr_metadef(vm, class, "new", tr_proc_new2, 0);
+  tr_metadef(vm, class, "new", tr_proc_current, 0);
   tr_def(vm, class, "call", tr_proc_call, -1);
 }
 

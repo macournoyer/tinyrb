@@ -363,7 +363,7 @@ describe Proc do
     yield
     yield
   end
-  it "should use localvar in block" do
+  xit "should use localvar in block" do
     i = 0
     doubler do
       i += 1
@@ -387,7 +387,7 @@ describe Proc do
 end
 
 describe Set do
-  xit "should create from Array" do
+  it "should create from Array" do
     Set.new([1, 2]).size.should == 2
   end
 end
