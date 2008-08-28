@@ -40,7 +40,7 @@
 #define TR_CPROC(o)      TR_CTYPE(o, TR_PROC, tr_proc)
 #define TR_CRANGE(o)     TR_CTYPE(o, TR_RANGE, tr_range)
 #define TR_CIO(o)        TR_CTYPE(o, TR_IO, tr_io)
-#define TR_CBOOL(o)      ((o)?TR_TRUE:TR_FALSE);
+#define TR_CBOOL(o)      ((o)?TR_TRUE:TR_FALSE)
 #define TR_CSYMBOL(o)    (TR_ASSERT(TR_TYPE(o)==TR_SYMBOL, "not a symbol (%d)", TR_TYPE(o)), (tr_string*) tr_symbol_get(vm, o))
 
 /* shortcuts */

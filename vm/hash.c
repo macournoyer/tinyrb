@@ -20,6 +20,7 @@ const float max_load_factor = 0.65;
 
 #define HASH_MINSIZE    1024 /* TODO test and tweak */
 #define HASH_INDEX(v,l) ((v) % (l))
+#define TR_OBJ_HASH(v)  TR_FIX(tr_send2(vm, v, "hash", 0))
 
 #define freekey(X) tr_free(X)
 
@@ -43,7 +44,7 @@ static u_int tr_hashcode(VM, OBJ v)
     case TR_FIXNUM:  i = TR_FIX(v); break;
     case TR_SYMBOL:
     case TR_SPECIAL: i = v; break;
-    default:         TR_FIX(tr_send2(vm, v, "hash", 0));
+    default:         TR_OBJ_HASH(v);
   }
   
   /* Aim to protect against poor hash functions by adding logic here
@@ -63,8 +64,7 @@ static int tr_hash_keys_compare(VM, OBJ key1, OBJ key2)
     case TR_FIXNUM: return TR_FIX(key1) == TR_FIX(key2);
     case TR_SYMBOL: return key1 == key2;
   }
-  tr_raise(vm, "don't know how to compare key of type: %d: ", TR_TYPE(key1));
-  return 0;
+  return TR_OBJ_HASH(key1) == TR_OBJ_HASH(key2);
 }
 
 tr_hash *tr_hash_struct(VM)

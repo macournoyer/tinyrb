@@ -119,6 +119,9 @@ describe Fixnum do
     7.should == 7
     -7.should == -7
   end
+  it "should not equal other objects" do
+    7.should_not == "7"
+  end
   it "should convert to string" do
     1.to_s.should == "1"
   end
@@ -250,8 +253,29 @@ describe Hash do
   end
   it "should hash Object" do
     o = Object.new
-    h = { :k => o }
-    h[:k].should == o
+    h = { o => true }
+    h[o].should == true
+  end
+  it "should set" do
+    h = {}
+    h["hi"] = 1
+    h["hi"].should == 1
+  end
+  it "should return nil if non existant" do
+    h = {}
+    h["none"].should == nil
+  end
+  it "should have a size" do
+    h = {}
+    h.size.should == 0
+    h[:k] = 1
+    h.size.should == 1
+  end
+  xit "should clear" do
+    h = { :k => 1 }
+    h.clear
+    h[:k].should == nil
+    h.size.should == 0
   end
 end
 
@@ -362,5 +386,10 @@ describe Proc do
   end
 end
 
+describe Set do
+  xit "should create from Array" do
+    Set.new([1, 2]).size.should == 2
+  end
+end
 
 print_spec_summary!

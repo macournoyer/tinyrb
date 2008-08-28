@@ -23,12 +23,12 @@ x Fixnum#==
 x Fixnum#>=
 x Fixnum#|
 x Fixnum#~
-Hash#[]
-Hash#[]=
+x Hash#[]
+x Hash#[]=
 Hash#each_key
 Hash#include?
-Hash#initialize
-Hash#size
+x Hash#initialize
+x Hash#size
 Hash#update
 Hash#values
 Integer#chr
@@ -36,7 +36,7 @@ Integer#upto
 x Kernel#==
 Kernel#clone
 x Kernel#eql?
-Kernel#hash
+x Kernel#hash
 x Kernel#is_a?
 x Kernel#send
 x Module#===
@@ -51,7 +51,6 @@ Range#===
 Range#include?
 Set#+
 Set#-
-Set#each
 Set#initialize
 Set#merge
 Set#subtract

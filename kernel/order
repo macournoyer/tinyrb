@@ -8,7 +8,9 @@ fixnum.rb
 string.rb
 symbol.rb
 array.rb
+hash.rb
 range.rb
 vm.rb
+set.rb
 spec.rb
 specs.rb

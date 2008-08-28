@@ -23,7 +23,7 @@ static OBJ tr_fixnum_to_s(VM, OBJ self)
 
 static OBJ tr_fixnum_add(VM, OBJ self, OBJ other)   { return FIX_APPLY_OP(+, self, other); }
 static OBJ tr_fixnum_sub(VM, OBJ self, OBJ other)   { return FIX_APPLY_OP(-, self, other); }
-static OBJ tr_fixnum_eq(VM, OBJ self, OBJ other)    { return FIX_CMP_OP(==, self, other); }
+static OBJ tr_fixnum_eq(VM, OBJ self, OBJ other)    { return TR_TYPE(other) == TR_FIXNUM ? FIX_CMP_OP(==, self, other) : TR_FALSE; }
 static OBJ tr_fixnum_lt(VM, OBJ self, OBJ other)    { return FIX_CMP_OP(<, self, other); }
 static OBJ tr_fixnum_gt(VM, OBJ self, OBJ other)    { return FIX_CMP_OP(>, self, other); }
 static OBJ tr_fixnum_bwand(VM, OBJ self, OBJ other) { return FIX_APPLY_OP(&, self, other); }

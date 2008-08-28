@@ -1,8 +1,9 @@
 #include "tinyrb.h"
 
-#define STACK_PUSH(o)  tr_array_push(vm, CUR_FRAME->stack, (o))
+#define STACK_PUSH(o)  tr_array_push(vm, CUR_FRAME->stack, o)
 #define STACK_POP()    tr_array_pop(vm, CUR_FRAME->stack)
 #define STACK_PEEK()   tr_array_last(vm, CUR_FRAME->stack)
+#define STACK_SET(i,o) tr_array_set(vm, CUR_FRAME->stack, TR_CARRAY(CUR_FRAME->stack)->count-i-1, o);
 
 #define TR_SEND_ARGS_SPLAT_FLAG 2
 #define TR_SEND_FCALL_FLAG      8
@@ -202,7 +203,7 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
         STACK_PUSH(STACK_PEEK());
         break;
       case SETN:
-        STACK_POP(); /* ignore */
+        STACK_SET(TR_FIX(CMD(0)), STACK_POP());
         break;
       
       /* method */
