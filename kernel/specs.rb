@@ -16,6 +16,13 @@ describe Object do
     1.send(:to_s).should == "1"
     1.send("to_s").should == "1"
   end
+  it "should dup" do
+    obj = Object.new
+    obj.instance_variable_set :@var, "val"
+    obj2 = obj.dup
+    obj2.class.should == obj.class
+    obj2.instance_variable_get(:@var).should == "val"
+  end
 end
 
 describe String do
@@ -260,6 +267,8 @@ describe Hash do
     h = {}
     h["hi"] = 1
     h["hi"].should == 1
+    h["hi"] = 1
+    h.size.should == 1
   end
   it "should return nil if non existant" do
     h = {}
@@ -288,6 +297,11 @@ describe Hash do
     h.values.size.should == 2
     h.values[0].should == 1
     h.values[1].should == 2
+  end
+  it "should update" do
+    h = { :a => 1 }
+    h.update(:a => 2)
+    h[:a].should == 2
   end
 end
 
@@ -402,6 +416,11 @@ describe Set do
   it "should create from Array" do
     Set.new([1, 2]).size.should == 2
   end
+  
+  it "should +" do
+    set = Set.new([1, 3]) + Set.new([1, 2])
+    set.size.should == 3
+  end
 end
-
+ 
 print_spec_summary!

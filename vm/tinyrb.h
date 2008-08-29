@@ -235,7 +235,7 @@ OBJ tr_hash_set(VM, OBJ h, OBJ k, OBJ v);
 OBJ tr_hash_get(VM, OBJ h, OBJ k);
 OBJ tr_hash_count(VM, OBJ h);
 OBJ tr_hash_delete(VM, OBJ h, OBJ k);
-OBJ tr_hash_clear(VM, OBJ h);
+OBJ tr_hash_keys(VM, OBJ self);
 
 /* array */
 tr_array *tr_array_struct(VM);

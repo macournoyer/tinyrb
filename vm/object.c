@@ -240,6 +240,11 @@ static OBJ tr_object_send(VM, OBJ self, int argc, OBJ argv[])
   return tr_send(vm, self, TR_SYM(argv[0]), argc-1, (OBJ *) argv + sizeof(OBJ), TR_NIL);
 }
 
+static OBJ tr_object_ivars(VM, OBJ self)
+{
+  return tr_hash_keys(vm, TR_COBJ(self)->ivars);
+}
+
 void tr_object_init(VM)
 {
   OBJ object = tr_class_new(vm, "Object", TR_NIL);
@@ -248,6 +253,7 @@ void tr_object_init(VM)
   tr_def(vm, object, "class", tr_object_class, 0);
   tr_def(vm, object, "initialize", tr_object_nop, -1);
   tr_def(vm, object, "send", tr_object_send, -1);
+  tr_def(vm, object, "instance_variables", tr_object_ivars, 0);
 }
 
 /* special objects (true, false, nil) */

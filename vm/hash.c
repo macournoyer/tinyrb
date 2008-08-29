@@ -253,7 +253,7 @@ OBJ tr_hash_delete(VM, OBJ o, OBJ k)
   return TR_NIL;
 }
 
-static OBJ tr_hash_keys(VM, OBJ self)
+OBJ tr_hash_keys(VM, OBJ self)
 {
   tr_hash        *h = TR_CHASH(self);
   tr_hash_entry  *e;

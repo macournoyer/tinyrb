@@ -49,7 +49,7 @@ class SpecMatcher
     $spec_count += 1
     $spec_fail += 1 unless _cond(result)
     puts "    " + @object.inspect + " " + (@negate ? "not " : "") + op + " " + other.inspect + ": " +
-                  (_cond(result) ? "SUCCESS" : "FAIL")
+                  (_cond(result) ? "\e[0;32mSUCCESS\e[m" : "\e[0;31mFAIL\e[m")
   end
 end
 

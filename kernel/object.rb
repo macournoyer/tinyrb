@@ -46,6 +46,17 @@ class Object
   def inspect
     '#<' + self.class.name + ':0x' + object_id.to_s + '>'
   end
-  
   alias :to_s :inspect
+  
+  def dup
+    obj = self.class.new
+    instance_variables.each do |name|
+      obj.instance_variable_set name, instance_variable_get(name)
+    end
+    obj
+  end
+  
+  def clone
+    dup
+  end
 end
