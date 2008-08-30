@@ -27,6 +27,10 @@ class String
     substring(start, len)
   end
   
+  def succ
+    
+  end
+  
   def to_s
     self
   end

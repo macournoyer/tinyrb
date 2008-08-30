@@ -13,4 +13,10 @@ module Enumerable
     end
     false
   end
+  
+  def to_a
+    a = []
+    each { |item| a << item }
+    a
+  end
 end

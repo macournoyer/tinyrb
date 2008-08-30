@@ -150,6 +150,21 @@ describe Fixnum do
   end
 end
 
+describe Range do
+  it "should have first and last" do
+    (1..2).first == 1
+    (1..2).last == 2
+  end
+  it "should to_a (Fixnum)" do
+    a = (1..2).to_a
+    a.size.should == 2
+  end
+  xit "should to_a (String)" do
+    a = ('a'..'z').to_a
+    a.size.should == 26
+  end
+end
+
 describe true do
   it "should convert to string" do
     true.to_s.should == "true"
