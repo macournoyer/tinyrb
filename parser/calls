@@ -49,11 +49,11 @@ NoMethodError#initialize
 x Numeric#eql?
 Range#===
 Range#include?
-Set#+
-Set#-
-Set#initialize
-Set#merge
-Set#subtract
+x Set#+
+x Set#-
+x Set#initialize
+x Set#merge
+x Set#subtract
 x String#+
 x String#==
 x String#[]

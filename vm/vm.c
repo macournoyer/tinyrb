@@ -217,7 +217,7 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
         return STACK_POP();
       case DEFINEMETHOD:
         tr_vm_definemethod(vm, STACK_POP(), CMD(0),  /* name */
-                                            CMD(1)); /* labels */
+                                            CMD(1)); /* opcode */
         break;
       case ALIAS:
         tr_alias(vm, f->class, STACK_POP(),  /* cur name */

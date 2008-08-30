@@ -176,6 +176,9 @@ OBJ tr_hash_set(VM, OBJ o, OBJ k, OBJ v)
   u_int          index;
   tr_hash_entry *e;
   
+  /* remove previous occurence of item (??) */
+  tr_hash_delete(vm, o, k);
+  
   if (++(h->hash_entrycount) > h->loadlimit) {
     /* Ignore the return value. If expand fails, we should
      * still try cramming just this value into the existing table
@@ -242,8 +245,8 @@ OBJ tr_hash_delete(VM, OBJ o, OBJ k)
       *pE = e->next;
       h->hash_entrycount--;
       v = e->v;
-      freekey(e->k);
-      tr_free(e);
+      /* freekey(e->k);
+      tr_free(e); */
       return v;
     }
     pE = &(e->next);

@@ -421,6 +421,11 @@ describe Set do
     set = Set.new([1, 3]) + Set.new([1, 2])
     set.size.should == 3
   end
+
+  it "should -" do
+    set = Set.new([1, 3]) - Set.new([1, 2])
+    set.size.should == 2
+  end
 end
  
 print_spec_summary!
