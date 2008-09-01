@@ -29,12 +29,12 @@ Hash#each_key
 Hash#include?
 x Hash#initialize
 x Hash#size
-Hash#update
-Hash#values
-Integer#chr
-Integer#upto
+x Hash#update
+x Hash#values
+x Integer#chr
+x Integer#upto
 x Kernel#==
-Kernel#clone
+x Kernel#clone
 x Kernel#eql?
 x Kernel#hash
 x Kernel#is_a?
@@ -47,8 +47,8 @@ NameError#initialize
 x NilClass#nil?
 NoMethodError#initialize
 x Numeric#eql?
-Range#===
-Range#include?
+x Range#===
+x Range#include?
 x Set#+
 x Set#-
 x Set#initialize

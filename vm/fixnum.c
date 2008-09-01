@@ -21,6 +21,12 @@ static OBJ tr_fixnum_to_s(VM, OBJ self)
   return str;
 }
 
+static OBJ tr_fixnum_chr(VM, OBJ self)
+{
+  char s = TR_FIX(self);
+  return tr_string_new(vm, &s);
+}
+
 static OBJ tr_fixnum_add(VM, OBJ self, OBJ other)   { return FIX_APPLY_OP(+, self, other); }
 static OBJ tr_fixnum_sub(VM, OBJ self, OBJ other)   { return FIX_APPLY_OP(-, self, other); }
 static OBJ tr_fixnum_eq(VM, OBJ self, OBJ other)    { return TR_TYPE(other) == TR_FIXNUM ? FIX_CMP_OP(==, self, other) : TR_FALSE; }
@@ -37,6 +43,7 @@ void tr_fixnum_init(VM)
   OBJ class = tr_class_new(vm, "Fixnum", tr_const_get(vm, "Object"));
   
   tr_def(vm, class, "to_s", tr_fixnum_to_s, 0);
+  tr_def(vm, class, "chr", tr_fixnum_chr, 0);
   tr_def(vm, class, "+", tr_fixnum_add, 1);
   tr_def(vm, class, "-", tr_fixnum_sub, 1);
   tr_def(vm, class, "==", tr_fixnum_eq, 1);

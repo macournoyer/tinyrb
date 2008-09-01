@@ -4,7 +4,7 @@ class Array
   alias :length :size
   alias :push :<<
   
-  def first(arg)
+  def first
     self[0]
   end
   

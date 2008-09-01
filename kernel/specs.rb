@@ -148,12 +148,27 @@ describe Fixnum do
   it "should negate" do
     (!1).should == false
   end
+  it "should yield upto" do
+    a = []
+    1.upto(3) { |i| a << i }
+    a.size.should == 3
+  end
+  it "should return chr" do
+    49.chr.should == "1"
+    97.chr.should == "a"
+  end
 end
 
 describe Range do
   it "should have first and last" do
     (1..2).first == 1
     (1..2).last == 2
+  end
+  it "should include" do
+    (1..2).include?(1).should == true
+    (1..2).include?(2).should == true
+    (1..2).include?(3).should == false
+    (1..2).include?("a").should == false
   end
   it "should to_a (Fixnum)" do
     a = (1..2).to_a

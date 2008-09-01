@@ -1,8 +1,16 @@
 class Fixnum
+  def upto(last)
+    i = self
+    while i <= last
+      yield i
+      i += 1
+    end
+  end
+  
   def <=(other)
     self == other || self < other
   end
-
+  
   def >=(other)
     self == other || self > other
   end

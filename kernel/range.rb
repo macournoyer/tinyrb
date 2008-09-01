@@ -1,6 +1,14 @@
 class Range
   include Enumerable
   
+  alias :begin :first
+  alias :end :last
+  
+  def include?(other)
+    other.is_a?(first.class) && first <= other && other <= last
+  end
+  alias :=== :include?
+  
   def each
     current = first
     yield current
