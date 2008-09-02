@@ -201,6 +201,9 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
         break;
       
       /* put */
+      case PUTSTRING:
+        STACK_PUSH(tr_string_dup(vm, CMD(0)));
+        break;
       case PUTOBJECT:
         STACK_PUSH(CMD(0));
         break;

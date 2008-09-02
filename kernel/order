@@ -12,5 +12,6 @@ hash.rb
 range.rb
 vm.rb
 set.rb
+globals.rb
 spec.rb
 specs.rb

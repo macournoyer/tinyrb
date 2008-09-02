@@ -32,18 +32,8 @@ class InstructionConverter
     @name       = name
     @iseq       = iseq
     @out        = []
-    @converters = {}
     @line       = 0
     @blocks     = []
-    
-    # special convertions
-    convert :putstring do |cmds|
-      op :putobject, cmds[0]
-    end
-  end
-  
-  def convert(code, &block)
-    @converters[code] = block
   end
   
   def op(code, *cmds)
@@ -95,11 +85,7 @@ class InstructionConverter
       when Symbol # label
         op :label, inst
       else
-        if c = @converters[inst[0]]
-          c.call(inst[1..-1])
-        else
-          op inst[0], *inst[1..-1]
-        end
+        op inst[0], *inst[1..-1]
       end
     end
   end

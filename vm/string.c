@@ -77,6 +77,12 @@ static OBJ tr_string_to_sym(VM, OBJ self)
   return tr_intern(vm, TR_CSTRING(self)->ptr);
 }
 
+OBJ tr_string_dup(VM, OBJ self)
+{
+  tr_string *s = TR_CSTRING(self);
+  return tr_string_new2(vm, s->ptr, s->len);
+}
+
 void tr_string_init(VM)
 {
   OBJ class = tr_class_new(vm, "String", tr_const_get(vm, "Object"));
@@ -87,6 +93,7 @@ void tr_string_init(VM)
   tr_def(vm, class, "<=>", tr_string_cmp, 1);
   tr_def(vm, class, "replace", tr_string_replace, 1);
   tr_def(vm, class, "to_sym", tr_string_to_sym, 0);
+  tr_def(vm, class, "dup", tr_string_dup, 0);
 }
 
 /* symbol */

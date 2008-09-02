@@ -29,12 +29,10 @@ class Hash
   alias :merge! :update
   
   def inspect
-    s = "{"
+    a = []
     keys.each do |key|
-      s << key.inspect + "=" + self[key].inspect
-      s << ", "
+      a << key.inspect + "=" + self[key].inspect
     end
-    s << "}"
-    s
+    "{" + a.join(", ") + "}"
   end
 end

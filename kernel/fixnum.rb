@@ -25,6 +25,10 @@ class Fixnum
     self + 1
   end
   
+  def dup
+    0 + self
+  end
+  
   def inspect
     self.to_s
   end

@@ -275,8 +275,9 @@ describe Array do
   it "should have a size" do
     [1, 2, 3].size.should == 3
   end
-  xit "should inspect" do
-    [1, "hi"].inspect.should == '[1, "hi"]'
+  it "should join" do
+    [1, "a", :x].join.should == "1ax"
+    [1, "a", :x].join("-").should == "1-a-x"
   end
 end
 

@@ -5,7 +5,7 @@ x Array#each
 Array#each_index
 Array#eql?
 Array#hash
-Array#join
+x Array#join
 x Array#last
 x Array#length
 Array#map

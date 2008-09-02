@@ -222,6 +222,7 @@ OBJ tr_string_new(VM, char *ptr);
 OBJ tr_string_new2(VM, char *ptr, size_t len);
 OBJ tr_intern(VM, char *ptr);
 OBJ tr_string_concat(VM, OBJ self, OBJ str2);
+OBJ tr_string_dup(VM, OBJ self);
 
 /* symbol */
 OBJ tr_symbol_get(VM, OBJ obj);
