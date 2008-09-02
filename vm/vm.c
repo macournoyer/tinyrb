@@ -100,6 +100,17 @@ static void tr_vm_definemethod(VM, OBJ class, OBJ name, OBJ ops)
   tr_def_ops(vm, class, name, ops);
 }
 
+static OBJ tr_vm_throw(VM, int argc)
+{
+  if (argc == 0)
+    return TR_NIL;
+  
+  if (argc == 1)
+    return STACK_POP();
+  
+  tr_raise(vm, "TODO: tr_vm_throw multi-args");
+}
+
 #define VM_FRAME(n)    (&vm->frames[vm->cf-TR_FIX(n)])
 #define JUMP_TO(label) ip = (int) tr_hash_get(vm, label2ip, label)
 #define LINENUM        TR_FIX(tr_array_at(vm, op, 0))
@@ -113,6 +124,11 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
   size_t    ip;
   size_t    n = TR_FIX(tr_array_count(vm, ops));
   OBJ       label2ip = (OBJ) tr_hash_struct(vm);
+  
+  if (vm->throw) {
+    vm->throw = 0;
+    return TR_NIL;
+  }
   
   if (vm->cf > TR_MAX_FRAMES)
     tr_raise(vm, "Stack overflow");
@@ -251,8 +267,8 @@ OBJ tr_run(VM, OBJ filename, OBJ ops)
       case LABEL:
         break;
       case THROW:
-        STACK_POP(); /* TODO */
-        break;
+        vm->throw = 1;
+        return tr_vm_throw(vm, TR_FIX(CMD(0)));
       
       default:
         tr_log("unsupported instruction: %d (cf=%d, ip=%d)", OPCODE, vm->cf, ip);
@@ -334,6 +350,7 @@ void tr_init(VM, int argc, char *argv[])
   vm->cf = 0;
   vm->globals = (OBJ) tr_hash_struct(vm);
   vm->symbols = tr_array_struct(vm);
+  vm->throw   = 0;
   
   f = CUR_FRAME;
   f->consts = (OBJ) tr_hash_struct(vm);

@@ -5,6 +5,13 @@ class Hash
     v
   end
   
+  def include?(key)
+    keys.include?(key)
+  end
+  alias :has_key? :include?
+  alias :key? :include?
+  alias :member? :include?
+  
   def empty?
     size == 0
   end

@@ -177,6 +177,7 @@ typedef struct tr_vm {
   tr_frame  frames[TR_MAX_FRAMES];
   OBJ       globals;
   tr_array *symbols;
+  unsigned  throw: 1;
 } tr_vm;
 
 /* vm */

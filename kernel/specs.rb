@@ -255,7 +255,7 @@ describe Array do
     end
     $i.should == 3
   end
-  xit "should include?" do
+  it "should include?" do
     [1, 2].include?(2).should == true
     [1, 2].include?(3).should == false
   end
@@ -332,6 +332,11 @@ describe Hash do
     h = { :a => 1 }
     h.update(:a => 2)
     h[:a].should == 2
+  end
+  it "should include" do
+    h = { :a => 1 }
+    h.include?(:a).should == true
+    h.include?(:b).should == false
   end
 end
 
