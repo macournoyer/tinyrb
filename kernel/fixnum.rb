@@ -7,6 +7,15 @@ class Fixnum
     end
   end
   
+  def times
+    i = 0
+    while i < self
+      yield
+      i += 1
+    end
+    nil
+  end
+  
   def <=(other)
     self == other || self < other
   end
