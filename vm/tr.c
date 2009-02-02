@@ -9,7 +9,7 @@ int main (int argc, char const *argv[]) {
     {4}
   };
   
-  tr_run(&vm, &code);
+  tr_run(&vm, code);
   
   return 0;
 }
