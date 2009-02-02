@@ -16,6 +16,7 @@
 
 #define VM                   TrVM *vm
 #define FRAME                &vm->frame[vm->cf]
+#define TR_OBJECT_HEADER     
 
 typedef unsigned long OBJ;
 
@@ -36,11 +37,8 @@ typedef struct {
   TrFrame frames[TR_MAX_FRAME];
 } TrVM;
 
-typedef unsigned char TrOpCode;
 typedef struct {
-  kvec_t(TrOpCode) ops;
-  kvec_t(OBJ) lit;
-  char *fn;
-} TrCode;
+  TR_OBJECT_HEADER;
+} TrObject;
 
 #endif /* _TINYRB_H_ */

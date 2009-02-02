@@ -29,4 +29,4 @@ tinyrb: ${OBJ_MIN} ${OBJ}
 clean:
 	rm -f vm/*.o vm/scanner.c vm/grammar.{c,h,out}
 
-rebuild: clean min
+rebuild: clean tinyrb
