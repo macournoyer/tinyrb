@@ -3,6 +3,17 @@
 #include "tr.h"
 #include "opcode.h"
 
+TrVM *TrVM_new() {
+  TrVM *vm = TR_ALLOC(TrVM);
+  vm->cf = 0;
+  vm->symbols = kh_init(str);
+  return vm;
+}
+
+void TrVM_destroy(TrVM *vm) {
+  kh_destroy(str, vm->symbols);
+}
+
 /* dispatch macros */
 #define NEXT_OP        (++ip, e=*ip)
 #ifdef TR_THREADED_DISPATCH

@@ -1,4 +1,4 @@
-SRC = vm/vm.c vm/tr.c
+SRC = vm/string.c vm/vm.c vm/tr.c
 OBJ = ${SRC:.c=.o}
 OBJ_MIN = vm/tr.o
 

@@ -3,7 +3,7 @@
 #include "opcode.h"
 
 int main (int argc, char const *argv[]) {
-  TrVM vm;
+  TrVM *vm = TrVM_new();
   OBJ k[] = { 1, 2 };
   TrOp code[] = {
     {TR_OP_LOADK, 0, 0},
@@ -16,7 +16,8 @@ int main (int argc, char const *argv[]) {
   block.k = k;
   block.code = code;
   
-  tr_run(&vm, &block);
+  tr_run(vm, &block);
   
+  TrVM_destroy(vm);
   return 0;
 }
