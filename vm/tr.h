@@ -15,7 +15,7 @@
 #define TR_MEMCPY_N(X,Y,T,N) memcpy((X), (Y), sizeof(T)*(N))
 
 #define VM                   TrVM *vm
-#define FRAME                &vm->frame[vm->cf]
+#define FRAME                &vm->frames[vm->cf]
 #define TR_OBJECT_HEADER     
 
 typedef unsigned long OBJ;
@@ -37,8 +37,17 @@ typedef struct {
   TrFrame frames[TR_MAX_FRAME];
 } TrVM;
 
+typedef union {
+  unsigned char i;
+  struct { unsigned char i,a,b,c; } regs;
+  struct { char val[4]; } string;
+  struct { float val; } number;
+} TrOp;
+
 typedef struct {
   TR_OBJECT_HEADER;
 } TrObject;
+
+OBJ tr_run(VM, TrOp *code);
 
 #endif /* _TINYRB_H_ */
