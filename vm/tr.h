@@ -37,17 +37,23 @@ typedef struct {
   TrFrame frames[TR_MAX_FRAME];
 } TrVM;
 
-typedef union {
-  unsigned char i;
-  struct { unsigned char i,a,b,c; } regs;
-  struct { char val[4]; } string;
-  struct { float val; } number;
+typedef struct {
+  unsigned char i:8;
+  int a:12;
+  int b:12;
 } TrOp;
+
+typedef struct {
+  OBJ *k;
+  TrOp *code;
+  int kn;
+  int coden;
+} TrBlock;
 
 typedef struct {
   TR_OBJECT_HEADER;
 } TrObject;
 
-OBJ tr_run(VM, TrOp *code);
+OBJ tr_run(VM, TrBlock *code);
 
 #endif /* _TINYRB_H_ */

@@ -18,19 +18,16 @@
 #endif
 
 /* register access macros */
-#define VA   ((int)e.regs.a)
-#define VB   ((int)e.regs.b)
-#define VC   ((int)e.regs.c)
-#define RA   regs[e.regs.a]
-#define RB   regs[e.regs.b]
-#define RC   regs[e.regs.c]
-#define UVBC (unsigned short)(((VB<<8)+VC))
-#define SVBC (short)(((VB<<8)+VC))
+#define VA   ((int)e.a)
+#define VB   ((int)e.b)
+#define RA   regs[e.a]
+#define RB   regs[e.b]
 
-OBJ tr_run(VM, TrOp *code) {
-  TrOp *ip = code;
+OBJ tr_run(VM, TrBlock *block) {
+  TrOp *ip = block->code;
   TrOp e = *ip;
   OBJ regs[10];
+  OBJ *k = block->k;
   /* TrFrame *frame = FRAME; */
   
 #ifdef TR_THREADED_DISPATCH
@@ -40,8 +37,9 @@ OBJ tr_run(VM, TrOp *code) {
   OPCODES;
     OP(NONE):     DISPATCH;
     OP(MOVE):     RA = RB; DISPATCH;
-    OP(ADD):      RA = RB + RC; DISPATCH;
-    OP(PRINT):    printf("ok\n"); DISPATCH;
-    OP(RETURN):   return 0;
+    OP(LOADK):    RA = k[VB]; DISPATCH;
+    OP(ADD):      RA = RA + RB; DISPATCH;
+    OP(PRINT):    printf("%d\n", (int) RA); DISPATCH;
+    OP(RETURN):   return RA;
   END_OPCODES;
 }
