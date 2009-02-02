@@ -1,33 +1,15 @@
 = TinyRb
 
-My lame attempt to copy tinypy and create a tiny Ruby VM.
-I'm not a VM or language expert so expect the worst from this.
+A tiny subset of Ruby with a Lua'esc VM.
 
-== Getting started
-
-You need Ruby 1.9 installed as `ruby19` script (or change in vm/Rakefile).
-Nothing interesting to do for now. To build the VM:
-
- rake
- ./vm/vm
-
-== Goals
-
-- Keep it small so lots of people can understand it (< 64K)
-- Bootstrap (parer, emitter, etc in Ruby)
-- Base on YARV instruction sequences (but use less)
-- Have fun!
-
-== VM Bootstrap tactic
-
- boot.rb =(YARV opcode)=> boot.c =(gcc+vm.c)=> tinyrb => rich & famous
-
-See TODO
+Everything in TinyRb should run in the big Ruby.
+(except bugs and thing that don't comply to the principle of lease surprise.)
+But not everything in the big Ruby should run in TinyRb.
 
 == Credits
 Inspired by:
+ lua,     http://www.lua.org/
  tinypy,  http://tinypy.org
  HotRuby, http://hotruby.accelart.jp
- Garnet,  http://www.cise.ufl.edu/~jnw/COP5555-200308/Assignments/Programs/garnet.html
 
 (C) Marc-Andre Cournoyer <macournoyer@gmail.com>

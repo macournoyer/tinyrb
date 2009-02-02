@@ -1,3 +1,566 @@
+# == specials.rb
+class TrueClass
+  def !
+    false
+  end
+  def to_s
+    "true"
+  end
+  def inspect
+    "true"
+  end
+end
+
+class FalseClass
+  def !
+    true
+  end
+  def to_s
+    "false"
+  end
+  def inspect
+    "false"
+  end
+end
+
+class NilClass
+  def ==(other)
+    NilClass === other || FalseClass === other
+  end
+  def !
+    true
+  end
+  def nil?
+    true
+  end
+  def to_s
+    ""
+  end
+  def inspect
+    "nil"
+  end
+end
+# == object.rb
+class Object
+  def instance_variable_get(name)
+    VM.run [
+      [0, OPCODES[:getinstancevariable], name]
+    ]
+  end
+  
+  def instance_variable_set(name, value)
+    VM.run [
+      [0, OPCODES[:putobject], value],
+      [0, OPCODES[:setinstancevariable], name]
+    ]
+  end
+  
+  def ==(other)
+    object_id == other.object_id
+  end
+  
+  def is_a?(klass)
+    self.class == klass
+  end
+  
+  def nil?
+    false
+  end
+  
+  def !
+    false
+  end
+  
+  # Do not use alias so this is inherited
+  def ===(other)
+    self == other
+  end
+  def equal?(other)
+    self == other
+  end
+  def eql?(other)
+    self == other
+  end
+  
+  def hash
+    object_id
+  end
+  
+  def inspect
+    '#<' + self.class.name + ':0x' + object_id.to_s + '>'
+  end
+  alias :to_s :inspect
+  
+  def dup
+    obj = self.class.new
+    instance_variables.each do |name|
+      obj.instance_variable_set name, instance_variable_get(name)
+    end
+    obj
+  end
+  
+  def clone
+    dup
+  end
+end
+# == module.rb
+module Module
+end
+# == class.rb
+class Class
+  def ==(other)
+    other.class.name == "Class" && name == other.name
+  end
+  
+  # TODO move to Module
+  def ===(obj)
+    self == obj.class
+  end
+  
+  def to_s
+    name
+  end
+  
+  def inspect
+    name
+  end
+end
+
+# == enumerable.rb
+module Enumerable
+  def each_with_index
+    i = 0
+    each do |item|
+      yield item, i
+      i += 1
+    end
+  end
+  
+  def include?(item)
+    each do |i|
+      return true if i == item
+    end
+    false
+  end
+  
+  def to_a
+    a = []
+    each { |item| a << item }
+    a
+  end
+end
+# == comparable.rb
+module Comparable
+  def <(other)
+    (self <=> other) < 0
+  end
+  
+  def <=(other)
+    (self <=> other) <= 0
+  end
+  
+  def ==(other)
+    (self <=> other) == 0
+  end
+  
+  def >(other)
+    (self <=> other) > 0
+  end
+  
+  def >=(other)
+    (self <=> other) >= 0
+  end
+  
+  def between?(min, max)
+    self >= min && self <= max
+  end
+end
+# == fixnum.rb
+class Fixnum
+  def upto(last)
+    i = self
+    while i <= last
+      yield i
+      i += 1
+    end
+  end
+  
+  def times
+    i = 0
+    while i < self
+      yield
+      i += 1
+    end
+    nil
+  end
+  
+  def <=(other)
+    self == other || self < other
+  end
+  
+  def >=(other)
+    self == other || self > other
+  end
+  
+  alias :<=> :-
+  
+  def !=(other)
+    !(self == other)
+  end
+  
+  def succ
+    self + 1
+  end
+  
+  def dup
+    0 + self
+  end
+  
+  def inspect
+    self.to_s
+  end
+end
+# == string.rb
+class String
+  include Comparable
+  include Enumerable
+  
+  alias :length :size
+  
+  def !=(other)
+    !(self == other)
+  end
+  
+  def <<(s)
+    replace self + s
+  end
+  
+  def [](f, l=nil)
+    if Range === f
+      start = f.first
+      last  = f.last < 0 ? size + f.last : f.last
+      len   = last - start + 1
+    else
+      start = f
+      len   = l
+    end
+    
+    len = size - start if len < 0 || start + len > size
+    
+    substring(start, len)
+  end
+  
+  def to_s
+    self
+  end
+  
+  def inspect
+    '"' + self + '"'
+  end
+end
+
+# == symbol.rb
+class Symbol
+  def to_s
+    "" + self
+  end
+  
+  def inspect
+    ":" + self.to_s
+  end
+end
+# == array.rb
+class Array
+  include Enumerable
+  
+  alias :length :size
+  alias :push :<<
+  
+  def first
+    self[0]
+  end
+  
+  def each
+    i = 0
+    while i < size
+      yield self[i]
+      i += 1
+    end
+  end
+  
+  def join(sep=$,)
+    str = ""
+    i   = 0
+    while i < size
+      str << self[i].to_s
+      str << sep.to_s unless i == size - 1
+      i += 1
+    end
+    str
+  end
+  
+  def inspect
+    "[" + join(", ") + "]"
+  end
+end
+# == hash.rb
+class Hash
+  def values
+    v = []
+    keys.each { |k| v << self[k] }
+    v
+  end
+  
+  def include?(key)
+    keys.include?(key)
+  end
+  alias :has_key? :include?
+  alias :key? :include?
+  alias :member? :include?
+  
+  def empty?
+    size == 0
+  end
+  
+  def clear
+    keys.each { |k| delete(k) }
+  end
+  
+  def update(other_hash)
+    other_hash.keys.each do |key|
+      self[key] = other_hash[key]
+    end
+    self
+  end
+  alias :merge! :update
+  
+  def inspect
+    a = []
+    keys.each do |key|
+      a << key.inspect + "=" + self[key].inspect
+    end
+    "{" + a.join(", ") + "}"
+  end
+end
+# == range.rb
+class Range
+  include Enumerable
+  
+  alias :begin :first
+  alias :end :last
+  
+  def include?(other)
+    other.is_a?(first.class) && first <= other && other <= last
+  end
+  alias :=== :include?
+  
+  def each
+    current = first
+    yield current
+    while (current <=> last) != 0
+      current = current.succ
+      yield current
+    end
+  end
+  
+  def inspect
+    "(" + first.inspect + ".." + last.inspect + ")"
+  end
+end
+# == vm.rb
+OPCODES = {
+  :nop                 =>  0,
+  :getlocal            =>  1,
+  :setlocal            =>  2,
+  :getspecial          =>  3,
+  :setspecial          =>  4,
+  :getdynamic          =>  5,
+  :setdynamic          =>  6,
+  :getinstancevariable =>  7,
+  :setinstancevariable =>  8,
+  :getclassvariable    =>  9,
+  :setclassvariable    => 10,
+  :getconstant         => 11,
+  :setconstant         => 12,
+  :getglobal           => 13,
+  :setglobal           => 14,
+  :putnil              => 15,
+  :putself             => 16,
+  :putundef            => 17,
+  :putobject           => 18,
+  :putstring           => 19,
+  :concatstrings       => 20,
+  :tostring            => 21,
+  :toregexp            => 22,
+  :newarray            => 23,
+  :duparray            => 24,
+  :expandarray         => 25,
+  :concatarray         => 26,
+  :splatarray          => 27,
+  :checkincludearray   => 28,
+  :newhash             => 29,
+  :newrange            => 30,
+  :putnot              => 31,
+  :pop                 => 32,
+  :dup                 => 33,
+  :dupn                => 34,
+  :swap                => 35,
+  :reput               => 36,
+  :topn                => 37,
+  :emptstack           => 38,
+  :definemethod        => 39,
+  :alias               => 40,
+  :undef               => 41,
+  :defined             => 42,
+  :postexe             => 43,
+  :trace               => 44,
+  :defineclass         => 45,
+  :send                => 46,
+  :invokesuper         => 47,
+  :invokeblock         => 48,
+  :leave               => 49,
+  :finish              => 50,
+  :throw               => 51,
+  :jump                => 52,
+  :branchif            => 53,
+  :branchunless        => 54,
+  :setn                => 55,
+  
+  # my own lil instructions
+  :label               => 55
+
+}
+
+class VM
+  
+end
+# == set.rb
+class Set
+  include Enumerable
+  
+  def initialize(enum=nil)
+    @hash = {}
+    enum.each { |item| add(item) } if enum
+  end
+  
+  def add(item)
+    @hash[item] = true
+  end
+  alias :<< :add
+
+  def delete(item)
+    @hash[item] = nil
+  end
+  
+  def include?(item)
+    @hash[item]
+  end
+  
+  def |(enum)
+    dup.merge(enum)
+  end
+  alias :union :|
+  alias :+ :|
+  
+  def -(enum)
+    dup.subtract(enum)
+  end
+  
+  def each
+    # TODO @hash.keys.each(&block)
+  end
+
+  def merge(enum)
+    if enum.is_a?(Set)
+      @hash.update(enum.instance_variable_get(:@hash))
+    else
+      enum.each { |item| add(item) }
+    end
+    self
+  end
+  
+  def subtract(enum)
+    enum.each { |item| delete(item) }
+    self
+  end
+  
+  def size
+    @hash.size
+  end
+  alias :length :size
+  
+  def clear
+    @hash.clear
+  end
+end
+# == globals.rb
+$, = nil
+# == spec.rb
+# This is just a basic spec framework to test the kernel while I work running the parser.
+# I'll try to make it compatible w/ mspec so I copy them when I'm finished.
+# Some of it is ugly cause I don't have Exception rescue yet.
+
+$spec_count = 0
+$spec_fail = 0
+$spec_ignore = 0
+
+def describe(name)
+  puts name.to_s
+  yield
+  puts ""
+end
+
+def it(name)
+  puts "  it " + name
+  yield
+end
+
+def xit(name)
+  puts "  ignoring: it " + name
+  $spec_ignore += 1
+end
+
+def print_spec_summary!
+  puts $spec_count.to_s + " examples, " +
+       $spec_fail.to_s + " failures, " +
+       $spec_ignore.to_s + " ignored"
+end
+
+class SpecMatcher
+  def initialize(object, negate)
+    @object = object
+    @negate = negate
+  end
+  
+  def ==(other);  _match "==",  other, @object == other  end
+  def >(other);   _match ">",   other, @object > other   end
+  def >=(other);  _match ">=",  other, @object >= other  end
+  def <(other);   _match "<",   other, @object < other   end
+  def <=(other);  _match "<=",  other, @object <= other  end
+  def !=(other);  _match "!=",  other, @object != other  end
+  def ===(other); _match "===", other, @object === other end
+  
+  def _cond(cond)
+    @negate ? !cond : cond
+  end
+  def _match(op, other, result)
+    $spec_count += 1
+    $spec_fail += 1 unless _cond(result)
+    puts "    " + @object.inspect + " " + (@negate ? "not " : "") + op + " " + other.inspect + ": " +
+                  (_cond(result) ? "\e[0;32mSUCCESS\e[m" : "\e[0;31mFAIL\e[m")
+  end
+end
+
+class Object
+  def should
+    SpecMatcher.new(self, false)
+  end
+  def should_not
+    SpecMatcher.new(self, true)
+  end
+end
+
+# == specs.rb
 describe Object do
   it "should have a class" do
     "hi".class.should == String
@@ -465,3 +1028,4 @@ describe Set do
 end
  
 print_spec_summary!
+
