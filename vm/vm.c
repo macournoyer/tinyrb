@@ -24,10 +24,10 @@
 #define RB   regs[e.b]
 
 OBJ tr_run(VM, TrBlock *block) {
-  TrOp *ip = block->code;
+  TrOp *ip = block->code.a;
   TrOp e = *ip;
   OBJ regs[10];
-  OBJ *k = block->k;
+  OBJ *k = block->k.a;
   /* TrFrame *frame = FRAME; */
   
 #ifdef TR_THREADED_DISPATCH

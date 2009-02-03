@@ -1,4 +1,4 @@
-SRC = vm/string.c vm/class.c vm/object.c vm/compiler.c vm/vm.c vm/tr.c
+SRC = vm/string.c vm/class.c vm/object.c vm/compiler.c vm/grammar.c vm/scanner.c vm/vm.c vm/tr.c
 OBJ = ${SRC:.c=.o}
 OBJ_MIN = vm/tr.o
 
@@ -17,11 +17,11 @@ all: tinyrb
 tinyrb: ${OBJ_MIN} ${OBJ}
 	${CC} ${CFLAGS} ${OBJ_POTION} ${OBJ} ${LIBS} -o tinyrb
 
-# vm/scanner.c: vm/scanner.rl
-#   ${RAGEL} vm/scanner.rl -C -o $@
+vm/scanner.c: vm/scanner.rl
+	${RAGEL} vm/scanner.rl -C -o $@
 
-# vm/grammar.c: ${LEMON} vm/grammar.y
-#   ${LEMON} vm/grammar.y
+vm/grammar.c: ${LEMON} vm/grammar.y
+	${LEMON} vm/grammar.y
 
 ${LEMON}: ${LEMON}.c
 	${CC} -o ${LEMON} ${LEMON}.c

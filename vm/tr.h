@@ -2,6 +2,7 @@
 #define _TINYRB_H_
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <limits.h>
 #include <assert.h>
 #include "kvec.h"
@@ -110,11 +111,15 @@ typedef struct {
 } TrOp;
 
 typedef struct {
-  OBJ *k;
-  TrOp *code;
-  int kn;
-  int coden;
+  kvec_t(OBJ) k;
+  kvec_t(TrOp) code;
 } TrBlock;
+
+typedef struct {
+  int curline;
+  TrVM *vm;
+  TrBlock *block;
+} TrCompiler;
 
 /* vm */
 TrVM *TrVM_new();
@@ -134,5 +139,19 @@ OBJ TrClass_new(VM, OBJ name, OBJ super);
 OBJ TrClass_lookup(VM, OBJ self, OBJ name);
 OBJ TrClass_add_method(VM, OBJ self, OBJ name, OBJ method);
 OBJ TrMethod_new(VM, TrFunc *func, OBJ data);
+
+/* compiler */
+TrCompiler *TrCompiler_new(VM, const char *fn);
+void TrCompiler_dump(TrCompiler *c);
+void TrCompiler_call(TrCompiler *c, OBJ msg);
+void TrCompiler_finish(TrCompiler *c);
+void TrCompiler_destroy(TrCompiler *c);
+
+/* parser */
+void tr_compile(VM, TrCompiler *compiler, char *code, int trace);
+void *TrParserAlloc(void *(*)(size_t));
+void TrParser(void *, int, OBJ, TrCompiler *);
+void TrParserFree(void *, void (*)(void*));
+void TrParserTrace(FILE *stream, char *zPrefix);
 
 #endif /* _TINYRB_H_ */

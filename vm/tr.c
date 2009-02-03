@@ -5,7 +5,7 @@
 int main (int argc, char const *argv[]) {
   TrVM *vm = TrVM_new();
 
-  OBJ k[] = {
+  /* OBJ k[] = {
     tr_intern("ohaie"),
     tr_intern("inspect"),
   };
@@ -16,9 +16,13 @@ int main (int argc, char const *argv[]) {
   };
   TrBlock block;
   block.k = k;
-  block.code = code;
+  block.code = code; */
   
-  tr_run(vm, &block);
+  TrCompiler *c = TrCompiler_new(vm, "tr.c");
+  tr_compile(vm, c, "inspect", 0);
+  TrCompiler_dump(c);
+  
+  /* tr_run(vm, c->block); */
   
   TrVM_destroy(vm);
   
