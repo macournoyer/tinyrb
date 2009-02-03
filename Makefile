@@ -26,6 +26,9 @@ vm/grammar.c: ${LEMON} vm/grammar.y
 ${LEMON}: ${LEMON}.c
 	${CC} -o ${LEMON} ${LEMON}.c
 
+test: tinyrb
+	@ruby test/runner
+
 sloc: clean
 	@cp vm/scanner.rl vm/scanner.rl.c
 	sloccount vm
@@ -39,4 +42,4 @@ clean:
 
 rebuild: clean tinyrb
 
-.PHONY: all sloc size clean rebuild
+.PHONY: all sloc size clean rebuild test
