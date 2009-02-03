@@ -28,6 +28,10 @@ statements ::= statements TERM statement.
 statements ::= statement.
 
 statement ::= call.
+statement ::= literal.
+statement ::= statement DOT call.
+
+literal ::= SYMBOL(A). { TrCompiler_pushk(compiler, A); }
 
 call ::= ID(A). { TrCompiler_call(compiler, A); }
 call ::= ID(A) O_PAR C_PAR. { TrCompiler_call(compiler, A); }

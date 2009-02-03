@@ -20,7 +20,7 @@ static void TrBlock_dump(TrBlock *b) {
     printf(".value %-8s ; %lu\n", TR_STR_PTR(kv_A(b->k, i)), i);
   for (i = 0; i < kv_size(b->code); ++i) {
     TrOp op = kv_A(b->code, i);
-    printf("[%03lu] %-10s %d %d\n", i, TrOpCode_names[op.i], op.a, op.b);
+    printf("[%03lu] %-10s  %d  %d\n", i, TrOpCode_names[op.i], op.a, op.b);
   }
   printf("; block end\n");
 }
@@ -56,6 +56,11 @@ void TrCompiler_dump(TrCompiler *c) {
 void TrCompiler_call(TrCompiler *c, OBJ msg) {
   int i = TrBlock_pushk(c->block, msg);
   TrBlock_pushop(c->block, TR_OP_SEND, 0, i);
+}
+
+void TrCompiler_pushk(TrCompiler *c, OBJ k) {
+  int i = TrBlock_pushk(c->block, k);
+  TrBlock_pushop(c->block, TR_OP_LOADK, 0, i);
 }
 
 void TrCompiler_finish(TrCompiler *c) {

@@ -144,6 +144,7 @@ OBJ TrMethod_new(VM, TrFunc *func, OBJ data);
 TrCompiler *TrCompiler_new(VM, const char *fn);
 void TrCompiler_dump(TrCompiler *c);
 void TrCompiler_call(TrCompiler *c, OBJ msg);
+void TrCompiler_pushk(TrCompiler *c, OBJ k);
 void TrCompiler_finish(TrCompiler *c);
 void TrCompiler_destroy(TrCompiler *c);
 
