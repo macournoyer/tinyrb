@@ -26,7 +26,7 @@
 OBJ tr_run(VM, TrBlock *block) {
   TrOp *ip = block->code.a;
   TrOp e = *ip;
-  OBJ regs[10];
+  OBJ regs[10]; /* TODO alloc proper size, store in frame? */
   OBJ *k = block->k.a;
   /* TrFrame *frame = FRAME; */
   

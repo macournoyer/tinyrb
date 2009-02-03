@@ -26,10 +26,11 @@ static void TrBlock_dump(TrBlock *b) {
 }
 
 static int TrBlock_pushk(TrBlock *blk, OBJ k) {
-  /* TODO reuse */
-  int id = kv_size(blk->k);
+  size_t i;
+  for (i = 0; i < kv_size(blk->k); ++i)
+    if (kv_A(blk->k, i) == k) return i;
   kv_push(OBJ, blk->k, k);
-  return id;
+  return kv_size(blk->k)-1;
 }
 
 static void TrBlock_pushop(TrBlock *blk, int i, int a, int b) {

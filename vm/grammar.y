@@ -23,6 +23,7 @@
 
 /* rules */
 root ::= statements.
+root ::= statements TERM.
 
 statements ::= statements TERM statement.
 statements ::= statement.
