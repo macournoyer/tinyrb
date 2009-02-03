@@ -5,3 +5,5 @@ vm/scanner.c
 vm/grammar.c
 vm/grammar.h
 vm/grammar.out
+
+vendor/lemon/lemon

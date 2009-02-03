@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "tr.h"
 
 static OBJ TrSymbol_lookup(VM, const char *str) {
@@ -19,16 +20,24 @@ OBJ TrSymbol_new(VM, const char *str) {
   OBJ id = TrSymbol_lookup(vm, str);
   
   if (!id) {
-    size_t len = strlen(str);
-    TrString *s = TR_ALLOC(TrString);
-    s->type     = TR_T_Symbol;
-    s->ptr      = TR_ALLOC_N(char, len+1);
-    TR_MEMCPY_N(s->ptr, str, char, len);
-    s->ptr[len] = '\0';
-    s->len      = len;
+    TrSymbol *s = TR_INIT_OBJ(Symbol);
+    s->len = strlen(str);
+    s->ptr = TR_ALLOC_N(char, s->len+1);
+    TR_MEMCPY_N(s->ptr, str, char, s->len);
+    s->ptr[s->len] = '\0';
     
     id = (OBJ)s;
     TrSymbol_add(vm, s->ptr, id);
   }
   return id;
+}
+
+static OBJ TrSymbol_inspect(VM, OBJ self) {
+  printf(":%s\n", TR_STR_PTR(self));
+  return TR_NIL;
+}
+
+void TrSymbol_init(VM) {
+  OBJ c = vm->classes[TR_T_Symbol] = TrClass_new(vm, tr_intern("Symbol"), TR_NIL);
+  tr_def(c, "inspect", TrSymbol_inspect);
 }

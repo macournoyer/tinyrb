@@ -3,17 +3,6 @@
 #include "tr.h"
 #include "opcode.h"
 
-TrVM *TrVM_new() {
-  TrVM *vm = TR_ALLOC(TrVM);
-  vm->cf = 0;
-  vm->symbols = kh_init(str);
-  return vm;
-}
-
-void TrVM_destroy(TrVM *vm) {
-  kh_destroy(str, vm->symbols);
-}
-
 /* dispatch macros */
 #define NEXT_OP        (++ip, e=*ip)
 #ifdef TR_THREADED_DISPATCH
@@ -46,11 +35,28 @@ OBJ tr_run(VM, TrBlock *block) {
 #endif
   
   OPCODES;
-    OP(NONE):     DISPATCH;
-    OP(MOVE):     RA = RB; DISPATCH;
-    OP(LOADK):    RA = k[VB]; DISPATCH;
-    OP(ADD):      RA = RA + RB; DISPATCH;
-    OP(PRINT):    printf("%d\n", (int) RA); DISPATCH;
-    OP(RETURN):   return RA;
+    OP(NONE):       DISPATCH;
+    OP(MOVE):       RA = RB; DISPATCH;
+    OP(LOADK):      RA = k[VB]; DISPATCH;
+    OP(SEND):       RA = tr_send(RA, k[VB]); DISPATCH;
+    OP(JMP):        ip += VA; DISPATCH;
+    OP(JMP_IF):     if (TR_TEST(RA)) ip += VB; DISPATCH;
+    OP(JMP_UNLESS): if (!TR_TEST(RA)) ip += VB; DISPATCH;
+    OP(RETURN):     return RA;
   END_OPCODES;
+}
+
+TrVM *TrVM_new() {
+  TrVM *vm = TR_ALLOC(TrVM);
+  vm->cf = 0;
+  vm->symbols = kh_init(str);
+  
+  TrObject_init(vm);
+  TrSymbol_init(vm);
+  
+  return vm;
+}
+
+void TrVM_destroy(TrVM *vm) {
+  kh_destroy(str, vm->symbols);
 }

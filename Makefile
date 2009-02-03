@@ -1,11 +1,11 @@
-SRC = vm/string.c vm/vm.c vm/tr.c
+SRC = vm/string.c vm/class.c vm/object.c vm/compiler.c vm/vm.c vm/tr.c
 OBJ = ${SRC:.c=.o}
 OBJ_MIN = vm/tr.o
 
 CC = gcc
 CFLAGS = -Wall -fno-strict-aliasing -DDEBUG -g -O2
 INCS = -Ivm
-LEMON = tools/lemon
+LEMON = vendor/lemon/lemon
 LIBS = -lm
 RAGEL = ragel
 
@@ -20,13 +20,23 @@ tinyrb: ${OBJ_MIN} ${OBJ}
 # vm/scanner.c: vm/scanner.rl
 #   ${RAGEL} vm/scanner.rl -C -o $@
 
-# vm/grammar.c: tools/lemon vm/grammar.y
+# vm/grammar.c: ${LEMON} vm/grammar.y
 #   ${LEMON} vm/grammar.y
 
-# tools/lemon: tools/lemon.c
-#   ${CC} -o tools/lemon tools/lemon.c
+${LEMON}: ${LEMON}.c
+	${CC} -o ${LEMON} ${LEMON}.c
+
+sloc: clean
+	@cp vm/scanner.rl vm/scanner.rl.c
+	sloccount vm
+	@rm vm/scanner.rl.c
+
+size: clean
+	@ruby -e 'puts "%0.2fK" % (Dir["vm/**.{c,y,rl,h}"].inject(0) {|s,f| s += File.size(f)} / 1024.0)'
 
 clean:
 	rm -f vm/*.o vm/scanner.c vm/grammar.{c,h,out}
 
 rebuild: clean tinyrb
+
+.PHONY: all sloc size clean rebuild

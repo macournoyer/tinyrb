@@ -4,13 +4,15 @@
 
 int main (int argc, char const *argv[]) {
   TrVM *vm = TrVM_new();
-  OBJ k[] = { 1, 2 };
+
+  OBJ k[] = {
+    tr_intern("ohaie"),
+    tr_intern("inspect"),
+  };
   TrOp code[] = {
-    {TR_OP_LOADK, 0, 0},
-    {TR_OP_LOADK, 1, 1},
-    {TR_OP_ADD, 0, 1},
-    {TR_OP_PRINT, 0},
-    {TR_OP_RETURN, 0}
+    {TR_OP_LOADK,  0, 0},
+    {TR_OP_SEND,   0, 1},
+    {TR_OP_RETURN, 0, 0}
   };
   TrBlock block;
   block.k = k;
@@ -19,5 +21,6 @@ int main (int argc, char const *argv[]) {
   tr_run(vm, &block);
   
   TrVM_destroy(vm);
+  
   return 0;
 }
