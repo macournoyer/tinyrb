@@ -34,7 +34,7 @@ OBJ TrSymbol_new(VM, const char *str) {
 
 static OBJ TrSymbol_display(VM, OBJ self) {
   printf("%s\n", TR_STR_PTR(self));
-  return TR_NIL;
+  return self;
 }
 
 void TrSymbol_init(VM) {
