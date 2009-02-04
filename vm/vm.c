@@ -20,12 +20,16 @@
 /* register access macros */
 #define VA   ((int)e.a)
 #define VB   ((int)e.b)
+#define VC   ((int)e.c)
 #define RA   regs[e.a]
 #define RB   regs[e.b]
+#define RC   regs[e.c]
+#define uVBC (unsigned short)(((VB<<8)+VC))
+#define sVBC (short)(((VB<<8)+VC))
 
 OBJ tr_run(VM, TrBlock *block) {
-  TrOp *ip = block->code.a;
-  TrOp e = *ip;
+  TrInst *ip = block->code.a;
+  TrInst e = *ip;
   OBJ *k = block->k.a;
   /* TODO alloc proper size, store in frame */
   OBJ regs[10];
@@ -42,8 +46,8 @@ OBJ tr_run(VM, TrBlock *block) {
     OP(LOADK):      RA = k[VB]; DISPATCH;
     OP(SEND):       RA = tr_send(RA, k[VB]); DISPATCH;
     OP(JMP):        ip += VA; DISPATCH;
-    OP(JMPIF):     if (TR_TEST(RA)) ip += VB; DISPATCH;
-    OP(JMPUNLESS): if (!TR_TEST(RA)) ip += VB; DISPATCH;
+    OP(JMPIF):      if (TR_TEST(RA)) ip += sVBC; DISPATCH;
+    OP(JMPUNLESS):  if (!TR_TEST(RA)) ip += sVBC; DISPATCH;
     OP(SETLOCAL):   locals[VA] = RB; DISPATCH;
     OP(GETLOCAL):   RA = locals[VB]; DISPATCH;
     OP(RETURN):     return RA;

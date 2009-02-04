@@ -7,7 +7,7 @@ Format of one instruction: OPCODE A B
 R[A] -- Value of register which index is stored in A of the current instruction.
 k[A] -- Value of the constant which index is stored in A of the current instruction.
 */
-enum TrOpCode {
+enum TrInstCode {
   TR_OP_NONE,       /* do nothing with elegance and frivolity */
   TR_OP_MOVE,       /* R[A] = R[B]  */
   TR_OP_LOADK,      /* R[A] = k[B] */
@@ -49,9 +49,9 @@ enum TrOpCode {
   "jmp", \
   "jmpif", \
   "jmpunless", \
+  "return", \
   "setlocal", \
   "getlocal", \
-  "return", \
   "getdyn", \
   "setdyn", \
   "getconst", \

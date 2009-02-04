@@ -3,10 +3,10 @@ OBJ = ${SRC:.c=.o}
 OBJ_MIN = vm/tr.o
 
 CC = gcc
-CFLAGS = -Wall -fno-strict-aliasing -DDEBUG -g -O2
+CFLAGS = -Wall -DDEBUG -g -O2
 INCS = -Ivm
 LEMON = vendor/lemon/lemon
-LIBS = -lm
+LIBS = 
 RAGEL = ragel
 
 all: tinyrb

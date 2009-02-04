@@ -4,8 +4,6 @@
 
 #define REG(b,reg) if (reg >= b->regc) b->regc++
 
-char *TrOpCode_names[] = { TR_OP_NAMES };
-
 static TrBlock *TrBlock_new() {
   TrBlock *b = TR_ALLOC(TrBlock);
   kv_init(b->k);
@@ -16,6 +14,8 @@ static TrBlock *TrBlock_new() {
 }
 
 static void TrBlock_dump(TrBlock *b, int level) {
+  static char *opcode_names[] = { TR_OP_NAMES };
+  
   size_t i;
   printf("; block definition: %p (level %d)\n", b, level);
   printf("; %lu registers ; %lu nested blocks\n", b->regc, kv_size(b->blocks));
@@ -24,8 +24,8 @@ static void TrBlock_dump(TrBlock *b, int level) {
   for (i = 0; i < kv_size(b->k); ++i)
     printf(".value %-8s ; %lu\n", TR_STR_PTR(kv_A(b->k, i)), i);
   for (i = 0; i < kv_size(b->code); ++i) {
-    TrOp op = kv_A(b->code, i);
-    printf("[%03lu] %-10s  %d  %d", i, TrOpCode_names[op.i], op.a, op.b);
+    TrInst op = kv_A(b->code, i);
+    printf("[%03lu] %-10s %3d %3d %3d", i, opcode_names[op.i], op.a, op.b, op.c);
     switch (op.i) {
       case TR_OP_LOADK:    printf(" ; %s => %d", TR_STR_PTR(kv_A(b->k, op.b)), op.a); break;
       case TR_OP_SEND:     printf(" ; %s", TR_STR_PTR(kv_A(b->k, op.b))); break;
@@ -57,8 +57,8 @@ static int TrBlock_local(TrBlock *blk, OBJ name) {
 
 static void TrBlock_pushop(TrBlock *blk, int i, int a, int b) {
   int ind = kv_size(blk->code);
-  kv_pushp(TrOp, blk->code);
-  TrOp *op = blk->code.a + ind;
+  kv_pushp(TrInst, blk->code);
+  TrInst *op = blk->code.a + ind;
   op->i = i;
   op->a = a;
   op->b = b;

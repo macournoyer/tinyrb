@@ -105,16 +105,14 @@ typedef struct {
 typedef TrString TrSymbol;
 
 typedef struct {
-  unsigned char i:8;
-  int a:12;
-  int b:12;
-} TrOp;
+  unsigned char i, a, b, c;
+} TrInst;
 
 typedef struct TrBlock {
   kvec_t(OBJ) k; /* TODO rename to values ? */
   kvec_t(char *) strings; /* ???? */
   kvec_t(OBJ) locals;
-  kvec_t(TrOp) code;
+  kvec_t(TrInst) code;
   kvec_t(struct TrBlock *) blocks;
   size_t regc;
 } TrBlock;
