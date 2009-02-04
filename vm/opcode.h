@@ -3,18 +3,20 @@
 
 /*
 == TinyRb opcodes.
-Format of one instruction: OPCODE A B
+Format of one instruction: OPCODE A B C
+Bx  -- unsigned value of BC
+sBx  -- signed value of BC
 R[A] -- Value of register which index is stored in A of the current instruction.
-k[A] -- Value of the constant which index is stored in A of the current instruction.
+K[A] -- Value of the constant which index is stored in A of the current instruction.
 */
 enum TrInstCode {
   TR_OP_NONE,       /* do nothing with elegance and frivolity */
   TR_OP_MOVE,       /* R[A] = R[B]  */
-  TR_OP_LOADK,      /* R[A] = k[B] */
-  TR_OP_SEND,       /* send message k[B] to R[A], store answer in R[A] */
-  TR_OP_JMP,        /* jump +A instructions */
-  TR_OP_JMPIF,      /* jump +B instructions if R[A] */
-  TR_OP_JMPUNLESS,  /* jump +B instructions unless R[A] */
+  TR_OP_LOADK,      /* R[A] = K[Bx] */
+  TR_OP_SEND,       /* send message K[B] to R[A] w/ C args, store answer in R[A] */
+  TR_OP_JMP,        /* jump sBx instructions */
+  TR_OP_JMPIF,      /* jump sBx instructions if R[A] */
+  TR_OP_JMPUNLESS,  /* jump sBx instructions unless R[A] */
   TR_OP_RETURN,     /* return R[A] */
   TR_OP_SETLOCAL,   /* locals[A] = R[B] */
   TR_OP_GETLOCAL,   /* R[A] = locals[B] */

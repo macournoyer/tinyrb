@@ -9,10 +9,10 @@
   op->i = TR_OP_##OP; op->a = (A); op->b = (B); op->c = (C); \
 })
 #define PUSH_OP_AB(OP,A,B) PUSH_OP_ABC(OP,(A),(B),0)
-#define PUSH_OP_AuBx(OP,A,B) PUSH_OP_ABC(OP,(A),(B)>>8,(B)-((B)>>8<<8))
+#define PUSH_OP_ABx(OP,A,B) PUSH_OP_ABC(OP,(A),(B)>>8,(B)-((B)>>8<<8))
 
 /* dumping */
-#define uVBx(OP) (unsigned short)(((OP.b<<8)+OP.c))
+#define VBx(OP) (unsigned short)(((OP.b<<8)+OP.c))
 
 static TrBlock *TrBlock_new() {
   TrBlock *b = TR_ALLOC(TrBlock);
@@ -37,7 +37,7 @@ static void TrBlock_dump(TrBlock *b, int level) {
     TrInst op = kv_A(b->code, i);
     printf("[%03lu] %-10s %3d %3d %3d", i, opcode_names[op.i], op.a, op.b, op.c);
     switch (op.i) {
-      case TR_OP_LOADK:    printf(" ; %s => %d", TR_STR_PTR(kv_A(b->k, uVBx(op))), op.a); break;
+      case TR_OP_LOADK:    printf(" ; %s => %d", TR_STR_PTR(kv_A(b->k, VBx(op))), op.a); break;
       case TR_OP_SEND:     printf(" ; %s", TR_STR_PTR(kv_A(b->k, op.b))); break;
       case TR_OP_SETLOCAL: printf(" ; %s", TR_STR_PTR(kv_A(b->locals, op.a))); break;
       case TR_OP_GETLOCAL: printf(" ; %s", TR_STR_PTR(kv_A(b->locals, op.b))); break;
@@ -79,9 +79,8 @@ void TrCompiler_dump(TrCompiler *c) {
 }
 
 int TrCompiler_call(TrCompiler *c, OBJ msg) {
-  int i = TrBlock_pushk(c->block, msg);
   REG(c->reg);
-  PUSH_OP_AB(SEND, c->reg, i);
+  PUSH_OP_AB(SEND, c->reg, TrBlock_pushk(c->block, msg));
   return c->reg;
 }
 
@@ -101,7 +100,7 @@ int TrCompiler_getlocal(TrCompiler *c, OBJ name) {
 int TrCompiler_pushk(TrCompiler *c, OBJ k) {
   /* TODO how to find w/ reg to use? */
   REG(c->reg);
-  PUSH_OP_AuBx(LOADK, c->reg, TrBlock_pushk(c->block, k));
+  PUSH_OP_ABx(LOADK, c->reg, TrBlock_pushk(c->block, k));
   return c->reg;
 }
 

@@ -24,7 +24,7 @@
 #define RA   regs[e.a]
 #define RB   regs[e.b]
 #define RC   regs[e.c]
-#define uVBx (unsigned short)(((VB<<8)+VC))
+#define VBx (unsigned short)(((VB<<8)+VC))
 #define sVBx (short)(((VB<<8)+VC))
 
 OBJ tr_run(VM, TrBlock *block) {
@@ -43,7 +43,7 @@ OBJ tr_run(VM, TrBlock *block) {
   OPCODES;
     OP(NONE):       DISPATCH;
     OP(MOVE):       RA = RB; DISPATCH;
-    OP(LOADK):      RA = k[uVBx]; DISPATCH;
+    OP(LOADK):      RA = k[VBx]; DISPATCH;
     OP(SEND):       RA = tr_send(RA, k[VB]); DISPATCH;
     OP(JMP):        ip += VA; DISPATCH;
     OP(JMPIF):      if (TR_TEST(RA)) ip += sVBx; DISPATCH;
