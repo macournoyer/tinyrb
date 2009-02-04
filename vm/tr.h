@@ -110,9 +110,13 @@ typedef struct {
   int b:12;
 } TrOp;
 
-typedef struct {
-  kvec_t(OBJ) k;
+typedef struct TrBlock {
+  kvec_t(OBJ) k; /* TODO rename to values ? */
+  kvec_t(char *) strings; /* ???? */
+  kvec_t(OBJ) locals;
   kvec_t(TrOp) code;
+  kvec_t(struct TrBlock *) blocks;
+  size_t regc;
 } TrBlock;
 
 typedef struct {
@@ -143,8 +147,10 @@ OBJ TrMethod_new(VM, TrFunc *func, OBJ data);
 /* compiler */
 TrCompiler *TrCompiler_new(VM, const char *fn);
 void TrCompiler_dump(TrCompiler *c);
-void TrCompiler_call(TrCompiler *c, OBJ msg);
-void TrCompiler_pushk(TrCompiler *c, OBJ k);
+int TrCompiler_call(TrCompiler *c, OBJ msg);
+int TrCompiler_pushk(TrCompiler *c, OBJ k);
+int TrCompiler_setlocal(TrCompiler *c, OBJ name, int reg);
+int TrCompiler_getlocal(TrCompiler *c, OBJ name);
 void TrCompiler_finish(TrCompiler *c);
 void TrCompiler_destroy(TrCompiler *c);
 

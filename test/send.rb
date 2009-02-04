@@ -1,4 +1,4 @@
-:ohaie.inspect
-:ohaie.inspect
-# :ohaie
-# :ohaie
+:ohaie.display
+:ohaie.display
+# => ohaie
+# => ohaie

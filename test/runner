@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require "fileutils"
 
-class SmokeTestRunner
+class TestRunner
   include FileUtils
   
   def initialize(pattern, dir)
@@ -14,7 +14,7 @@ class SmokeTestRunner
   def run
     cd @dir do
       Dir[@pattern].each do |file|
-        expected = File.read(file).split("\n").map { |l| l[/^# (.*)$/, 1] }.compact.join("\n")
+        expected = File.read(file).split("\n").map { |l| l[/^# => (.*)$/, 1] }.compact.join("\n")
         actual   = tinyrb(file)
         if expected == actual
           pass(file)
@@ -54,4 +54,4 @@ class SmokeTestRunner
     end
 end
 
-SmokeTestRunner.new("test/**.rb", File.dirname(__FILE__) + "/..").run
+TestRunner.new("test/**.rb", File.dirname(__FILE__) + "/..").run

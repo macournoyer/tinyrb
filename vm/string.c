@@ -32,12 +32,12 @@ OBJ TrSymbol_new(VM, const char *str) {
   return id;
 }
 
-static OBJ TrSymbol_inspect(VM, OBJ self) {
-  printf(":%s\n", TR_STR_PTR(self));
+static OBJ TrSymbol_display(VM, OBJ self) {
+  printf("%s\n", TR_STR_PTR(self));
   return TR_NIL;
 }
 
 void TrSymbol_init(VM) {
   OBJ c = vm->classes[TR_T_Symbol] = TrClass_new(vm, tr_intern("Symbol"), TR_NIL);
-  tr_def(c, "inspect", TrSymbol_inspect);
+  tr_def(c, "display", TrSymbol_display);
 }

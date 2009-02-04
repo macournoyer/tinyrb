@@ -28,11 +28,13 @@ root ::= statements TERM.
 statements ::= statements TERM statement.
 statements ::= statement.
 
-statement ::= call.
 statement ::= literal.
 statement ::= statement DOT call.
 
-literal ::= SYMBOL(A). { TrCompiler_pushk(compiler, A); }
+statement ::= ID(A). { TrCompiler_getlocal(compiler, A); }
+statement ::= ID(A) ASSIGN literal(B). { TrCompiler_setlocal(compiler, A, B); }
 
-call ::= ID(A). { TrCompiler_call(compiler, A); }
-call ::= ID(A) O_PAR C_PAR. { TrCompiler_call(compiler, A); }
+literal(A) ::= SYMBOL(B). { A = TrCompiler_pushk(compiler, B); }
+
+call(A) ::= ID(B). { A = TrCompiler_call(compiler, B); }
+call(A) ::= ID(B) O_PAR C_PAR. { A = TrCompiler_call(compiler, B); }

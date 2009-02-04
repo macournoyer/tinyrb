@@ -26,8 +26,10 @@
 OBJ tr_run(VM, TrBlock *block) {
   TrOp *ip = block->code.a;
   TrOp e = *ip;
-  OBJ regs[10]; /* TODO alloc proper size, store in frame? */
   OBJ *k = block->k.a;
+  /* TODO alloc proper size, store in frame */
+  OBJ regs[10];
+  OBJ locals[10];
   /* TrFrame *frame = FRAME; */
   
 #ifdef TR_THREADED_DISPATCH
@@ -40,8 +42,10 @@ OBJ tr_run(VM, TrBlock *block) {
     OP(LOADK):      RA = k[VB]; DISPATCH;
     OP(SEND):       RA = tr_send(RA, k[VB]); DISPATCH;
     OP(JMP):        ip += VA; DISPATCH;
-    OP(JMP_IF):     if (TR_TEST(RA)) ip += VB; DISPATCH;
-    OP(JMP_UNLESS): if (!TR_TEST(RA)) ip += VB; DISPATCH;
+    OP(JMPIF):     if (TR_TEST(RA)) ip += VB; DISPATCH;
+    OP(JMPUNLESS): if (!TR_TEST(RA)) ip += VB; DISPATCH;
+    OP(SETLOCAL):   locals[VA] = RB; DISPATCH;
+    OP(GETLOCAL):   RA = locals[VB]; DISPATCH;
     OP(RETURN):     return RA;
   END_OPCODES;
 }
