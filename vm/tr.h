@@ -121,6 +121,7 @@ typedef struct {
   int curline;
   TrVM *vm;
   TrBlock *block;
+  size_t reg;
 } TrCompiler;
 
 /* vm */

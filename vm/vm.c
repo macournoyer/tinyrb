@@ -24,8 +24,8 @@
 #define RA   regs[e.a]
 #define RB   regs[e.b]
 #define RC   regs[e.c]
-#define uVBC (unsigned short)(((VB<<8)+VC))
-#define sVBC (short)(((VB<<8)+VC))
+#define uVBx (unsigned short)(((VB<<8)+VC))
+#define sVBx (short)(((VB<<8)+VC))
 
 OBJ tr_run(VM, TrBlock *block) {
   TrInst *ip = block->code.a;
@@ -43,11 +43,11 @@ OBJ tr_run(VM, TrBlock *block) {
   OPCODES;
     OP(NONE):       DISPATCH;
     OP(MOVE):       RA = RB; DISPATCH;
-    OP(LOADK):      RA = k[VB]; DISPATCH;
+    OP(LOADK):      RA = k[uVBx]; DISPATCH;
     OP(SEND):       RA = tr_send(RA, k[VB]); DISPATCH;
     OP(JMP):        ip += VA; DISPATCH;
-    OP(JMPIF):      if (TR_TEST(RA)) ip += sVBC; DISPATCH;
-    OP(JMPUNLESS):  if (!TR_TEST(RA)) ip += sVBC; DISPATCH;
+    OP(JMPIF):      if (TR_TEST(RA)) ip += sVBx; DISPATCH;
+    OP(JMPUNLESS):  if (!TR_TEST(RA)) ip += sVBx; DISPATCH;
     OP(SETLOCAL):   locals[VA] = RB; DISPATCH;
     OP(GETLOCAL):   RA = locals[VB]; DISPATCH;
     OP(RETURN):     return RA;
