@@ -64,6 +64,7 @@ TrVM *TrVM_new() {
   TR_CCLASS(TR_CLASS(Class))->super = TR_CLASS(Object);
   TrSymbol_init(vm);
   TrString_init(vm);
+  TrFixnum_init(vm);
   
   return vm;
 }

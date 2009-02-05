@@ -26,25 +26,28 @@ static TrBlock *TrBlock_new() {
 
 static void TrBlock_dump(TrBlock *b, int level) {
   static char *opcode_names[] = { TR_OP_NAMES };
+  char buf[10];
+  #define INSPECT(K) (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", FIX2INT(K)), buf))
   
   size_t i;
   printf("; block definition: %p (level %d)\n", b, level);
   printf("; %lu registers ; %lu nested blocks\n", b->regc, kv_size(b->blocks));
   for (i = 0; i < kv_size(b->locals); ++i)
-    printf(".local  %-8s ; %lu\n", TR_STR_PTR(kv_A(b->locals, i)), i);
-  for (i = 0; i < kv_size(b->k); ++i)
-    printf(".value  %-8s ; %lu\n", TR_STR_PTR(kv_A(b->k, i)), i);
+    printf(".local  %-8s ; %lu\n", INSPECT(kv_A(b->locals, i)), i);
+  for (i = 0; i < kv_size(b->k); ++i) {
+    printf(".value  %-8s ; %lu\n", INSPECT(kv_A(b->k, i)), i);
+  }
   for (i = 0; i < kv_size(b->strings); ++i)
     printf(".string %-8s ; %lu\n", kv_A(b->strings, i), i);
   for (i = 0; i < kv_size(b->code); ++i) {
     TrInst op = kv_A(b->code, i);
     printf("[%03lu] %-10s %3d %3d %3d", i, opcode_names[op.i], op.a, op.b, op.c);
     switch (op.i) {
-      case TR_OP_LOADK:    printf(" ; R[%d] = %s", op.a, TR_STR_PTR(kv_A(b->k, VBx(op)))); break;
+      case TR_OP_LOADK:    printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->k, VBx(op)))); break;
       case TR_OP_STRING:   printf(" ; R[%d] = \"%s\"", op.a, kv_A(b->strings, VBx(op))); break;
-      case TR_OP_SEND:     printf(" ; R[%d].%s", op.a, TR_STR_PTR(kv_A(b->k, op.b))); break;
-      case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", TR_STR_PTR(kv_A(b->locals, op.a)), op.b); break;
-      case TR_OP_GETLOCAL: printf(" ; R[%d] = %s", op.a, TR_STR_PTR(kv_A(b->locals, op.b))); break;
+      case TR_OP_SEND:     printf(" ; R[%d].%s", op.a, INSPECT(kv_A(b->k, op.b))); break;
+      case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", INSPECT(kv_A(b->locals, op.a)), op.b); break;
+      case TR_OP_GETLOCAL: printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->locals, op.b))); break;
     }
     printf("\n");
   }

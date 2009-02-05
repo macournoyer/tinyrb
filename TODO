@@ -1,8 +1,10 @@
 == Soon
 [x] Implement String
-[ ] Implement Object
-[ ] Implement Class
-[ ] Implement Fixnum
+[x] Implement Object
+[x] Implement Class
+[x] Implement Fixnum
+[ ] Implement simple method argument passing
+[ ] Bootstrap all class correctly
 [ ] Implement basic method definition
 [ ] Implement basic class definition
 [ ] Implement if, unless

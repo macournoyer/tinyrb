@@ -17,9 +17,14 @@
 #define TR_MEMCPY(X,Y,T)     memcpy((X), (Y), sizeof(T))
 #define TR_MEMCPY_N(X,Y,T,N) memcpy((X), (Y), sizeof(T)*(N))
 
-#define TR_STR_PTR(S)        (((TrString*)S)->ptr)
+#define TR_STR_PTR(S)        (TR_CSTRING(S)->ptr)
 #define TR_COBJECT(X)        ((TrObject*)X)
-#define TR_CCLASS(X)         ((TrClass*)X)
+#define TR_TYPE(X)           (TR_IS_FIX(X) ? TR_T_Fixnum : TR_COBJECT(X)->type)
+#define TR_IS_A(X,T)         (TR_TYPE(X) == TR_T_##T)
+#define TR_CTYPE(X,T)        (assert(TR_IS_A(X,T)),(Tr##T*)(X))
+#define TR_CCLASS(X)         TR_CTYPE(X,Class)
+#define TR_CFIXNUM(X)        TR_CTYPE(X,Fixnum)
+#define TR_CSTRING(X)        (assert(TR_IS_A(X,String)||TR_IS_A(X,Symbol)),(TrString*)(X))
 #define TR_CMETHOD(X)        ((TrMethod*)X)
 
 #define VM                   TrVM *vm
@@ -30,6 +35,12 @@
 #define TR_FALSE             ((OBJ)2)
 #define TR_TEST(X)           ((X) == TR_NIL || (X) == TR_FALSE ? 0 : 1)
 #define TR_BOOL(X)           ((X) ? TR_TRUE : TR_FALSE)
+#define TR_SHIFT             8
+#define TR_NUM_FLAG          0x01
+#define INT2FIX(i)           (OBJ)((i) << TR_SHIFT | TR_NUM_FLAG)
+#define FIX2INT(i)           (int)((i) >> TR_SHIFT)
+#define TR_IS_FIX(x)         (((x) & TR_NUM_FLAG) == TR_NUM_FLAG)
+#define TR_BOX(x)            (TR_IS_FIX(x) ? TrFixnum_new(vm, FIX2INT(x)) : (x))
 
 #define TR_OBJECT_HEADER \
   TR_T type; \
@@ -49,10 +60,11 @@
 #define tr_raise(M,A...)     (printf("Error: "), printf(M, ##A), assert(0))
 #define tr_def(C,N,F)        TrClass_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL))
 #define tr_send(R,MSG,A...)  ({ \
-  TrMethod *m = TR_CMETHOD(TrObject_method(vm, (R), (MSG))); \
+  OBJ r = TR_BOX(R); \
+  TrMethod *m = TR_CMETHOD(TrObject_method(vm, r, (MSG))); \
   if (!m) tr_raise("Method not found: %s\n", TR_STR_PTR(MSG)); \
   vm->method = (OBJ)m; \
-  m->func(vm, (R), ##A); \
+  m->func(vm, r, ##A); \
 })
 #define tr_send2(R,STR,A...) tr_send((R), tr_intern(STR), ##A)
 
@@ -62,7 +74,7 @@ KHASH_MAP_INIT_STR(str, OBJ);
 KHASH_MAP_INIT_INT(OBJ, OBJ);
 
 typedef enum {
-  TR_T_Object, TR_T_Class, TR_T_Method, TR_T_Symbol, TR_T_String,
+  TR_T_Object, TR_T_Class, TR_T_Method, TR_T_Symbol, TR_T_String, TR_T_Fixnum,
   TR_T_MAX /* keep last */
 } TR_T;
 
@@ -100,6 +112,11 @@ typedef struct {
   unsigned char interned:1;
 } TrString;
 typedef TrString TrSymbol;
+
+typedef struct {
+  TR_OBJECT_HEADER;
+  int value;
+} TrFixnum;
 
 typedef struct {
   unsigned char i, a, b, c;
@@ -140,6 +157,10 @@ OBJ TrString_new(VM, const char *str, size_t len);
 OBJ TrString_new2(VM, const char *str);
 void TrSymbol_init(VM);
 void TrString_init(VM);
+
+/* number */
+OBJ TrFixnum_new(VM, int value);
+void TrFixnum_init(VM);
 
 /* object */
 OBJ TrObject_method(VM, OBJ self, OBJ name);

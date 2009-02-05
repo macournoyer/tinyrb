@@ -38,6 +38,10 @@ static OBJ TrString_display(VM, OBJ self) {
   return self;
 }
 
+static OBJ TrString_size(VM, OBJ self) {
+  return INT2FIX(TR_CSTRING(self)->len);
+}
+
 OBJ TrString_new(VM, const char *str, size_t len) {
   TrString *s = TR_INIT_OBJ(String);
   s->len = len;
@@ -52,12 +56,13 @@ OBJ TrString_new2(VM, const char *str) {
   return TrString_new(vm, str, strlen(str));
 }
 
-void TrSymbol_init(VM) {
-  OBJ c = TR_INIT_CLASS(Symbol, Object);
-  tr_def(c, "display", TrString_display);
-}
-
 void TrString_init(VM) {
   OBJ c = TR_INIT_CLASS(String, Object);
+  tr_def(c, "display", TrString_display);
+  tr_def(c, "size", TrString_size);
+}
+
+void TrSymbol_init(VM) {
+  OBJ c = TR_INIT_CLASS(Symbol, Object);
   tr_def(c, "display", TrString_display);
 }
