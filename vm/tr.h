@@ -106,7 +106,7 @@ typedef struct {
 typedef struct TrBlock {
   /* static, at compile time */
   kvec_t(OBJ) k; /* TODO rename to values ? */
-  kvec_t(char *) strings; /* ???? */
+  kvec_t(char *) strings;
   kvec_t(OBJ) locals; /* TODO rename to local_names */
   kvec_t(TrInst) code;
   kvec_t(struct TrBlock *) blocks;
@@ -134,7 +134,10 @@ OBJ tr_run(VM, TrBlock *code);
 
 /* string */
 OBJ TrSymbol_new(VM, const char *str);
+OBJ TrString_new(VM, const char *str, size_t len);
+OBJ TrString_new2(VM, const char *str);
 void TrSymbol_init(VM);
+void TrString_init(VM);
 
 /* object */
 OBJ TrObject_method(VM, OBJ self, OBJ name);
@@ -151,6 +154,7 @@ TrCompiler *TrCompiler_new(VM, const char *fn);
 void TrCompiler_dump(TrCompiler *c);
 int TrCompiler_call(TrCompiler *c, OBJ msg);
 int TrCompiler_pushk(TrCompiler *c, OBJ k);
+int TrCompiler_string(TrCompiler *c, OBJ str);
 int TrCompiler_setlocal(TrCompiler *c, OBJ name, int reg);
 void TrCompiler_finish(TrCompiler *c);
 void TrCompiler_destroy(TrCompiler *c);

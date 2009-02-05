@@ -19,6 +19,7 @@ static TrBlock *TrBlock_new() {
   kv_init(b->k);
   kv_init(b->code);
   kv_init(b->locals);
+  kv_init(b->strings);
   b->regc = 0;
   return b;
 }
@@ -30,14 +31,17 @@ static void TrBlock_dump(TrBlock *b, int level) {
   printf("; block definition: %p (level %d)\n", b, level);
   printf("; %lu registers ; %lu nested blocks\n", b->regc, kv_size(b->blocks));
   for (i = 0; i < kv_size(b->locals); ++i)
-    printf(".local %-8s ; %lu\n", TR_STR_PTR(kv_A(b->locals, i)), i);
+    printf(".local  %-8s ; %lu\n", TR_STR_PTR(kv_A(b->locals, i)), i);
   for (i = 0; i < kv_size(b->k); ++i)
-    printf(".value %-8s ; %lu\n", TR_STR_PTR(kv_A(b->k, i)), i);
+    printf(".value  %-8s ; %lu\n", TR_STR_PTR(kv_A(b->k, i)), i);
+  for (i = 0; i < kv_size(b->strings); ++i)
+    printf(".string %-8s ; %lu\n", kv_A(b->strings, i), i);
   for (i = 0; i < kv_size(b->code); ++i) {
     TrInst op = kv_A(b->code, i);
     printf("[%03lu] %-10s %3d %3d %3d", i, opcode_names[op.i], op.a, op.b, op.c);
     switch (op.i) {
       case TR_OP_LOADK:    printf(" ; R[%d] = %s", op.a, TR_STR_PTR(kv_A(b->k, VBx(op)))); break;
+      case TR_OP_STRING:   printf(" ; R[%d] = \"%s\"", op.a, kv_A(b->strings, VBx(op))); break;
       case TR_OP_SEND:     printf(" ; R[%d].%s", op.a, TR_STR_PTR(kv_A(b->k, op.b))); break;
       case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", TR_STR_PTR(kv_A(b->locals, op.a)), op.b); break;
       case TR_OP_GETLOCAL: printf(" ; R[%d] = %s", op.a, TR_STR_PTR(kv_A(b->locals, op.b))); break;
@@ -49,12 +53,24 @@ static void TrBlock_dump(TrBlock *b, int level) {
   printf("; block end\n\n");
 }
 
+/* TODO refactor this, errk */
+
 static int TrBlock_pushk(TrBlock *blk, OBJ k) {
   size_t i;
   for (i = 0; i < kv_size(blk->k); ++i)
     if (kv_A(blk->k, i) == k) return i;
   kv_push(OBJ, blk->k, k);
   return kv_size(blk->k)-1;
+}
+
+static int TrBlock_push_string(TrBlock *blk, char *str) {
+  size_t i;
+  for (i = 0; i < kv_size(blk->strings); ++i)
+    if (strcmp(kv_A(blk->strings, i), str) == 0) return i;
+  char *ptr = TR_ALLOC_N(char, strlen(str));
+  TR_MEMCPY_N(ptr, str, char, strlen(str));
+  kv_push(char *, blk->strings, ptr);
+  return kv_size(blk->strings)-1;
 }
 
 static int TrBlock_haslocal(TrBlock *blk, OBJ name) {
@@ -107,6 +123,12 @@ int TrCompiler_setlocal(TrCompiler *c, OBJ name, int reg) {
 int TrCompiler_pushk(TrCompiler *c, OBJ k) {
   REG(c->reg);
   PUSH_OP_ABx(LOADK, c->reg, TrBlock_pushk(c->block, k));
+  return c->reg;
+}
+
+int TrCompiler_string(TrCompiler *c, OBJ str) {
+  REG(c->reg);
+  PUSH_OP_ABx(STRING, c->reg, TrBlock_push_string(c->block, (char*)str));
   return c->reg;
 }
 

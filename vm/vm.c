@@ -31,6 +31,7 @@ OBJ tr_run(VM, TrBlock *block) {
   TrInst *ip = block->code.a;
   TrInst e = *ip;
   OBJ *k = block->k.a;
+  char **strings = block->strings.a;
   /* TODO alloc proper size, store in block */
   OBJ regs[10];
   OBJ locals[10];
@@ -43,6 +44,7 @@ OBJ tr_run(VM, TrBlock *block) {
     OP(NONE):       DISPATCH;
     OP(MOVE):       RA = RB; DISPATCH;
     OP(LOADK):      RA = k[VBx]; DISPATCH;
+    OP(STRING):     RA = TrString_new2(vm, strings[VBx]); DISPATCH;
     OP(SEND):       RA = tr_send(RA, k[VB]); DISPATCH;
     OP(JMP):        ip += VA; DISPATCH;
     OP(JMPIF):      if (TR_TEST(RA)) ip += sVBx; DISPATCH;
@@ -59,6 +61,7 @@ TrVM *TrVM_new() {
   
   TrObject_init(vm);
   TrSymbol_init(vm);
+  TrString_init(vm);
   
   return vm;
 }

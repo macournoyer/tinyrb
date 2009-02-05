@@ -33,6 +33,7 @@ statement(A) ::= literal(B). { A = B; }
 statement(A) ::= ID(B) ASSIGN statement(C). { A = TrCompiler_setlocal(compiler, B, C); }
 
 literal(A) ::= SYMBOL(B). { A = TrCompiler_pushk(compiler, B); }
+literal(A) ::= STRING(B). { A = TrCompiler_string(compiler, B); }
 
 expr(A) ::= expr DOT call(B). { A = B; }
 expr(A) ::= literal DOT call(B). { A = B; }

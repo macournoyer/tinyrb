@@ -1,0 +1,2 @@
+"ohaie".display
+# => ohaie

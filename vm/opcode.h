@@ -13,6 +13,7 @@ enum TrInstCode {
   TR_OP_NONE,       /* do nothing with elegance and frivolity */
   TR_OP_MOVE,       /* R[A] = R[B]  */
   TR_OP_LOADK,      /* R[A] = K[Bx] */
+  TR_OP_STRING,     /* R[A] = strings[Bx] */
   TR_OP_SEND,       /* send message K[B] to R[A] w/ C args, store answer in R[A] */
   TR_OP_JMP,        /* jump sBx instructions */
   TR_OP_JMPIF,      /* jump sBx instructions if R[A] */
@@ -47,6 +48,7 @@ enum TrInstCode {
   "none", \
   "move", \
   "loadk", \
+  "string", \
   "send", \
   "jmp", \
   "jmpif", \
@@ -81,6 +83,7 @@ enum TrInstCode {
   &&op_NONE, \
   &&op_MOVE, \
   &&op_LOADK, \
+  &&op_STRING, \
   &&op_SEND, \
   &&op_JMP, \
   &&op_JMPIF, \

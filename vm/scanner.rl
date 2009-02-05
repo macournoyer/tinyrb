@@ -42,7 +42,7 @@
     symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
     #binary      => { TOKEN_V(OP, tr_intern(BUFFER(ts, te-ts))); };
     assign      => { TOKEN_V(ASSIGN, tr_intern(BUFFER(ts, te-ts))); };
-    #string      => { TOKEN_V(STRING, MinMessage(lobby, MIN_STR(BUFFER(ts, te-ts)), 0, MIN_STR(BUFFER(ts+1, te-ts-2)))); };
+    string      => { TOKEN_V(STRING, (OBJ)BUFFER(ts+1, te-ts-2)); };
     #int         => { TOKEN_V(INT, MinMessage(lobby, MIN_STR(BUFFER(ts, te-ts)), 0, INT2FIX(atoi(BUFFER(ts, te-ts))))); };
     term        => { TOKEN_U(TERM); };
     dot         => { TOKEN(DOT); };
