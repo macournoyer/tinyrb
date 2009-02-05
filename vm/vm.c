@@ -24,17 +24,16 @@
 #define RA   regs[e.a]
 #define RB   regs[e.b]
 #define RC   regs[e.c]
-#define VBx (unsigned short)(((VB<<8)+VC))
+#define VBx  (unsigned short)(((VB<<8)+VC))
 #define sVBx (short)(((VB<<8)+VC))
 
 OBJ tr_run(VM, TrBlock *block) {
   TrInst *ip = block->code.a;
   TrInst e = *ip;
   OBJ *k = block->k.a;
-  /* TODO alloc proper size, store in frame */
+  /* TODO alloc proper size, store in block */
   OBJ regs[10];
   OBJ locals[10];
-  /* TrFrame *frame = FRAME; */
   
 #ifdef TR_THREADED_DISPATCH
   static void *labels[] = { TR_OP_LABELS };
@@ -56,7 +55,6 @@ OBJ tr_run(VM, TrBlock *block) {
 
 TrVM *TrVM_new() {
   TrVM *vm = TR_ALLOC(TrVM);
-  vm->cf = 0;
   vm->symbols = kh_init(str);
   
   TrObject_init(vm);

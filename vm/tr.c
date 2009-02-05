@@ -6,7 +6,7 @@ static int usage() {
   printf("usage: tinyrb [options] [file]\n"
          "options:\n"
          "  -e   eval code\n"
-         "  -V   show debug info\n"
+         "  -d   show debug info (multiple times for more)\n"
          "  -v   print version\n"
          "  -h   print this\n");
   return 1;
@@ -73,7 +73,7 @@ int main (int argc, char *argv[]) {
       OPTION("-v") {
         return version();
       }
-      OPTION("-V") {
+      OPTION("-d") {
         verbose++;
         continue;
       }

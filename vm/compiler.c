@@ -37,10 +37,10 @@ static void TrBlock_dump(TrBlock *b, int level) {
     TrInst op = kv_A(b->code, i);
     printf("[%03lu] %-10s %3d %3d %3d", i, opcode_names[op.i], op.a, op.b, op.c);
     switch (op.i) {
-      case TR_OP_LOADK:    printf(" ; %s => %d", TR_STR_PTR(kv_A(b->k, VBx(op))), op.a); break;
-      case TR_OP_SEND:     printf(" ; %s", TR_STR_PTR(kv_A(b->k, op.b))); break;
-      case TR_OP_SETLOCAL: printf(" ; %s", TR_STR_PTR(kv_A(b->locals, op.a))); break;
-      case TR_OP_GETLOCAL: printf(" ; %s", TR_STR_PTR(kv_A(b->locals, op.b))); break;
+      case TR_OP_LOADK:    printf(" ; R[%d] = %s", op.a, TR_STR_PTR(kv_A(b->k, VBx(op)))); break;
+      case TR_OP_SEND:     printf(" ; R[%d].%s", op.a, TR_STR_PTR(kv_A(b->k, op.b))); break;
+      case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", TR_STR_PTR(kv_A(b->locals, op.a)), op.b); break;
+      case TR_OP_GETLOCAL: printf(" ; R[%d] = %s", op.a, TR_STR_PTR(kv_A(b->locals, op.b))); break;
     }
     printf("\n");
   }
@@ -57,10 +57,16 @@ static int TrBlock_pushk(TrBlock *blk, OBJ k) {
   return kv_size(blk->k)-1;
 }
 
-static int TrBlock_local(TrBlock *blk, OBJ name) {
+static int TrBlock_haslocal(TrBlock *blk, OBJ name) {
   size_t i;
   for (i = 0; i < kv_size(blk->locals); ++i)
     if (kv_A(blk->locals, i) == name) return i;
+  return -1;
+}
+
+static int TrBlock_local(TrBlock *blk, OBJ name) {
+  size_t i = TrBlock_haslocal(blk, name);
+  if (i != -1) return i;
   kv_push(OBJ, blk->locals, name);
   return kv_size(blk->locals)-1;
 }
@@ -78,9 +84,17 @@ void TrCompiler_dump(TrCompiler *c) {
   TrBlock_dump(c->block, 1);
 }
 
+/* TODO how to find which reg # to use ??? */
+
 int TrCompiler_call(TrCompiler *c, OBJ msg) {
   REG(c->reg);
-  PUSH_OP_AB(SEND, c->reg, TrBlock_pushk(c->block, msg));
+  size_t i = TrBlock_haslocal(c->block, msg);
+  if (i != -1) {
+    /* TODO optimization: skip if value already in register */
+    PUSH_OP_AB(GETLOCAL, c->reg, i);
+  } else {
+    PUSH_OP_AB(SEND, c->reg, TrBlock_pushk(c->block, msg));
+  }
   return c->reg;
 }
 
@@ -90,15 +104,7 @@ int TrCompiler_setlocal(TrCompiler *c, OBJ name, int reg) {
   return reg;
 }
 
-int TrCompiler_getlocal(TrCompiler *c, OBJ name) {
-  /* TODO push OP_SEND if not a local var */
-  REG(c->reg);
-  PUSH_OP_AB(GETLOCAL, c->reg, TrBlock_local(c->block, name));
-  return c->reg;
-}
-
 int TrCompiler_pushk(TrCompiler *c, OBJ k) {
-  /* TODO how to find w/ reg to use? */
   REG(c->reg);
   PUSH_OP_ABx(LOADK, c->reg, TrBlock_pushk(c->block, k));
   return c->reg;

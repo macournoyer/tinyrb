@@ -1,0 +1,29 @@
+== Soon
+[ ] Implement String
+[ ] Implement Object
+[ ] Implement Class
+[ ] Implement Fixnum
+[ ] Implement basic method definition
+[ ] Implement basic class definition
+[ ] Implement if, unless
+[ ] Implement while, until
+[ ] Implement Array
+[ ] Implement Hash
+
+== Later
+[ ] Implement splatted args
+[ ] Implement exceptions
+[ ] Implement tricolor GC (look at tinypy)
+[ ] Implement Proc, yield and the like
+[ ] Monomorphic method cache
+[ ] Remove useless register allocations in compiler
+[ ] Compile to file
+[ ] Implement IO and File
+[ ] Implement case...when
+
+== Oh Yeah That'd be Cool!
+[ ] lightweight threads, coroutines? protothread?
+[ ] FFI
+[ ] Stackless
+[ ] Sandbox
+[ ] JIT

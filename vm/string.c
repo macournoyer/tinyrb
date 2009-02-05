@@ -23,6 +23,7 @@ OBJ TrSymbol_new(VM, const char *str) {
     TrSymbol *s = TR_INIT_OBJ(Symbol);
     s->len = strlen(str);
     s->ptr = TR_ALLOC_N(char, s->len+1);
+    s->interned = 1;
     TR_MEMCPY_N(s->ptr, str, char, s->len);
     s->ptr[s->len] = '\0';
     

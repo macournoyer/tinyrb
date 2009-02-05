@@ -64,19 +64,13 @@ typedef enum {
   TR_T_MAX /* keep last */
 } TR_T;
 
-typedef struct {
-  kvec_t(OBJ) stack;
-  char *fn;
-  int line; /* cur line num */
-  OBJ self;
-} TrFrame;
+struct TrBlock;
 
 typedef struct {
-  size_t cf; /* current frame */
-  TrFrame frames[TR_MAX_FRAME];
   khash_t(str) *symbols;
   OBJ classes[TR_T_MAX];
-  OBJ method; /* current called method */
+  OBJ method;      /* current called method */
+  struct TrBlock *block;  /* current block */
 } TrVM;
 
 typedef struct {
@@ -101,6 +95,7 @@ typedef struct {
   TR_OBJECT_HEADER;
   char *ptr;
   size_t len;
+  unsigned char interned:1;
 } TrString;
 typedef TrString TrSymbol;
 
@@ -109,12 +104,20 @@ typedef struct {
 } TrInst;
 
 typedef struct TrBlock {
+  /* static, at compile time */
   kvec_t(OBJ) k; /* TODO rename to values ? */
   kvec_t(char *) strings; /* ???? */
-  kvec_t(OBJ) locals;
+  kvec_t(OBJ) locals; /* TODO rename to local_names */
   kvec_t(TrInst) code;
   kvec_t(struct TrBlock *) blocks;
   size_t regc;
+  size_t next_reg; /* next register to use */
+  
+  /* dynamic, used at runtime */
+  OBJ *regs;
+  /* OBJ *locals; */
+  OBJ self;
+  OBJ class;
 } TrBlock;
 
 typedef struct {
@@ -149,7 +152,6 @@ void TrCompiler_dump(TrCompiler *c);
 int TrCompiler_call(TrCompiler *c, OBJ msg);
 int TrCompiler_pushk(TrCompiler *c, OBJ k);
 int TrCompiler_setlocal(TrCompiler *c, OBJ name, int reg);
-int TrCompiler_getlocal(TrCompiler *c, OBJ name);
 void TrCompiler_finish(TrCompiler *c);
 void TrCompiler_destroy(TrCompiler *c);
 

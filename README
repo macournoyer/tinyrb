@@ -8,8 +8,10 @@ But not everything in the big Ruby should run in TinyRb.
 
 == Credits
 Inspired by:
- lua,     http://www.lua.org/
+ lua,     http://www.lua.org
  tinypy,  http://tinypy.org
- HotRuby, http://hotruby.accelart.jp
+ potion,  http://github.com/why/potion
 
-(C) Marc-Andre Cournoyer <macournoyer@gmail.com>
+kvec.h and khash.h (c) 2008, by Attractive Chaos <attractivechaos@aol.co.uk>
+
+(c) Marc-Andre Cournoyer <macournoyer@gmail.com>
