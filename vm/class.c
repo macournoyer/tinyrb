@@ -27,6 +27,15 @@ OBJ TrClass_add_method(VM, OBJ self, OBJ name, OBJ method) {
   return method;
 }
 
+OBJ TrClass_name(VM, OBJ self) {
+  return TR_CCLASS(self)->name;
+}
+
+void TrClass_init(VM) {
+  OBJ c = TR_INIT_CLASS(Class, Object);
+  tr_def(c, "name", TrClass_name);
+}
+
 /* method */
 
 OBJ TrMethod_new(VM, TrFunc *func, OBJ data) {

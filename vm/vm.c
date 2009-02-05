@@ -59,7 +59,9 @@ TrVM *TrVM_new() {
   TrVM *vm = TR_ALLOC(TrVM);
   vm->symbols = kh_init(str);
   
+  TrClass_init(vm);
   TrObject_init(vm);
+  TR_CCLASS(TR_CLASS(Class))->super = TR_CLASS(Object);
   TrSymbol_init(vm);
   TrString_init(vm);
   

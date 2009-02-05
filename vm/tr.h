@@ -42,6 +42,8 @@
   o->class = vm->classes[TR_T_##T]; \
   o; \
 })
+#define TR_CLASS(T)           vm->classes[TR_T_##T]
+#define TR_INIT_CLASS(T,S)    TR_CLASS(T) = TrClass_new(vm, tr_intern(#T), TR_CLASS(S))
 
 #define tr_intern(S)         TrSymbol_new(vm, (S))
 #define tr_raise(M,A...)     (printf("Error: "), printf(M, ##A), assert(0))
@@ -147,6 +149,7 @@ void TrObject_init(VM);
 OBJ TrClass_new(VM, OBJ name, OBJ super);
 OBJ TrClass_lookup(VM, OBJ self, OBJ name);
 OBJ TrClass_add_method(VM, OBJ self, OBJ name, OBJ method);
+void TrClass_init(VM);
 OBJ TrMethod_new(VM, TrFunc *func, OBJ data);
 
 /* compiler */

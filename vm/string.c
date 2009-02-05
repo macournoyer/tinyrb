@@ -53,11 +53,11 @@ OBJ TrString_new2(VM, const char *str) {
 }
 
 void TrSymbol_init(VM) {
-  OBJ c = vm->classes[TR_T_Symbol] = TrClass_new(vm, tr_intern("Symbol"), TR_NIL);
+  OBJ c = TR_INIT_CLASS(Symbol, Object);
   tr_def(c, "display", TrString_display);
 }
 
 void TrString_init(VM) {
-  OBJ c = vm->classes[TR_T_String] = TrClass_new(vm, tr_intern("String"), TR_NIL);
+  OBJ c = TR_INIT_CLASS(String, Object);
   tr_def(c, "display", TrString_display);
 }
