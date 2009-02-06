@@ -32,7 +32,7 @@ enum TrInstCode {
   TR_OP_GETGLOBAL,
   TR_OP_SETGLOBAL,
   TR_OP_NIL,
-  TR_OP_SELF,
+  TR_OP_SELF,       /* put self in R[A] */
   TR_OP_NEWARRAY,
   TR_OP_NEWHASH,
   TR_OP_NEWRANGE,
@@ -90,7 +90,8 @@ enum TrInstCode {
   &&op_JMPUNLESS, \
   &&op_RETURN, \
   &&op_SETLOCAL, \
-  &&op_GETLOCAL
+  &&op_GETLOCAL, \
+  &&op_SELF
 #endif
 
 #endif /* _OPCODE_H_ */

@@ -3,12 +3,15 @@
 [x] Implement Object
 [x] Implement Class
 [x] Implement Fixnum
+[x] Make parser output AST
+[ ] Implement if, unless
+[ ] Make stackless
 [ ] Implement simple method argument passing
 [ ] Bootstrap all class correctly
 [ ] Implement basic method definition
 [ ] Implement basic class definition
-[ ] Implement if, unless
 [ ] Implement while, until
+[ ] Replace kvec & khash w/ http://sglib.sourceforge.net/
 [ ] Implement Array
 [ ] Implement Hash
 
@@ -24,8 +27,8 @@
 [ ] Implement case...when
 
 == Oh Yeah That'd be Cool!
-[ ] lightweight threads, coroutines? protothread?
+[ ] Unicode
 [ ] FFI
-[ ] Stackless
+[ ] lightweight threads, coroutines? protothread?
 [ ] Sandbox
 [ ] JIT

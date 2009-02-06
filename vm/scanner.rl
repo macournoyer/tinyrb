@@ -42,10 +42,16 @@
     symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
     #binary      => { TOKEN_V(OP, tr_intern(BUFFER(ts, te-ts))); };
     assign      => { TOKEN_V(ASSIGN, tr_intern(BUFFER(ts, te-ts))); };
-    string      => { TOKEN_V(STRING, (OBJ)BUFFER(ts+1, te-ts-2)); };
+    string      => { TOKEN_V(STRING, TrString_new(vm, BUFFER(ts+1, te-ts-2), te-ts-2)); };
     int         => { TOKEN_V(INT, INT2FIX(atoi(BUFFER(ts, te-ts)))); };
     term        => { TOKEN_U(TERM); };
     dot         => { TOKEN(DOT); };
+    
+    # "if"        => { TOKEN(IF) }
+    # "unless"    => { TOKEN(UNLESS) }
+    # "while"     => { TOKEN(WHILE) }
+    # "until"     => { TOKEN(UNTIL) }
+    # "end"       => { TOKEN(END) }
     
     # ponctuation
     # ","         => { TOKEN(COMMA); };
@@ -86,5 +92,5 @@ void tr_compile(VM, TrCompiler *compiler, char *code, int trace) {
   if (trace)
     fclose(tracef);
     
-  TrCompiler_finish(compiler);
+  TrCompiler_compile(compiler);
 }

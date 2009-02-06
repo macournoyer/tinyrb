@@ -1,19 +1,31 @@
 #include <stdio.h>
 #include "tr.h"
 #include "opcode.h"
+#include "internal.h"
 
 /* generation */
-#define REG(R) if (R >= c->block->regc) c->block->regc++
 #define PUSH_OP_ABC(OP,A,B,C) ({ \
-  TrInst *op = (kv_pushp(TrInst, c->block->code)); \
+  TrInst *op = (kv_pushp(TrInst, b->code)); \
   op->i = TR_OP_##OP; op->a = (A); op->b = (B); op->c = (C); \
 })
-#define PUSH_OP_AB(OP,A,B) PUSH_OP_ABC(OP,(A),(B),0)
+#define PUSH_OP_A(OP,A)     PUSH_OP_ABC(OP,(A),0,0)
+#define PUSH_OP_AB(OP,A,B)  PUSH_OP_ABC(OP,(A),(B),0)
 #define PUSH_OP_ABx(OP,A,B) PUSH_OP_ABC(OP,(A),(B)>>8,(B)-((B)>>8<<8))
+#define INSPECT(K)          (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", FIX2INT(K)), buf))
+#define VBx(OP)             (unsigned short)(((OP.b<<8)+OP.c))
 
-/* dumping */
-#define VBx(OP) (unsigned short)(((OP.b<<8)+OP.c))
+/* ast node */
+OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c) {
+  TrNode *n = TR_ALLOC(TrNode);
+  n->ntype = type;
+  n->type = TR_T_Node;
+  n->args[0] = a;
+  n->args[1] = b;
+  n->args[2] = c;
+  return (OBJ)n;
+}
 
+/* code block */
 static TrBlock *TrBlock_new() {
   TrBlock *b = TR_ALLOC(TrBlock);
   kv_init(b->k);
@@ -27,7 +39,6 @@ static TrBlock *TrBlock_new() {
 static void TrBlock_dump(TrBlock *b, int level) {
   static char *opcode_names[] = { TR_OP_NAMES };
   char buf[10];
-  #define INSPECT(K) (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", FIX2INT(K)), buf))
   
   size_t i;
   printf("; block definition: %p (level %d)\n", b, level);
@@ -56,8 +67,6 @@ static void TrBlock_dump(TrBlock *b, int level) {
   printf("; block end\n\n");
 }
 
-/* TODO refactor this, errk */
-
 static int TrBlock_pushk(TrBlock *blk, OBJ k) {
   size_t i;
   for (i = 0; i < kv_size(blk->k); ++i)
@@ -70,8 +79,9 @@ static int TrBlock_push_string(TrBlock *blk, char *str) {
   size_t i;
   for (i = 0; i < kv_size(blk->strings); ++i)
     if (strcmp(kv_A(blk->strings, i), str) == 0) return i;
-  char *ptr = TR_ALLOC_N(char, strlen(str));
-  TR_MEMCPY_N(ptr, str, char, strlen(str));
+  size_t len = strlen(str);
+  char *ptr = TR_ALLOC_N(char, len+1);
+  TR_MEMCPY_N(ptr, str, char, len+1);
   kv_push(char *, blk->strings, ptr);
   return kv_size(blk->strings)-1;
 }
@@ -90,53 +100,67 @@ static int TrBlock_local(TrBlock *blk, OBJ name) {
   return kv_size(blk->locals)-1;
 }
 
+/* compiler */
+
 TrCompiler *TrCompiler_new(VM, const char *fn) {
   TrCompiler *c = TR_ALLOC(TrCompiler);
   c->curline = 1;
   c->vm = vm;
   c->block = TrBlock_new(vm);
   c->reg = 0;
+  c->node = TR_NIL;
   return c;
 }
 
 void TrCompiler_dump(TrCompiler *c) {
-  TrBlock_dump(c->block, 1);
+  TrBlock_dump(c->block, 0);
 }
 
-/* TODO how to find which reg # to use ??? */
-
-int TrCompiler_call(TrCompiler *c, OBJ msg) {
-  REG(c->reg);
-  size_t i = TrBlock_haslocal(c->block, msg);
-  if (i != -1) {
-    /* TODO optimization: skip if value already in register */
-    PUSH_OP_AB(GETLOCAL, c->reg, i);
-  } else {
-    PUSH_OP_AB(SEND, c->reg, TrBlock_pushk(c->block, msg));
+void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
+  if (reg >= b->regc) b->regc++;
+  switch (n->ntype) {
+    case AST_ROOT:
+      TR_ARRAY_EACH(n->args[0], i, v, {
+        TrCompiler_compile_node(c, b, (TrNode *)v, reg);
+      });
+      break;
+    case AST_CONST: {
+      int i = TrBlock_pushk(b, n->args[0]);
+      PUSH_OP_ABx(LOADK, reg, i);
+    } break;
+    case AST_STRING: {
+      int i = TrBlock_push_string(b, TR_STR_PTR(n->args[0]));
+      PUSH_OP_ABx(STRING, reg, i);
+    } break;
+    case AST_ASSIGN: {
+      int i = TrBlock_local(c->block, n->args[0]);
+      TrCompiler_compile_node(c, b, (TrNode *)n->args[1], reg);
+      PUSH_OP_AB(SETLOCAL, i, reg);
+    } break;
+    case AST_SEND: {
+      TrNode *msg = (TrNode *)n->args[1];
+      assert(msg->ntype == AST_MSG);
+      int i = TrBlock_haslocal(b, msg->args[0]);
+      if (i != -1) { /* var */
+        PUSH_OP_AB(GETLOCAL, reg, i);
+      } else { /* method */
+        if (n->args[0])
+          TrCompiler_compile_node(c, b, (TrNode *)n->args[0], reg);
+        else
+          PUSH_OP_A(SELF, reg);
+        i = TrBlock_pushk(b, msg->args[0]);
+        PUSH_OP_AB(SEND, reg, i);
+      }
+    } break;
+    default:
+      printf("unknown node type: %d\n", n->ntype);
   }
-  return c->reg;
 }
 
-int TrCompiler_setlocal(TrCompiler *c, OBJ name, int reg) {
-  REG(reg);
-  PUSH_OP_AB(SETLOCAL, TrBlock_local(c->block, name), reg);
-  return reg;
-}
-
-int TrCompiler_pushk(TrCompiler *c, OBJ k) {
-  REG(c->reg);
-  PUSH_OP_ABx(LOADK, c->reg, TrBlock_pushk(c->block, k));
-  return c->reg;
-}
-
-int TrCompiler_string(TrCompiler *c, OBJ str) {
-  REG(c->reg);
-  PUSH_OP_ABx(STRING, c->reg, TrBlock_push_string(c->block, (char*)str));
-  return c->reg;
-}
-
-void TrCompiler_finish(TrCompiler *c) {
-  PUSH_OP_AB(RETURN, c->reg, 0);
+void TrCompiler_compile(TrCompiler *c) {
+  TrBlock *b = c->block;
+  TrCompiler_compile_node(c, b, (TrNode *)c->node, 0);
+  PUSH_OP_A(RETURN, 0);
 }
 
 void TrCompiler_destroy(TrCompiler *c) {

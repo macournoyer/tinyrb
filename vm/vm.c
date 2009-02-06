@@ -46,6 +46,7 @@ OBJ tr_run(VM, TrBlock *block) {
     OP(LOADK):      RA = k[VBx]; DISPATCH;
     OP(STRING):     RA = TrString_new2(vm, strings[VBx]); DISPATCH;
     OP(SEND):       RA = tr_send(RA, k[VB]); DISPATCH;
+    OP(SELF):       RA = block->self; DISPATCH;
     OP(JMP):        ip += VA; DISPATCH;
     OP(JMPIF):      if (TR_TEST(RA)) ip += sVBx; DISPATCH;
     OP(JMPUNLESS):  if (!TR_TEST(RA)) ip += sVBx; DISPATCH;
@@ -65,6 +66,7 @@ TrVM *TrVM_new() {
   TrSymbol_init(vm);
   TrString_init(vm);
   TrFixnum_init(vm);
+  TrArray_init(vm);
   
   return vm;
 }

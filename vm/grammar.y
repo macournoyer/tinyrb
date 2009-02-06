@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <string.h>
 #include "tr.h"
+#include "internal.h"
 }
 
 %name           TrParser
@@ -22,23 +23,24 @@
 %left OP.*/
 
 /* rules */
-root ::= statements.
-root ::= statements TERM.
+root ::= statements(A). { compiler->node = (OBJ) NODE(ROOT, A); }
+root ::= statements(A) TERM. { compiler->node = (OBJ) NODE(ROOT, A); }
 
-statements ::= statements TERM statement.
-statements ::= statement.
+statements(A) ::= statements(B) TERM statement(C). { A = PUSH(B, C); }
+statements(A) ::= statement(B). { A = NODES(B); }
 
 statement(A) ::= expr(B). { A = B; }
 statement(A) ::= literal(B). { A = B; }
-statement(A) ::= ID(B) ASSIGN statement(C). { A = TrCompiler_setlocal(compiler, B, C); }
+statement(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
+/*statement(A) ::= IF statement(B) TERM statements(C) TERM END. { A = NODE(IF, B, C); }*/
 
-literal(A) ::= SYMBOL(B). { A = TrCompiler_pushk(compiler, B); }
-literal(A) ::= INT(B). { A = TrCompiler_pushk(compiler, B); }
-literal(A) ::= STRING(B). { A = TrCompiler_string(compiler, B); }
+literal(A) ::= SYMBOL(B). { A = NODE(CONST, B); }
+literal(A) ::= INT(B). { A = NODE(CONST, B); }
+literal(A) ::= STRING(B). { A = NODE(STRING, B); }
 
-expr(A) ::= expr DOT call(B). { A = B; }
-expr(A) ::= literal DOT call(B). { A = B; }
-expr(A) ::= call(B). { A = B; }
+expr(A) ::= expr(B) DOT msg(C). { A = NODE2(SEND, B, C); }
+expr(A) ::= literal(B) DOT msg(C). { A = NODE2(SEND, B, C); }
+expr(A) ::= msg(B). { A = NODE2(SEND, TR_NIL, B); }
 
-call(A) ::= ID(B). { A = TrCompiler_call(compiler, B); }
-call(A) ::= ID(B) O_PAR C_PAR. { A = TrCompiler_call(compiler, B); }
+msg(A) ::= ID(B). { A = NODE(MSG, B); }
+msg(A) ::= ID(B) O_PAR C_PAR. { A = NODE(MSG, B); }

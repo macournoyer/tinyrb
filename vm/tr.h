@@ -17,15 +17,30 @@
 #define TR_MEMCPY(X,Y,T)     memcpy((X), (Y), sizeof(T))
 #define TR_MEMCPY_N(X,Y,T,N) memcpy((X), (Y), sizeof(T)*(N))
 
-#define TR_STR_PTR(S)        (TR_CSTRING(S)->ptr)
 #define TR_COBJECT(X)        ((TrObject*)X)
 #define TR_TYPE(X)           (TR_IS_FIX(X) ? TR_T_Fixnum : TR_COBJECT(X)->type)
 #define TR_IS_A(X,T)         (TR_TYPE(X) == TR_T_##T)
 #define TR_CTYPE(X,T)        (assert(TR_IS_A(X,T)),(Tr##T*)(X))
 #define TR_CCLASS(X)         TR_CTYPE(X,Class)
 #define TR_CFIXNUM(X)        TR_CTYPE(X,Fixnum)
+#define TR_CARRAY(X)         TR_CTYPE(X,Array)
 #define TR_CSTRING(X)        (assert(TR_IS_A(X,String)||TR_IS_A(X,Symbol)),(TrString*)(X))
 #define TR_CMETHOD(X)        ((TrMethod*)X)
+
+#define TR_STR_PTR(S)        (TR_CSTRING(S)->ptr)
+#define TR_ARRAY_PUSH(X,I)   kv_push(OBJ, (TR_CARRAY(X))->kv, (I))
+#define TR_ARRAY_AT(X,I)     kv_A((TR_CARRAY(X))->kv, (I))
+#define TR_ARRAY_SIZE(X)     kv_size(TR_CARRAY(X)->kv)
+#define TR_ARRAY_EACH(T,I,V,B) ({ \
+    TrArray *__a##V = TR_CARRAY(T); \
+    if (kv_size(__a##V->kv) != 0) { \
+      size_t I; \
+      for (I = 0; I < kv_size(__a##V->kv); I++) { \
+        OBJ V = kv_A(__a##V->kv, I); \
+        B \
+      } \
+    } \
+  })
 
 #define VM                   TrVM *vm
 #define FRAME                &vm->frames[vm->cf]
@@ -74,7 +89,11 @@ KHASH_MAP_INIT_STR(str, OBJ);
 KHASH_MAP_INIT_INT(OBJ, OBJ);
 
 typedef enum {
-  TR_T_Object, TR_T_Class, TR_T_Method, TR_T_Symbol, TR_T_String, TR_T_Fixnum,
+  TR_T_Object, TR_T_Class, TR_T_Method,
+  TR_T_Symbol, TR_T_String,
+  TR_T_Fixnum,
+  TR_T_Array, TR_T_Hash,
+  TR_T_Node,
   TR_T_MAX /* keep last */
 } TR_T;
 
@@ -119,6 +138,11 @@ typedef struct {
 } TrFixnum;
 
 typedef struct {
+  TR_OBJECT_HEADER;
+  kvec_t(OBJ) kv;
+} TrArray;
+
+typedef struct {
   unsigned char i, a, b, c;
 } TrInst;
 
@@ -144,6 +168,7 @@ typedef struct {
   TrVM *vm;
   TrBlock *block;
   size_t reg;
+  OBJ node;
 } TrCompiler;
 
 /* vm */
@@ -162,6 +187,11 @@ void TrString_init(VM);
 OBJ TrFixnum_new(VM, int value);
 void TrFixnum_init(VM);
 
+/* array */
+OBJ TrArray_new(VM);
+OBJ TrArray_new2(VM, int argc, ...);
+void TrArray_init(VM);
+
 /* object */
 OBJ TrObject_method(VM, OBJ self, OBJ name);
 void TrObject_init(VM);
@@ -175,6 +205,7 @@ OBJ TrMethod_new(VM, TrFunc *func, OBJ data);
 
 /* compiler */
 TrCompiler *TrCompiler_new(VM, const char *fn);
+void TrCompiler_compile(TrCompiler *c);
 void TrCompiler_dump(TrCompiler *c);
 int TrCompiler_call(TrCompiler *c, OBJ msg);
 int TrCompiler_pushk(TrCompiler *c, OBJ k);
