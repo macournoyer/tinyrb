@@ -52,6 +52,8 @@ OBJ TrVM_run(VM, TrBlock *block) {
     OP(JMPUNLESS):  if (!TR_TEST(RA)) ip += sVBx; DISPATCH;
     OP(SETLOCAL):   locals[VA] = RB; DISPATCH;
     OP(GETLOCAL):   RA = locals[VB]; DISPATCH;
+    OP(NIL):        RA = TR_NIL; DISPATCH;
+    OP(BOOL):       RA = VB+1; DISPATCH;
     OP(RETURN):     return RA;
   END_OPCODES;
 }

@@ -39,20 +39,15 @@
     whitespace;
     comment;
     
-    id          => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts))); };
-    symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
-    #binary      => { TOKEN_V(OP, tr_intern(BUFFER(ts, te-ts))); };
-    assign      => { TOKEN_V(ASSIGN, tr_intern(BUFFER(ts, te-ts))); };
-    string      => { TOKEN_V(STRING, TrString_new(vm, BUFFER(ts+1, te-ts-2), te-ts-2)); };
-    int         => { TOKEN_V(INT, INT2FIX(atoi(BUFFER(ts, te-ts)))); };
-    term        => { TOKEN_U(TERM); };
-    dot         => { TOKEN(DOT); };
-    
-    # "if"        => { TOKEN(IF) }
-    # "unless"    => { TOKEN(UNLESS) }
-    # "while"     => { TOKEN(WHILE) }
-    # "until"     => { TOKEN(UNTIL) }
-    # "end"       => { TOKEN(END) }
+    # keywords
+    "if"        => { TOKEN(IF); };
+    "unless"    => { TOKEN(UNLESS); };
+    # "while"     => { TOKEN(WHILE); };
+    # "until"     => { TOKEN(UNTIL); };
+    "end"       => { TOKEN(END); };
+    "true"      => { TOKEN(TRUE); };
+    "false"     => { TOKEN(FALSE); };
+    "nil"       => { TOKEN(NIL); };
     
     # ponctuation
     # ","         => { TOKEN(COMMA); };
@@ -62,6 +57,15 @@
     # "}"         => { TOKEN(C_BRA); };
     # "["         => { TOKEN(O_SQ_BRA); };
     # "]"         => { TOKEN(C_SQ_BRA); };
+    
+    id          => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts))); };
+    symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
+    #binary      => { TOKEN_V(OP, tr_intern(BUFFER(ts, te-ts))); };
+    assign      => { TOKEN_V(ASSIGN, tr_intern(BUFFER(ts, te-ts))); };
+    string      => { TOKEN_V(STRING, TrString_new(vm, BUFFER(ts+1, te-ts-2), te-ts-2)); };
+    int         => { TOKEN_V(INT, INT2FIX(atoi(BUFFER(ts, te-ts)))); };
+    term        => { TOKEN_U(TERM); };
+    dot         => { TOKEN(DOT); };
   *|;
   
   write data nofinal;

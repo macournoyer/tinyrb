@@ -7,10 +7,12 @@
 #define PUSH_OP_ABC(OP,A,B,C) ({ \
   TrInst *op = (kv_pushp(TrInst, b->code)); \
   op->i = TR_OP_##OP; op->a = (A); op->b = (B); op->c = (C); \
+  op; \
 })
 #define PUSH_OP_A(OP,A)     PUSH_OP_ABC(OP,(A),0,0)
 #define PUSH_OP_AB(OP,A,B)  PUSH_OP_ABC(OP,(A),(B),0)
 #define PUSH_OP_ABx(OP,A,B) PUSH_OP_ABC(OP,(A),(B)>>8,(B)-((B)>>8<<8))
+#define SET_JMP(I,S)        I->b=(S)>>8; I->c=(S)-((S)>>8<<8)
 #define INSPECT(K)          (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", FIX2INT(K)), buf))
 #define VBx(OP)             (unsigned short)(((OP.b<<8)+OP.c))
 
@@ -124,6 +126,7 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
   if (reg >= b->regc) b->regc++;
   switch (n->ntype) {
     case AST_ROOT:
+    case AST_BLOCK:
       TR_ARRAY_EACH(n->args[0], i, v, {
         TrCompiler_compile_node(c, b, (TrNode *)v, reg);
       });
@@ -156,6 +159,24 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
         PUSH_OP_AB(SEND, reg, i);
       }
     } break;
+    case AST_IF:
+    case AST_UNLESS: {
+      TrCompiler_compile_node(c, b, (TrNode *)n->args[0], reg);
+      TrInst *jmp = n->ntype == AST_IF
+        ? PUSH_OP_ABx(JMPUNLESS, reg, 0)
+        : PUSH_OP_ABx(JMPIF, reg, 0);
+      size_t i = kv_size(b->code);
+      TR_ARRAY_EACH(n->args[1], i, v, { /* TODO fugly... */
+        TrCompiler_compile_node(c, b, (TrNode *)v, reg);
+      });
+      SET_JMP(jmp, kv_size(b->code) - i);
+    } break;
+    case AST_BOOL:
+      PUSH_OP_AB(BOOL, reg, n->args[0]);
+      break;
+    case AST_NIL:
+      PUSH_OP_A(NIL, reg);
+      break;
     default:
       printf("unknown node type: %d\n", n->ntype);
   }

@@ -14,6 +14,9 @@ enum TrInstCode {
   TR_OP_MOVE,       /* R[A] = R[B]  */
   TR_OP_LOADK,      /* R[A] = K[Bx] */
   TR_OP_STRING,     /* R[A] = strings[Bx] */
+  TR_OP_BOOL,       /* R[A] = B + 1 */
+  TR_OP_NIL,        /* R[A] = nil */
+  TR_OP_SELF,       /* put self in R[A] */
   TR_OP_SEND,       /* send message K[B] to R[A] w/ C args, store answer in R[A] */
   TR_OP_JMP,        /* jump sBx instructions */
   TR_OP_JMPIF,      /* jump sBx instructions if R[A] */
@@ -31,8 +34,6 @@ enum TrInstCode {
   TR_OP_SETCVAR,
   TR_OP_GETGLOBAL,
   TR_OP_SETGLOBAL,
-  TR_OP_NIL,
-  TR_OP_SELF,       /* put self in R[A] */
   TR_OP_NEWARRAY,
   TR_OP_NEWHASH,
   TR_OP_NEWRANGE,
@@ -49,6 +50,9 @@ enum TrInstCode {
   "move", \
   "loadk", \
   "string", \
+  "bool", \
+  "nil", \
+  "self", \
   "send", \
   "jmp", \
   "jmpif", \
@@ -66,8 +70,6 @@ enum TrInstCode {
   "setcvar", \
   "getglobal", \
   "setglobal", \
-  "nil", \
-  "self", \
   "newarray", \
   "newhash", \
   "newrange", \
@@ -79,19 +81,22 @@ enum TrInstCode {
   "yield"
 
 #ifdef TR_THREADED_DISPATCH
+/* has to be in some order as in enum TrInstCode */
 #define TR_OP_LABELS \
   &&op_NONE, \
   &&op_MOVE, \
   &&op_LOADK, \
   &&op_STRING, \
+  &&op_BOOL, \
+  &&op_NIL, \
+  &&op_SELF, \
   &&op_SEND, \
   &&op_JMP, \
   &&op_JMPIF, \
   &&op_JMPUNLESS, \
   &&op_RETURN, \
   &&op_SETLOCAL, \
-  &&op_GETLOCAL, \
-  &&op_SELF
+  &&op_GETLOCAL
 #endif
 
 #endif /* _OPCODE_H_ */

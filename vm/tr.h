@@ -46,8 +46,8 @@
 #define FRAME                &vm->frames[vm->cf]
 
 #define TR_NIL               ((OBJ)0)
-#define TR_TRUE              ((OBJ)1)
-#define TR_FALSE             ((OBJ)2)
+#define TR_FALSE             ((OBJ)1)
+#define TR_TRUE              ((OBJ)2)
 #define TR_TEST(X)           ((X) == TR_NIL || (X) == TR_FALSE ? 0 : 1)
 #define TR_BOOL(X)           ((X) ? TR_TRUE : TR_FALSE)
 #define TR_SHIFT             8

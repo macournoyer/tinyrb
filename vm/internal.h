@@ -6,11 +6,16 @@
 
 typedef enum {
   AST_ROOT,
+  AST_BLOCK,
   AST_CONST,
   AST_STRING,
   AST_ASSIGN,
   AST_SEND,
   AST_MSG,
+  AST_IF,
+  AST_UNLESS,
+  AST_BOOL,
+  AST_NIL,
 } TrNodeType;
 
 typedef struct {
