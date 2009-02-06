@@ -19,4 +19,24 @@ typedef struct {
   OBJ args[3];
 } TrNode;
 
+typedef struct {
+  int curline;
+  TrVM *vm;
+  TrBlock *block;
+  size_t reg;
+  OBJ node;
+} TrCompiler;
+
+/* node */
 OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c);
+
+/* compiler */
+TrCompiler *TrCompiler_new(VM, const char *fn);
+void TrCompiler_compile(TrCompiler *c);
+void TrCompiler_destroy(TrCompiler *c);
+
+/* parser */
+void *TrParserAlloc(void *(*)(size_t));
+void TrParser(void *, int, OBJ, TrCompiler *);
+void TrParserFree(void *, void (*)(void*));
+void TrParserTrace(FILE *stream, char *zPrefix);

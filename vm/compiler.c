@@ -36,7 +36,7 @@ static TrBlock *TrBlock_new() {
   return b;
 }
 
-static void TrBlock_dump(TrBlock *b, int level) {
+static void TrBlock_dump2(TrBlock *b, int level) {
   static char *opcode_names[] = { TR_OP_NAMES };
   char buf[10];
   
@@ -63,8 +63,16 @@ static void TrBlock_dump(TrBlock *b, int level) {
     printf("\n");
   }
   for (i = 0; i < kv_size(b->blocks); ++i)
-    TrBlock_dump(kv_A(b->blocks, i), level+1);
+    TrBlock_dump2(kv_A(b->blocks, i), level+1);
   printf("; block end\n\n");
+}
+
+void TrBlock_dump(VM, TrBlock *b) {
+  TrBlock_dump2(b, 0);
+}
+
+void TrBlock_destroy(VM, TrBlock *b) {
+  /* TODO */
 }
 
 static int TrBlock_pushk(TrBlock *blk, OBJ k) {
@@ -110,10 +118,6 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
   c->reg = 0;
   c->node = TR_NIL;
   return c;
-}
-
-void TrCompiler_dump(TrCompiler *c) {
-  TrBlock_dump(c->block, 0);
 }
 
 void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {

@@ -163,18 +163,10 @@ typedef struct TrBlock {
   OBJ class;
 } TrBlock;
 
-typedef struct {
-  int curline;
-  TrVM *vm;
-  TrBlock *block;
-  size_t reg;
-  OBJ node;
-} TrCompiler;
-
 /* vm */
 TrVM *TrVM_new();
 void TrVM_destroy(TrVM *vm);
-OBJ tr_run(VM, TrBlock *code);
+OBJ TrVM_run(VM, TrBlock *code);
 
 /* string */
 OBJ TrSymbol_new(VM, const char *str);
@@ -204,21 +196,8 @@ void TrClass_init(VM);
 OBJ TrMethod_new(VM, TrFunc *func, OBJ data);
 
 /* compiler */
-TrCompiler *TrCompiler_new(VM, const char *fn);
-void TrCompiler_compile(TrCompiler *c);
-void TrCompiler_dump(TrCompiler *c);
-int TrCompiler_call(TrCompiler *c, OBJ msg);
-int TrCompiler_pushk(TrCompiler *c, OBJ k);
-int TrCompiler_string(TrCompiler *c, OBJ str);
-int TrCompiler_setlocal(TrCompiler *c, OBJ name, int reg);
-void TrCompiler_finish(TrCompiler *c);
-void TrCompiler_destroy(TrCompiler *c);
-
-/* parser */
-void tr_compile(VM, TrCompiler *compiler, char *code, int trace);
-void *TrParserAlloc(void *(*)(size_t));
-void TrParser(void *, int, OBJ, TrCompiler *);
-void TrParserFree(void *, void (*)(void*));
-void TrParserTrace(FILE *stream, char *zPrefix);
+TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace);
+void TrBlock_dump(VM, TrBlock *b);
+void TrBlock_destroy(VM, TrBlock *b);
 
 #endif /* _TINYRB_H_ */

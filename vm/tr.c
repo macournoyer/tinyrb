@@ -19,14 +19,10 @@ static int version() {
 
 static int eval(char *code, char *filename, int verbose) {
   TrVM *vm = TrVM_new();
-  
-  TrCompiler *c = TrCompiler_new(vm, filename);
-  tr_compile(vm, c, code, verbose > 1);
-  
-  if (verbose) TrCompiler_dump(c);
-  
-  tr_run(vm, c->block);
-  
+  TrBlock *b = TrBlock_compile(vm, code, filename, verbose > 1);
+  if (verbose) TrBlock_dump(vm, b);
+  TrVM_run(vm, b);
+  TrBlock_destroy(vm, b);
   TrVM_destroy(vm);
   return 0;
 }

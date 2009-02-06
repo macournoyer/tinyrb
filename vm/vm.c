@@ -27,7 +27,7 @@
 #define VBx  (unsigned short)(((VB<<8)+VC))
 #define sVBx (short)(((VB<<8)+VC))
 
-OBJ tr_run(VM, TrBlock *block) {
+OBJ TrVM_run(VM, TrBlock *block) {
   TrInst *ip = block->code.a;
   TrInst e = *ip;
   OBJ *k = block->k.a;
@@ -72,5 +72,6 @@ TrVM *TrVM_new() {
 }
 
 void TrVM_destroy(TrVM *vm) {
+  /* TODO */
   kh_destroy(str, vm->symbols);
 }

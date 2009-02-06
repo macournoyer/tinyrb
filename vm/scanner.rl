@@ -3,6 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include "tr.h"
+#include "internal.h"
 #include "grammar.h"
 
 #define TOKEN_V(id,v) TrParser(parser, TR_TOK_##id, v, compiler); last = TR_TOK_##id
@@ -66,13 +67,14 @@
   write data nofinal;
 }%%
 
-void tr_compile(VM, TrCompiler *compiler, char *code, int trace) {
+TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace) {
   int cs, act;
   char *p, *pe, *ts, *te, *eof = 0;
   void *parser = TrParserAlloc(malloc);
   int last = 0;
   char *buf = 0;
   FILE *tracef = 0;
+  TrCompiler *compiler = TrCompiler_new(vm, fn);
   
   p = code;
   pe = p + strlen(code) + 1;
@@ -93,4 +95,8 @@ void tr_compile(VM, TrCompiler *compiler, char *code, int trace) {
     fclose(tracef);
     
   TrCompiler_compile(compiler);
+  TrBlock *b = compiler->block;
+  TrCompiler_destroy(compiler);
+  
+  return b;
 }
