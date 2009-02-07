@@ -16,6 +16,7 @@ typedef enum {
   AST_UNLESS,
   AST_BOOL,
   AST_NIL,
+  AST_SELF,
 } TrNodeType;
 
 typedef struct {

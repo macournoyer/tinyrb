@@ -42,8 +42,8 @@
     } \
   })
 
-#define VM                   TrVM *vm
-#define FRAME                &vm->frames[vm->cf]
+#define VM                   struct TrVM *vm
+#define FRAME                (&vm->frames[vm->cf])
 
 #define TR_NIL               ((OBJ)0)
 #define TR_FALSE             ((OBJ)1)
@@ -78,7 +78,7 @@
   OBJ r = TR_BOX(R); \
   TrMethod *m = TR_CMETHOD(TrObject_method(vm, r, (MSG))); \
   if (!m) tr_raise("Method not found: %s\n", TR_STR_PTR(MSG)); \
-  vm->method = (OBJ)m; \
+  FRAME->method = m; \
   m->func(vm, r, ##A); \
 })
 #define tr_send2(R,STR,A...) tr_send((R), tr_intern(STR), ##A)
@@ -97,13 +97,46 @@ typedef enum {
   TR_T_MAX /* keep last */
 } TR_T;
 
-struct TrBlock;
+struct TrVM;
 
 typedef struct {
+  unsigned char i, a, b, c;
+} TrInst;
+
+typedef struct TrBlock {
+  kvec_t(OBJ) k; /* TODO rename to values ? */
+  kvec_t(char *) strings;
+  kvec_t(OBJ) locals; /* TODO rename to local_names */
+  kvec_t(TrInst) code;
+  kvec_t(struct TrBlock *) blocks;
+  size_t regc;
+} TrBlock;
+
+typedef OBJ (TrFunc)(VM, OBJ receiver, ...);
+typedef struct {
+  TR_OBJECT_HEADER;
+  TrFunc *func;
+  OBJ data;
+} TrMethod;
+
+typedef struct {
+  struct TrBlock *block;
+  TrMethod *method;  /* current called method */
+  OBJ *params;
+  OBJ *regs;
+  OBJ *locals;
+  OBJ self;
+  OBJ class;
+  OBJ fname;
+  size_t line;
+  TrInst *ip;
+} TrFrame;
+
+typedef struct TrVM {
   khash_t(str) *symbols;
   OBJ classes[TR_T_MAX];
-  OBJ method;      /* current called method */
-  struct TrBlock *block;  /* current block */
+  TrFrame frames[TR_MAX_FRAMES];
+  size_t cf; /* current frame */
 } TrVM;
 
 typedef struct {
@@ -116,13 +149,6 @@ typedef struct {
   OBJ super;
   khash_t(OBJ) *methods;
 } TrClass;
-
-typedef OBJ (TrFunc)(VM, OBJ receiver, ...);
-typedef struct {
-  TR_OBJECT_HEADER;
-  TrFunc *func;
-  OBJ data;
-} TrMethod;
 
 typedef struct {
   TR_OBJECT_HEADER;
@@ -141,27 +167,6 @@ typedef struct {
   TR_OBJECT_HEADER;
   kvec_t(OBJ) kv;
 } TrArray;
-
-typedef struct {
-  unsigned char i, a, b, c;
-} TrInst;
-
-typedef struct TrBlock {
-  /* static, at compile time */
-  kvec_t(OBJ) k; /* TODO rename to values ? */
-  kvec_t(char *) strings;
-  kvec_t(OBJ) locals; /* TODO rename to local_names */
-  kvec_t(TrInst) code;
-  kvec_t(struct TrBlock *) blocks;
-  size_t regc;
-  size_t next_reg; /* next register to use */
-  
-  /* dynamic, used at runtime */
-  OBJ *regs;
-  /* OBJ *locals; */
-  OBJ self;
-  OBJ class;
-} TrBlock;
 
 /* vm */
 TrVM *TrVM_new();
@@ -185,6 +190,7 @@ OBJ TrArray_new2(VM, int argc, ...);
 void TrArray_init(VM);
 
 /* object */
+OBJ TrObject_new(VM);
 OBJ TrObject_method(VM, OBJ self, OBJ name);
 void TrObject_init(VM);
 

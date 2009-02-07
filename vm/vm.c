@@ -3,6 +3,19 @@
 #include "tr.h"
 #include "opcode.h"
 
+static void TrFrame_init(VM, size_t i, TrBlock *b) {
+  TrFrame *f = &vm->frames[i];
+  f->block = b;
+  f->method = TR_NIL;
+  f->params = TR_NIL;
+  f->regs = TR_ALLOC_N(OBJ, b->regc);
+  f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals));
+  f->self = TR_NIL;
+  f->class = TR_NIL;
+  f->line = 1;
+  f->ip = b->code.a;
+}
+
 /* dispatch macros */
 #define NEXT_OP        (++ip, e=*ip)
 #ifdef TR_THREADED_DISPATCH
@@ -27,35 +40,64 @@
 #define VBx  (unsigned short)(((VB<<8)+VC))
 #define sVBx (short)(((VB<<8)+VC))
 
-OBJ TrVM_run(VM, TrBlock *block) {
-  TrInst *ip = block->code.a;
+static OBJ TrVM_step(VM) {
+  TrFrame *f = FRAME;
+  TrInst *ip = f->ip;
   TrInst e = *ip;
-  OBJ *k = block->k.a;
-  char **strings = block->strings.a;
-  /* TODO alloc proper size, store in block */
-  OBJ regs[10];
-  OBJ locals[10];
+  OBJ *k = f->block->k.a;
+  char **strings = f->block->strings.a;
+  OBJ *regs = f->regs;
+  OBJ *locals = f->locals;
   
 #ifdef TR_THREADED_DISPATCH
   static void *labels[] = { TR_OP_LABELS };
 #endif
   
   OPCODES;
-    OP(NONE):       DISPATCH;
+    OP(BOING):      DISPATCH;
+    
+    /* register loading */
     OP(MOVE):       RA = RB; DISPATCH;
     OP(LOADK):      RA = k[VBx]; DISPATCH;
     OP(STRING):     RA = TrString_new2(vm, strings[VBx]); DISPATCH;
-    OP(SEND):       RA = tr_send(RA, k[VB]); DISPATCH;
-    OP(SELF):       RA = block->self; DISPATCH;
-    OP(JMP):        ip += VA; DISPATCH;
-    OP(JMPIF):      if (TR_TEST(RA)) ip += sVBx; DISPATCH;
-    OP(JMPUNLESS):  if (!TR_TEST(RA)) ip += sVBx; DISPATCH;
+    OP(SELF):       RA = f->self; DISPATCH;
     OP(SETLOCAL):   locals[VA] = RB; DISPATCH;
     OP(GETLOCAL):   RA = locals[VB]; DISPATCH;
     OP(NIL):        RA = TR_NIL; DISPATCH;
     OP(BOOL):       RA = VB+1; DISPATCH;
     OP(RETURN):     return RA;
+    
+    /* method calling */
+    OP(LOOKUP):
+      RA = TR_BOX(RA);
+      regs[e.a+1] = TrObject_method(vm, RA, k[VB]);
+      if (!regs[e.a+1]) tr_raise("Method not found: %s\n", TR_STR_PTR(k[VB]));
+      /* TODO replace previous instruction w/ CACHE */
+      DISPATCH;
+    OP(CACHE):
+      /* TODO how to expire cache? */
+      RA = TR_BOX(RA);
+      if (TR_TYPE(RA) == VC) ip += VB;
+      DISPATCH;
+    OP(CALL):
+      f->method = TR_CMETHOD(regs[e.a+1]);
+      /* TODO set f->args */
+      RA = f->method->func(vm, RA);
+      DISPATCH;
+      
+    /* jumps */
+    OP(JMP):        ip += VA; DISPATCH;
+    OP(JMPIF):      if (TR_TEST(RA)) ip += sVBx; DISPATCH;
+    OP(JMPUNLESS):  if (!TR_TEST(RA)) ip += sVBx; DISPATCH;
   END_OPCODES;
+}
+
+OBJ TrVM_run(VM, TrBlock *b) {
+  TrFrame_init(vm, 0, b);
+  vm->cf = 0;
+  FRAME->self = TrObject_new(vm);
+  FRAME->class = TR_CLASS(Object);
+  return TrVM_step(vm);
 }
 
 TrVM *TrVM_new() {

@@ -19,8 +19,7 @@
   printf("  %s unexpected at line %d\n", yyTokenName[yymajor], compiler->curline);
 }
 
-/*%right ASSIGN.
-%left OP.*/
+%right ASSIGN.
 
 /* rules */
 root ::= statements(A). { compiler->node = (OBJ) NODE(ROOT, A); }
@@ -43,6 +42,7 @@ literal(A) ::= STRING(B). { A = NODE(STRING, B); }
 literal(A) ::= TRUE. { A = NODE(BOOL, 1); }
 literal(A) ::= FALSE. { A = NODE(BOOL, 0); }
 literal(A) ::= NIL. { A = NODE(NIL, 0); }
+literal(A) ::= SELF. { A = NODE(SELF, 0); }
 
 expr(A) ::= expr(B) DOT msg(C). { A = NODE2(SEND, B, C); }
 expr(A) ::= literal(B) DOT msg(C). { A = NODE2(SEND, B, C); }

@@ -48,6 +48,7 @@
     "true"      => { TOKEN(TRUE); };
     "false"     => { TOKEN(FALSE); };
     "nil"       => { TOKEN(NIL); };
+    "self"      => { TOKEN(SELF); };
     
     # ponctuation
     # ","         => { TOKEN(COMMA); };

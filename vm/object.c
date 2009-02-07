@@ -1,5 +1,9 @@
 #include "tr.h"
 
+OBJ TrObject_new(VM) {
+  return (OBJ) TR_INIT_OBJ(Object);
+}
+
 OBJ TrObject_method(VM, OBJ self, OBJ name) {
   TrObject *o = TR_COBJECT(self);
   /* TODO lookup in metaclass */

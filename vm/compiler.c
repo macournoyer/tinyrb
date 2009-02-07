@@ -7,12 +7,11 @@
 #define PUSH_OP_ABC(OP,A,B,C) ({ \
   TrInst *op = (kv_pushp(TrInst, b->code)); \
   op->i = TR_OP_##OP; op->a = (A); op->b = (B); op->c = (C); \
-  op; \
 })
 #define PUSH_OP_A(OP,A)     PUSH_OP_ABC(OP,(A),0,0)
 #define PUSH_OP_AB(OP,A,B)  PUSH_OP_ABC(OP,(A),(B),0)
 #define PUSH_OP_ABx(OP,A,B) PUSH_OP_ABC(OP,(A),(B)>>8,(B)-((B)>>8<<8))
-#define SET_JMP(I,S)        I->b=(S)>>8; I->c=(S)-((S)>>8<<8)
+#define SET_Bx(I,B)         (I)->b=(B)>>8; (I)->c=(B)-((B)>>8<<8)
 #define INSPECT(K)          (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", FIX2INT(K)), buf))
 #define VBx(OP)             (unsigned short)(((OP.b<<8)+OP.c))
 
@@ -58,7 +57,8 @@ static void TrBlock_dump2(TrBlock *b, int level) {
     switch (op.i) {
       case TR_OP_LOADK:    printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->k, VBx(op)))); break;
       case TR_OP_STRING:   printf(" ; R[%d] = \"%s\"", op.a, kv_A(b->strings, VBx(op))); break;
-      case TR_OP_SEND:     printf(" ; R[%d].%s", op.a, INSPECT(kv_A(b->k, op.b))); break;
+      case TR_OP_LOOKUP:   printf(" ; R[%d] = R[%d].method(:%s)", op.a+1, op.a, INSPECT(kv_A(b->k, op.b))); break;
+      case TR_OP_CALL:     printf(" ; R[%d] = R[%d].R[%d](%d)", op.a, op.a, op.a+1, op.b); break;
       case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", INSPECT(kv_A(b->locals, op.a)), op.b); break;
       case TR_OP_GETLOCAL: printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->locals, op.b))); break;
     }
@@ -156,26 +156,32 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
         else
           PUSH_OP_A(SELF, reg);
         i = TrBlock_pushk(b, msg->args[0]);
-        PUSH_OP_AB(SEND, reg, i);
+        PUSH_OP_A(BOING, 0);
+        PUSH_OP_AB(LOOKUP, reg, i);
+        PUSH_OP_ABC(CALL, reg, 0, 0);
       }
     } break;
     case AST_IF:
     case AST_UNLESS: {
       TrCompiler_compile_node(c, b, (TrNode *)n->args[0], reg);
-      TrInst *jmp = n->ntype == AST_IF
-        ? PUSH_OP_ABx(JMPUNLESS, reg, 0)
-        : PUSH_OP_ABx(JMPIF, reg, 0);
+      if (n->ntype == AST_IF)
+        PUSH_OP_ABx(JMPUNLESS, reg, 0);
+      else
+        PUSH_OP_ABx(JMPIF, reg, 0);
       size_t i = kv_size(b->code);
       TR_ARRAY_EACH(n->args[1], i, v, { /* TODO fugly... */
         TrCompiler_compile_node(c, b, (TrNode *)v, reg);
       });
-      SET_JMP(jmp, kv_size(b->code) - i);
+      SET_Bx(b->code.a + i - 1, kv_size(b->code) - i);
     } break;
     case AST_BOOL:
       PUSH_OP_AB(BOOL, reg, n->args[0]);
       break;
     case AST_NIL:
       PUSH_OP_A(NIL, reg);
+      break;
+    case AST_SELF:
+      PUSH_OP_A(SELF, reg);
       break;
     default:
       printf("unknown node type: %d\n", n->ntype);

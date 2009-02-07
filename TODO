@@ -4,7 +4,7 @@
 [x] Implement Class
 [x] Implement Fixnum
 [x] Make parser output AST
-[ ] Implement if, unless
+[x] Implement if, unless
 [ ] Make stackless
 [ ] Implement simple method argument passing
 [ ] Bootstrap all class correctly
