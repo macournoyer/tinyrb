@@ -32,8 +32,8 @@
   comment     = "#"+ (any - newline)* newline;
   dot         = '.';
   assign      = '=' | '+=' | '-=';
-  unary       = '!';
-  binary      = '==' | '!=' | '||' | '&&' | '|' | '&' | '<' | '<=' | '>' | '>=' | '<<' | '>>' | '**' | '*' | '/' | '%' | '+' | '-' | '@@' | '@' | '..';
+  unop        = '!';
+  binop       = '==' | '!=' | '||' | '&&' | '|' | '&' | '<' | '<=' | '>' | '>=' | '<<' | '>>' | '**' | '*' | '/' | '%' | '+' | '-' | '@@' | '@' | '..';
   
   main := |*
     whitespace;
@@ -49,6 +49,7 @@
     "false"     => { TOKEN(FALSE); };
     "nil"       => { TOKEN(NIL); };
     "self"      => { TOKEN(SELF); };
+    "return"    => { TOKEN(RETURN); };
     
     # ponctuation
     ","         => { TOKEN(COMMA); };
@@ -61,7 +62,7 @@
     
     id          => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts))); };
     symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
-    #binary      => { TOKEN_V(OP, tr_intern(BUFFER(ts, te-ts))); };
+    binop       => { TOKEN_V(BINOP, tr_intern(BUFFER(ts, te-ts))); };
     assign      => { TOKEN_V(ASSIGN, tr_intern(BUFFER(ts, te-ts))); };
     string      => { TOKEN_V(STRING, TrString_new(vm, BUFFER(ts+1, te-ts-2), te-ts-2)); };
     int         => { TOKEN_V(INT, INT2FIX(atoi(BUFFER(ts, te-ts)))); };

@@ -32,6 +32,9 @@ statement(A) ::= expr(B). { A = B; }
 statement(A) ::= literal(B). { A = B; }
 statement(A) ::= flow(B). { A = B; }
 statement(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
+/*TODO*/
+statement(A) ::= literal(B) BINOP(C) statement(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
+statement(A) ::= expr(B) BINOP(C) statement(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
 
 flow(A) ::= IF statement(B) TERM statements(C) TERM END. { A = NODE2(IF, B, C); }
 flow(A) ::= UNLESS statement(B) TERM statements(C) TERM END. { A = NODE2(UNLESS, B, C); }
@@ -43,6 +46,7 @@ literal(A) ::= TRUE. { A = NODE(BOOL, 1); }
 literal(A) ::= FALSE. { A = NODE(BOOL, 0); }
 literal(A) ::= NIL. { A = NODE(NIL, 0); }
 literal(A) ::= SELF. { A = NODE(SELF, 0); }
+literal(A) ::= RETURN. { A = NODE(RETURN, 0); }
 
 expr(A) ::= expr(B) DOT msg(C). { A = NODE2(SEND, B, C); }
 expr(A) ::= literal(B) DOT msg(C). { A = NODE2(SEND, B, C); }

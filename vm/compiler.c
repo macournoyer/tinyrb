@@ -190,6 +190,9 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
     case AST_SELF:
       PUSH_OP_A(SELF, reg);
       break;
+    case AST_RETURN:
+      PUSH_OP_A(RETURN, reg);
+      break;
     default:
       printf("unknown node type: %d\n", n->ntype);
   }
