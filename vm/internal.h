@@ -14,6 +14,8 @@ typedef enum {
   AST_MSG,
   AST_IF,
   AST_UNLESS,
+  AST_WHILE,
+  AST_UNTIL,
   AST_BOOL,
   AST_NIL,
   AST_SELF,

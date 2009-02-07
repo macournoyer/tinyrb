@@ -38,6 +38,8 @@ statement(A) ::= expr(B) BINOP(C) statement(D). { A = NODE2(SEND, B, NODE2(MSG, 
 
 flow(A) ::= IF statement(B) TERM statements(C) TERM END. { A = NODE2(IF, B, C); }
 flow(A) ::= UNLESS statement(B) TERM statements(C) TERM END. { A = NODE2(UNLESS, B, C); }
+flow(A) ::= WHILE statement(B) TERM statements(C) TERM END. { A = NODE2(WHILE, B, C); }
+flow(A) ::= UNTIL statement(B) TERM statements(C) TERM END. { A = NODE2(UNTIL, B, C); }
 
 literal(A) ::= SYMBOL(B). { A = NODE(CONST, B); }
 literal(A) ::= INT(B). { A = NODE(CONST, B); }

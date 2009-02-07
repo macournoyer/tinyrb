@@ -14,6 +14,7 @@
 #define SET_Bx(I,B)         (I)->b=(B)>>8; (I)->c=(B)-((B)>>8<<8)
 #define INSPECT(K)          (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", FIX2INT(K)), buf))
 #define VBx(OP)             (unsigned short)(((OP.b<<8)+OP.c))
+#define sVBx(OP)            (short)(((OP.b<<8)+OP.c))
 
 /* ast node */
 OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c) {
@@ -61,6 +62,7 @@ static void TrBlock_dump2(TrBlock *b, int level) {
       case TR_OP_CALL:     printf(" ; R[%d] = R[%d].R[%d](%d)", op.a, op.a, op.a+1, op.b); break;
       case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", INSPECT(kv_A(b->locals, op.a)), op.b); break;
       case TR_OP_GETLOCAL: printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->locals, op.b))); break;
+      case TR_OP_JMP:      printf(" ; %d", sVBx(op)); break;
     }
     printf("\n");
   }
@@ -180,6 +182,21 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
         TrCompiler_compile_node(c, b, (TrNode *)v, reg);
       });
       SET_Bx(b->code.a + i - 1, kv_size(b->code) - i);
+    } break;
+    case AST_WHILE:
+    case AST_UNTIL: {
+      size_t jmp_beg = kv_size(b->code);
+      TrCompiler_compile_node(c, b, (TrNode *)n->args[0], reg);
+      if (n->ntype == AST_WHILE)
+        PUSH_OP_ABx(JMPUNLESS, reg, 0);
+      else
+        PUSH_OP_ABx(JMPIF, reg, 0);
+      size_t jmp_end = kv_size(b->code);
+      TR_ARRAY_EACH(n->args[1], i, v, { /* TODO fugly... */
+        TrCompiler_compile_node(c, b, (TrNode *)v, reg);
+      });
+      SET_Bx(b->code.a + jmp_end - 1, kv_size(b->code) - jmp_end + 1);
+      PUSH_OP_ABx(JMP, 0, 0-(kv_size(b->code) - jmp_beg));
     } break;
     case AST_BOOL:
       PUSH_OP_AB(BOOL, reg, n->args[0]);

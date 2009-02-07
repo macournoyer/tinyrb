@@ -5,12 +5,12 @@
 [x] Implement Fixnum
 [x] Make parser output AST
 [x] Implement if, unless
+[x] Implement simple method argument passing
+[ ] Implement while, until
 [ ] Make stackless
-[ ] Implement simple method argument passing
 [ ] Bootstrap all class correctly
 [ ] Implement basic method definition
 [ ] Implement basic class definition
-[ ] Implement while, until
 [ ] Replace kvec & khash w/ http://sglib.sourceforge.net/
 [ ] Implement Array
 [ ] Implement Hash

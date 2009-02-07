@@ -100,7 +100,7 @@ static OBJ TrVM_step(VM) {
       DISPATCH;
       
     /* jumps */
-    OP(JMP):        ip += A; DISPATCH;
+    OP(JMP):        ip += sBx; DISPATCH;
     OP(JMPIF):      if (TR_TEST(R[A])) ip += sBx; DISPATCH;
     OP(JMPUNLESS):  if (!TR_TEST(R[A])) ip += sBx; DISPATCH;
   END_OPCODES;

@@ -42,8 +42,8 @@
     # keywords
     "if"        => { TOKEN(IF); };
     "unless"    => { TOKEN(UNLESS); };
-    # "while"     => { TOKEN(WHILE); };
-    # "until"     => { TOKEN(UNTIL); };
+    "while"     => { TOKEN(WHILE); };
+    "until"     => { TOKEN(UNTIL); };
     "end"       => { TOKEN(END); };
     "true"      => { TOKEN(TRUE); };
     "false"     => { TOKEN(FALSE); };
@@ -55,10 +55,6 @@
     ","         => { TOKEN(COMMA); };
     "("         => { TOKEN(O_PAR); };
     ")"         => { TOKEN(C_PAR); };
-    # "{"         => { TOKEN(O_BRA); };
-    # "}"         => { TOKEN(C_BRA); };
-    # "["         => { TOKEN(O_SQ_BRA); };
-    # "]"         => { TOKEN(C_SQ_BRA); };
     
     id          => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts))); };
     symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
