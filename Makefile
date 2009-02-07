@@ -12,33 +12,38 @@ RAGEL = ragel
 all: tinyrb
 
 .c.o:
-	${CC} -c ${CFLAGS} ${INCS} -o $@ $<
+	@echo "   cc $<"
+	@${CC} -c ${CFLAGS} ${INCS} -o $@ $<
 
 tinyrb: ${OBJ_MIN} ${OBJ}
-	${CC} ${CFLAGS} ${OBJ_POTION} ${OBJ} ${LIBS} -o tinyrb
+	@echo "   cc $<"
+	@${CC} ${CFLAGS} ${OBJ_POTION} ${OBJ} ${LIBS} -o tinyrb
 
 vm/scanner.c: vm/scanner.rl
-	${RAGEL} vm/scanner.rl -C -o $@
+	@echo ragel $<
+	@${RAGEL} $< -C -o $@
 
 vm/grammar.c: ${LEMON} vm/grammar.y
-	${LEMON} vm/grammar.y
+	@echo lemon vm/grammar.y
+	@${LEMON} vm/grammar.y
 
 ${LEMON}: ${LEMON}.c
-	${CC} -o ${LEMON} ${LEMON}.c
+	@echo "   cc lemon"
+	@${CC} -o ${LEMON} ${LEMON}.c
 
 test: tinyrb
 	@ruby test/runner
 
 sloc: clean
 	@cp vm/scanner.rl vm/scanner.rl.c
-	sloccount vm
+	@sloccount vm
 	@rm vm/scanner.rl.c
 
 size: clean
 	@ruby -e 'puts "%0.2fK" % (Dir["vm/**.{c,y,rl,h}"].inject(0) {|s,f| s += File.size(f)} / 1024.0)'
 
 clean:
-	rm -f vm/*.o vm/scanner.c vm/grammar.{c,h,out}
+	@rm -f vm/*.o vm/scanner.c vm/grammar.{c,h,out}
 
 rebuild: clean tinyrb
 

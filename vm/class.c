@@ -33,14 +33,15 @@ OBJ TrClass_name(VM, OBJ self) {
 
 void TrClass_init(VM) {
   OBJ c = TR_INIT_CLASS(Class, Object);
-  tr_def(c, "name", TrClass_name);
+  tr_def(c, "name", TrClass_name, 0);
 }
 
 /* method */
 
-OBJ TrMethod_new(VM, TrFunc *func, OBJ data) {
+OBJ TrMethod_new(VM, TrFunc *func, OBJ data, int arity) {
   TrMethod *m = TR_INIT_OBJ(Method);
   m->func = func;
   m->data = data;
+  m->arity = arity;
   return (OBJ)m;
 }

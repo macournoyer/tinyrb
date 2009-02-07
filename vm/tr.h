@@ -74,7 +74,7 @@
 
 #define tr_intern(S)         TrSymbol_new(vm, (S))
 #define tr_raise(M,A...)     (printf("Error: "), printf(M, ##A), assert(0))
-#define tr_def(C,N,F)        TrClass_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL))
+#define tr_def(C,N,F,A)      TrClass_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_send(R,MSG,A...)  ({ \
   OBJ r = TR_BOX(R); \
   TrMethod *m = TR_CMETHOD(TrObject_method(vm, r, (MSG))); \
@@ -118,12 +118,12 @@ typedef struct {
   TR_OBJECT_HEADER;
   TrFunc *func;
   OBJ data;
+  int arity;
 } TrMethod;
 
 typedef struct {
   struct TrBlock *block;
   TrMethod *method;  /* current called method */
-  OBJ *params;
   OBJ *regs;
   OBJ *locals;
   OBJ self;
@@ -201,7 +201,7 @@ OBJ TrClass_new(VM, OBJ name, OBJ super);
 OBJ TrClass_lookup(VM, OBJ self, OBJ name);
 OBJ TrClass_add_method(VM, OBJ self, OBJ name, OBJ method);
 void TrClass_init(VM);
-OBJ TrMethod_new(VM, TrFunc *func, OBJ data);
+OBJ TrMethod_new(VM, TrFunc *func, OBJ data, int arity);
 
 /* compiler */
 TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace);

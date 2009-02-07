@@ -16,6 +16,6 @@ OBJ TrFixnum_to_s(VM, OBJ self) {
 
 void TrFixnum_init(VM) {
   OBJ c = TR_INIT_CLASS(Fixnum, Object);
-  tr_def(c, "+", TrFixnum_add);
-  tr_def(c, "to_s", TrFixnum_to_s);
+  tr_def(c, "+", TrFixnum_add, 1);
+  tr_def(c, "to_s", TrFixnum_to_s, 0);
 }

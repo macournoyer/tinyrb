@@ -7,7 +7,6 @@ static void TrFrame_init(VM, size_t i, TrBlock *b) {
   TrFrame *f = &vm->frames[i];
   f->block = b;
   f->method = TR_NIL;
-  f->params = TR_NIL;
   f->regs = TR_ALLOC_N(OBJ, b->regc);
   f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals));
   f->self = TR_NIL;
@@ -79,20 +78,24 @@ static OBJ TrVM_step(VM) {
       DISPATCH;
     OP(CALL):
       f->method = TR_CMETHOD(R[A+1]);
-      /* TODO check argc against arity */
-      switch (B) {
-        case 0:  R[A] = f->method->func(vm, R[A]); break;
-        case 1:  R[A] = f->method->func(vm, R[A], R[A+2]); break;
-        case 2:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3]); break;
-        case 3:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4]); break;
-        case 4:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5]); break;
-        case 5:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6]); break;
-        case 6:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7]); break;
-        case 7:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8]); break;
-        case 8:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9]); break;
-        case 9:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9], R[A+10]); break;
-        case 10: R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9], R[A+10], R[A+11]); break;
-        default: tr_raise("Too much arguments");
+      if (f->method->arity == -1) {
+        R[A] = f->method->func(vm, R[A], (int)B, &R[A+2]);
+      } else {
+        if (f->method->arity != B) tr_raise("Expected %d arguments, got %d.\n", f->method->arity, B);
+        switch (B) {
+          case 0:  R[A] = f->method->func(vm, R[A]); break;
+          case 1:  R[A] = f->method->func(vm, R[A], R[A+2]); break;
+          case 2:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3]); break;
+          case 3:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4]); break;
+          case 4:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5]); break;
+          case 5:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6]); break;
+          case 6:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7]); break;
+          case 7:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8]); break;
+          case 8:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9]); break;
+          case 9:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9], R[A+10]); break;
+          case 10: R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9], R[A+10], R[A+11]); break;
+          default: tr_raise("Too much arguments: %d, max is %d for now.\n", B, 10);
+        }
       }
       DISPATCH;
       

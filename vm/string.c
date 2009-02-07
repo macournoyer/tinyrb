@@ -62,8 +62,8 @@ OBJ TrString_new2(VM, const char *str) {
 
 void TrString_init(VM) {
   OBJ c = TR_INIT_CLASS(String, Object);
-  tr_def(c, "to_s", TrString_to_s);
-  tr_def(c, "size", TrString_size);
+  tr_def(c, "to_s", TrString_to_s, 0);
+  tr_def(c, "size", TrString_size, 0);
 }
 
 OBJ tr_sprintf(VM, const char *fmt, ...) {
@@ -83,5 +83,5 @@ OBJ tr_sprintf(VM, const char *fmt, ...) {
 
 void TrSymbol_init(VM) {
   OBJ c = TR_INIT_CLASS(Symbol, Object);
-  tr_def(c, "to_s", TrSymbol_to_s);
+  tr_def(c, "to_s", TrSymbol_to_s, 0);
 }
