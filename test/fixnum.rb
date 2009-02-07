@@ -1,5 +1,5 @@
-1.display
+puts(1)
 # => 1
 
-10.class.name.display
+puts(10.class.name)
 # => Fixnum

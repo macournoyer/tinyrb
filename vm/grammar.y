@@ -50,3 +50,8 @@ expr(A) ::= msg(B). { A = NODE2(SEND, TR_NIL, B); }
 
 msg(A) ::= ID(B). { A = NODE(MSG, B); }
 msg(A) ::= ID(B) O_PAR C_PAR. { A = NODE(MSG, B); }
+msg(A) ::= ID(B) O_PAR args(C) C_PAR. { A = NODE2(MSG, B, C); }
+/*msg(A) ::= ID(B) args(C). { A = NODE2(MSG, B, C); }*/
+
+args(A) ::= args(B) COMMA statement(C). { A = PUSH(B, C); }
+args(A) ::= statement(B). { A = NODES(B); }

@@ -1,19 +1,19 @@
 if true
-  :true.display
+  puts(:true)
 end
 # => true
 
 if false
-  :nope.display
+  puts(:nope)
 end
 # =>
 
 if nil
-  :nope.display
+  puts(:nope)
 end
 # =>
 
 unless nil
-  :yay.display
+  puts(:yay)
 end
 # => yay

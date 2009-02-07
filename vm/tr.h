@@ -28,6 +28,7 @@
 #define TR_CMETHOD(X)        ((TrMethod*)X)
 
 #define TR_STR_PTR(S)        (TR_CSTRING(S)->ptr)
+#define TR_STR_LEN(S)        (TR_CSTRING(S)->len)
 #define TR_ARRAY_PUSH(X,I)   kv_push(OBJ, (TR_CARRAY(X))->kv, (I))
 #define TR_ARRAY_AT(X,I)     kv_A((TR_CARRAY(X))->kv, (I))
 #define TR_ARRAY_SIZE(X)     kv_size(TR_CARRAY(X)->kv)
@@ -177,6 +178,7 @@ OBJ TrVM_run(VM, TrBlock *code);
 OBJ TrSymbol_new(VM, const char *str);
 OBJ TrString_new(VM, const char *str, size_t len);
 OBJ TrString_new2(VM, const char *str);
+OBJ tr_sprintf(VM, const char *fmt, ...);
 void TrSymbol_init(VM);
 void TrString_init(VM);
 

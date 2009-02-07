@@ -1,11 +1,11 @@
 x = :ohaie
-x.display
+puts(x)
 # => ohaie
 
 y = x
-y.display
+puts(y)
 # => ohaie
 
 a = b = :muffin
-a.display
+puts(a)
 # => muffin

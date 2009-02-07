@@ -31,14 +31,12 @@ static void TrFrame_init(VM, size_t i, TrBlock *b) {
 #endif
 
 /* register access macros */
-#define VA   ((int)e.a)
-#define VB   ((int)e.b)
-#define VC   ((int)e.c)
-#define RA   regs[e.a]
-#define RB   regs[e.b]
-#define RC   regs[e.c]
-#define VBx  (unsigned short)(((VB<<8)+VC))
-#define sVBx (short)(((VB<<8)+VC))
+#define A   (e.a)
+#define B   (e.b)
+#define C   (e.c)
+#define R   regs
+#define Bx  (unsigned short)(((B<<8)+C))
+#define sBx (short)(((B<<8)+C))
 
 static OBJ TrVM_step(VM) {
   TrFrame *f = FRAME;
@@ -57,38 +55,51 @@ static OBJ TrVM_step(VM) {
     OP(BOING):      DISPATCH;
     
     /* register loading */
-    OP(MOVE):       RA = RB; DISPATCH;
-    OP(LOADK):      RA = k[VBx]; DISPATCH;
-    OP(STRING):     RA = TrString_new2(vm, strings[VBx]); DISPATCH;
-    OP(SELF):       RA = f->self; DISPATCH;
-    OP(SETLOCAL):   locals[VA] = RB; DISPATCH;
-    OP(GETLOCAL):   RA = locals[VB]; DISPATCH;
-    OP(NIL):        RA = TR_NIL; DISPATCH;
-    OP(BOOL):       RA = VB+1; DISPATCH;
-    OP(RETURN):     return RA;
+    OP(MOVE):       R[A] = R[B]; DISPATCH;
+    OP(LOADK):      R[A] = k[Bx]; DISPATCH;
+    OP(STRING):     R[A] = TrString_new2(vm, strings[Bx]); DISPATCH;
+    OP(SELF):       R[A] = f->self; DISPATCH;
+    OP(SETLOCAL):   locals[A] = R[B]; DISPATCH;
+    OP(GETLOCAL):   R[A] = locals[B]; DISPATCH;
+    OP(NIL):        R[A] = TR_NIL; DISPATCH;
+    OP(BOOL):       R[A] = B+1; DISPATCH;
+    OP(RETURN):     return R[A];
     
     /* method calling */
     OP(LOOKUP):
-      RA = TR_BOX(RA);
-      regs[e.a+1] = TrObject_method(vm, RA, k[VB]);
-      if (!regs[e.a+1]) tr_raise("Method not found: %s\n", TR_STR_PTR(k[VB]));
+      R[A] = TR_BOX(R[A]);
+      R[A+1] = TrObject_method(vm, R[A], k[B]);
+      if (!R[A+1]) tr_raise("Method not found: %s\n", TR_STR_PTR(k[B]));
       /* TODO replace previous instruction w/ CACHE */
       DISPATCH;
     OP(CACHE):
       /* TODO how to expire cache? */
-      RA = TR_BOX(RA);
-      if (TR_TYPE(RA) == VC) ip += VB;
+      R[A] = TR_BOX(R[A]);
+      if (TR_TYPE(R[A]) == C) ip += B;
       DISPATCH;
     OP(CALL):
-      f->method = TR_CMETHOD(regs[e.a+1]);
-      /* TODO set f->args */
-      RA = f->method->func(vm, RA);
+      f->method = TR_CMETHOD(R[A+1]);
+      /* TODO check argc against arity */
+      switch (B) {
+        case 0:  R[A] = f->method->func(vm, R[A]); break;
+        case 1:  R[A] = f->method->func(vm, R[A], R[A+2]); break;
+        case 2:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3]); break;
+        case 3:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4]); break;
+        case 4:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5]); break;
+        case 5:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6]); break;
+        case 6:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7]); break;
+        case 7:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8]); break;
+        case 8:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9]); break;
+        case 9:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9], R[A+10]); break;
+        case 10: R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9], R[A+10], R[A+11]); break;
+        default: tr_raise("Too much arguments");
+      }
       DISPATCH;
       
     /* jumps */
-    OP(JMP):        ip += VA; DISPATCH;
-    OP(JMPIF):      if (TR_TEST(RA)) ip += sVBx; DISPATCH;
-    OP(JMPUNLESS):  if (!TR_TEST(RA)) ip += sVBx; DISPATCH;
+    OP(JMP):        ip += A; DISPATCH;
+    OP(JMPIF):      if (TR_TEST(R[A])) ip += sBx; DISPATCH;
+    OP(JMPUNLESS):  if (!TR_TEST(R[A])) ip += sBx; DISPATCH;
   END_OPCODES;
 }
 

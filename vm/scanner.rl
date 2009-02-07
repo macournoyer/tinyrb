@@ -51,7 +51,7 @@
     "self"      => { TOKEN(SELF); };
     
     # ponctuation
-    # ","         => { TOKEN(COMMA); };
+    ","         => { TOKEN(COMMA); };
     "("         => { TOKEN(O_PAR); };
     ")"         => { TOKEN(C_PAR); };
     # "{"         => { TOKEN(O_BRA); };

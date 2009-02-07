@@ -1,8 +1,8 @@
-"ohaie".display
+puts("ohaie")
 # => ohaie
 
-"ohaie".size.display
+puts("ohaie".size)
 # => 5
 
-"ohaie".class.name.display
+puts("ohaie".class.name)
 # => String

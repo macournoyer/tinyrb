@@ -1,5 +1,4 @@
-:ohaie.display
+puts(:ohaie)
 # => ohaie
-:ohaie.display.display
-# => ohaie
+puts(:ohaie.to_s.to_s)
 # => ohaie

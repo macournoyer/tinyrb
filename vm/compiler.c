@@ -158,7 +158,14 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
         i = TrBlock_pushk(b, msg->args[0]);
         PUSH_OP_A(BOING, 0);
         PUSH_OP_AB(LOOKUP, reg, i);
-        PUSH_OP_ABC(CALL, reg, 0, 0);
+        size_t argc = 0;
+        if (msg->args[1]) {
+          argc = TR_ARRAY_SIZE(msg->args[1]);
+          TR_ARRAY_EACH(msg->args[1], i, v, {
+            TrCompiler_compile_node(c, b, (TrNode *)v, reg+i+2);
+          });
+        }
+        PUSH_OP_ABC(CALL, reg, argc, 0);
       }
     } break;
     case AST_IF:

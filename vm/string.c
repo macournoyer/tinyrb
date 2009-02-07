@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdio.h>
 #include "tr.h"
 
@@ -33,8 +34,11 @@ OBJ TrSymbol_new(VM, const char *str) {
   return id;
 }
 
-static OBJ TrString_display(VM, OBJ self) {
-  printf("%s\n", TR_STR_PTR(self));
+static OBJ TrSymbol_to_s(VM, OBJ self) {
+  return TrString_new(vm, TR_STR_PTR(self), TR_STR_LEN(self));
+}
+
+static OBJ TrString_to_s(VM, OBJ self) {
   return self;
 }
 
@@ -58,11 +62,26 @@ OBJ TrString_new2(VM, const char *str) {
 
 void TrString_init(VM) {
   OBJ c = TR_INIT_CLASS(String, Object);
-  tr_def(c, "display", TrString_display);
+  tr_def(c, "to_s", TrString_to_s);
   tr_def(c, "size", TrString_size);
+}
+
+OBJ tr_sprintf(VM, const char *fmt, ...) {
+  va_list arg;
+  va_start(arg, fmt);
+  int len = vsnprintf(NULL, 0, fmt, arg);
+  char *ptr = TR_ALLOC_N(char, len);
+  va_end(arg);
+  va_start(arg, fmt);
+  vsprintf(ptr, fmt, arg);
+  va_end(arg);
+  /* TODO do not allocate twice */
+  OBJ str = TrString_new(vm, ptr, len);
+  free(ptr);
+  return str;
 }
 
 void TrSymbol_init(VM) {
   OBJ c = TR_INIT_CLASS(Symbol, Object);
-  tr_def(c, "display", TrString_display);
+  tr_def(c, "to_s", TrSymbol_to_s);
 }
