@@ -6,4 +6,4 @@ vm/grammar.c
 vm/grammar.h
 vm/grammar.out
 
-tools/lemon/lemon
+vendor/lemon/lemon

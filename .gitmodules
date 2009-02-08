@@ -1,6 +1,0 @@
-[submodule "vm/vendor/garbagecollector"]
-	path = vm/vendor/garbagecollector
-	url = git://github.com/stevedekorte/libgarbagecollector.git
-[submodule "vm/vendor/basekit"]
-	path = vm/vendor/basekit
-	url = git://github.com/stevedekorte/libbasekit.git
