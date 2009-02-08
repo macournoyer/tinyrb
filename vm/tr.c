@@ -51,7 +51,7 @@ static int eval_file(char *filename, int verbose) {
     perror(filename);
   }
   
-  free(buf);
+  TR_FREE(buf);
   
   return 0;
 }

@@ -11,7 +11,7 @@
 #define TOKEN(id)     TOKEN_V(id, 0)
 
 #define BUFFER(str,l)  ({ \
-  if (buf) free(buf); \
+  if (buf) TR_FREE(buf); \
   buf = TR_ALLOC_N(char, (l)); \
   TR_MEMCPY_N(buf, (str), char, (l)); \
   buf[(l)] = '\0'; \
@@ -69,10 +69,13 @@
   write data nofinal;
 }%%
 
+inline void *tr_malloc(size_t size) { return TR_MALLOC(size); }
+inline void tr_free(void *ptr) { return TR_FREE(ptr); }
+
 TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace) {
   int cs, act;
   char *p, *pe, *ts, *te, *eof = 0;
-  void *parser = TrParserAlloc(malloc);
+  void *parser = TrParserAlloc(tr_malloc);
   int last = 0;
   char *buf = 0;
   FILE *tracef = 0;
@@ -90,8 +93,8 @@ TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace) {
   %% write exec;
   
   TrParser(parser, 0, 0, compiler);
-  TrParserFree(parser, free);
-  if (buf) free(buf);
+  TrParserFree(parser, tr_free);
+  if (buf) TR_FREE(buf);
   
   if (trace)
     fclose(tracef);

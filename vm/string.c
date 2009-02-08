@@ -76,7 +76,7 @@ OBJ tr_sprintf(VM, const char *fmt, ...) {
   va_end(arg);
   /* TODO do not allocate twice */
   OBJ str = TrString_new(vm, ptr, len);
-  free(ptr);
+  TR_FREE(ptr);
   return str;
 }
 

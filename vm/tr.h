@@ -8,7 +8,6 @@
 #include "config.h"
 #include "vendor/kvec.h"
 #include "vendor/khash.h"
-#include "gc.h"
 
 #define TR_COBJECT(X)        ((TrObject*)X)
 #define TR_TYPE(X)           (TR_COBJECT(X)->type)
