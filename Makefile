@@ -1,13 +1,15 @@
+CC = gcc
+CFLAGS = -Wall -DDEBUG -g -O2
+INCS = -Ivm -Ivm/vendor/basekit/_build/headers
+BASEKIT = vm/vendor/basekit/_build/lib/libbasekit.a
+GC = vm/vendor/garbagecollector/_build/lib/libgarbagecollector.a
+LIBS = ${BASEKIT} ${GC}
+LEMON = tools/lemon/lemon
+RAGEL = ragel
+
 SRC = vm/string.c vm/number.c vm/array.c vm/class.c vm/object.c vm/compiler.c vm/grammar.c vm/scanner.c vm/vm.c vm/tr.c
 OBJ = ${SRC:.c=.o}
 OBJ_MIN = vm/tr.o
-
-CC = gcc
-CFLAGS = -Wall -DDEBUG -g -O2
-INCS = -Ivm
-LEMON = tools/lemon/lemon
-LIBS = 
-RAGEL = ragel
 
 all: tinyrb
 
@@ -15,8 +17,7 @@ all: tinyrb
 	@echo "   cc $<"
 	@${CC} -c ${CFLAGS} ${INCS} -o $@ $<
 
-tinyrb: ${OBJ_MIN} ${OBJ}
-	@echo "   cc $<"
+tinyrb: ${LIBS} ${OBJ}
 	@${CC} ${CFLAGS} ${OBJ_POTION} ${OBJ} ${LIBS} -o tinyrb
 
 vm/scanner.c: vm/scanner.rl
@@ -30,6 +31,16 @@ vm/grammar.c: ${LEMON} vm/grammar.y
 ${LEMON}: ${LEMON}.c
 	@echo "   cc lemon"
 	@${CC} -o ${LEMON} ${LEMON}.c
+
+${BASEKIT}:
+	@echo " make basekit"
+	@cd vm/vendor/basekit && make -s
+
+${GC}:
+	@echo " make garbagecollector"
+	@cp -f vm/vendor/basekit/Makefile.lib vm/Makefile.lib
+	@cd vm/vendor/garbagecollector && make
+	@rm vm/vendor/basekit/Makefile.lib
 
 test: tinyrb
 	@ruby test/runner
