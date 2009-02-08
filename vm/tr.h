@@ -9,14 +9,6 @@
 #include "khash.h"
 #include "config.h"
 
-#define TR_ALLOC(T)          (T *)malloc(sizeof(T))
-#define TR_ALLOC_N(T,N)      (T *)malloc(sizeof(T)*(N))
-
-#define TR_MEMZERO(X,T)      memset((X), 0, sizeof(T))
-#define TR_MEMZERO_N(X,T,N)  memset((X), 0, sizeof(T)*(N))
-#define TR_MEMCPY(X,Y,T)     memcpy((X), (Y), sizeof(T))
-#define TR_MEMCPY_N(X,Y,T,N) memcpy((X), (Y), sizeof(T)*(N))
-
 #define TR_COBJECT(X)        ((TrObject*)X)
 #define TR_TYPE(X)           (TR_COBJECT(X)->type)
 #define TR_IS_A(X,T)         (TR_TYPE(X) == TR_T_##T)
@@ -65,8 +57,8 @@
   o->class = vm->classes[TR_T_##T]; \
   o; \
 })
-#define TR_CLASS(T)           vm->classes[TR_T_##T]
-#define TR_INIT_CLASS(T,S)    TR_CLASS(T) = TrClass_new(vm, tr_intern(#T), TR_CLASS(S))
+#define TR_CLASS(T)          vm->classes[TR_T_##T]
+#define TR_INIT_CLASS(T,S)   TR_CLASS(T) = TrClass_new(vm, tr_intern(#T), TR_CLASS(S))
 
 #define tr_intern(S)         TrSymbol_new(vm, (S))
 #define tr_raise(M,A...)     (printf("Error: "), printf(M, ##A), assert(0))

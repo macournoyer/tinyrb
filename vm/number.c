@@ -1,4 +1,5 @@
 #include "tr.h"
+#include "internal.h"
 
 OBJ TrFixnum_new(VM, int value) {
   TrFixnum *n = TR_INIT_OBJ(Fixnum);

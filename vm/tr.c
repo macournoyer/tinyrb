@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include "tr.h"
+#include "internal.h"
 
 static int usage() {
   printf("usage: tinyrb [options] [file]\n"

@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include "tr.h"
+#include "internal.h"
 
 static OBJ TrSymbol_lookup(VM, const char *str) {
   khash_t(str) *kh = vm->symbols;

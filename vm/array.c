@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include "tr.h"
+#include "internal.h"
 
 OBJ TrArray_new(VM) {
   TrArray *a = TR_INIT_OBJ(Array);

@@ -1,4 +1,5 @@
 #include "tr.h"
+#include "internal.h"
 
 OBJ TrObject_new(VM) {
   return (OBJ) TR_INIT_OBJ(Object);

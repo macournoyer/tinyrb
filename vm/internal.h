@@ -1,8 +1,20 @@
-#define NODE(T,A)      TrNode_new(compiler->vm, AST_##T, (A), 0, 0)
-#define NODE2(T,A,B)   TrNode_new(compiler->vm, AST_##T, (A), (B), 0)
-#define NODE3(T,A,B,C) TrNode_new(compiler->vm, AST_##T, (A), (B), (C))
-#define NODES(N)       TrArray_new2(compiler->vm, 1, (N))
-#define PUSH(A,N)      (({ TR_ARRAY_PUSH((A), (N)); }), A)
+#ifndef _INTERNAL_H_
+#define _INTERNAL_H_
+
+#define TR_ALLOC(T)          (T *)malloc(sizeof(T))
+#define TR_ALLOC_N(T,N)      (T *)malloc(sizeof(T)*(N))
+
+#define TR_MEMZERO(X,T)      memset((X), 0, sizeof(T))
+#define TR_MEMZERO_N(X,T,N)  memset((X), 0, sizeof(T)*(N))
+#define TR_MEMCPY(X,Y,T)     memcpy((X), (Y), sizeof(T))
+#define TR_MEMCPY_N(X,Y,T,N) memcpy((X), (Y), sizeof(T)*(N))
+
+/* ast building macros */
+#define NODE(T,A)            TrNode_new(compiler->vm, AST_##T, (A), 0, 0)
+#define NODE2(T,A,B)         TrNode_new(compiler->vm, AST_##T, (A), (B), 0)
+#define NODE3(T,A,B,C)       TrNode_new(compiler->vm, AST_##T, (A), (B), (C))
+#define NODES(N)             TrArray_new2(compiler->vm, 1, (N))
+#define PUSH(A,N)            (({ TR_ARRAY_PUSH((A), (N)); }), A)
 
 typedef enum {
   AST_ROOT,
@@ -49,3 +61,5 @@ void *TrParserAlloc(void *(*)(size_t));
 void TrParser(void *, int, OBJ, TrCompiler *);
 void TrParserFree(void *, void (*)(void*));
 void TrParserTrace(FILE *stream, char *zPrefix);
+
+#endif /* _INTERNAL_H_ */

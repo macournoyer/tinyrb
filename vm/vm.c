@@ -2,6 +2,7 @@
 #include <assert.h>
 #include "tr.h"
 #include "opcode.h"
+#include "internal.h"
 
 static void TrFrame_init(VM, size_t i, TrBlock *b) {
   TrFrame *f = &vm->frames[i];
