@@ -8,6 +8,8 @@
 #include "config.h"
 #include "vendor/kvec.h"
 #include "vendor/khash.h"
+#include "Collector.h"
+#include "CollectorMarker.h"
 
 #define TR_COBJECT(X)        ((TrObject*)X)
 #define TR_TYPE(X)           (TR_COBJECT(X)->type)
@@ -47,6 +49,7 @@
 #define TR_BOX(X)            (X) /* TODO box nil, false, true */
 
 #define TR_OBJECT_HEADER \
+  CollectorMarker marker; \
   TR_T type; \
   OBJ class; \
   OBJ metaclass; \
@@ -126,6 +129,7 @@ typedef struct TrVM {
   OBJ classes[TR_T_MAX];
   TrFrame frames[TR_MAX_FRAMES];
   size_t cf; /* current frame */
+  Collector *collector;
 } TrVM;
 
 typedef struct {

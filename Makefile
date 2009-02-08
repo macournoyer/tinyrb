@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -DDEBUG -g -O2
-INCS = -Ivm -Ivm/vendor/basekit/_build/headers
+INCS = -Ivm -Ivm/vendor/basekit/_build/headers -Ivm/vendor/garbagecollector/_build/headers
 BASEKIT = vm/vendor/basekit/_build/lib/libbasekit.a
 GC = vm/vendor/garbagecollector/_build/lib/libgarbagecollector.a
 LIBS = ${BASEKIT} ${GC}
