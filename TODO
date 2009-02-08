@@ -6,10 +6,11 @@
 [x] Make parser output AST
 [x] Implement if, unless
 [x] Implement simple method argument passing
-[ ] Implement while, until
-[ ] Make stackless
+[x] Implement while, until
+[ ] Include GC (Io libgarbagecollector)
 [ ] Bootstrap all class correctly
 [ ] Implement basic method definition
+[ ] Make stackless
 [ ] Implement basic class definition
 [ ] Replace kvec & khash w/ http://sglib.sourceforge.net/
 [ ] Implement Array
@@ -18,7 +19,6 @@
 == Later
 [ ] Implement splatted args
 [ ] Implement exceptions
-[ ] Implement tricolor GC (look at tinypy)
 [ ] Implement Proc, yield and the like
 [ ] Monomorphic method cache
 [ ] Remove useless register allocations in compiler
