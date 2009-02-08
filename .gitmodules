@@ -1,0 +1,3 @@
+[submodule "vm/vendor/libgarbagecollector"]
+	path = vm/vendor/libgarbagecollector
+	url = git://github.com/stevedekorte/libgarbagecollector.git
