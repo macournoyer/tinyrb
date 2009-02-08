@@ -39,8 +39,8 @@ ${BASEKIT}:
 ${GC}:
 	@echo " make garbagecollector"
 	@cp -f vm/vendor/basekit/Makefile.lib vm/Makefile.lib
-	@cd vm/vendor/garbagecollector && make
-	@rm vm/vendor/basekit/Makefile.lib
+	@cd vm/vendor/garbagecollector && make -s
+	@rm vm/Makefile.lib
 
 test: tinyrb
 	@ruby test/runner
