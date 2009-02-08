@@ -1,3 +1,6 @@
 [submodule "vm/vendor/libgarbagecollector"]
 	path = vm/vendor/libgarbagecollector
 	url = git://github.com/stevedekorte/libgarbagecollector.git
+[submodule "vm/vendor/libbasekit"]
+	path = vm/vendor/libbasekit
+	url = git://github.com/stevedekorte/libbasekit.git
