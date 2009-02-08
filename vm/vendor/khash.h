@@ -122,9 +122,9 @@ static const double __ac_HASH_UPPER = 0.77;
 	static inline void kh_destroy_##name(kh_##name##_t *h)				\
 	{																	\
 		if (h) {														\
-			free(h->keys); free(h->flags);								\
-			free(h->vals);												\
-			free(h);													\
+			TR_FREE(h->keys); TR_FREE(h->flags);								\
+			TR_FREE(h->vals);												\
+			TR_FREE(h);													\
 		}																\
 	}																	\
 	static inline void kh_clear_##name(kh_##name##_t *h)				\
@@ -158,12 +158,12 @@ static const double __ac_HASH_UPPER = 0.77;
 			new_n_buckets = __ac_prime_list[t+1];						\
 			if (h->size >= (khint_t)(new_n_buckets * __ac_HASH_UPPER + 0.5)) j = 0;	\
 			else {														\
-				new_flags = (uint32_t*)malloc(((new_n_buckets>>4) + 1) * sizeof(uint32_t));	\
+				new_flags = (uint32_t*)TR_MALLOC(((new_n_buckets>>4) + 1) * sizeof(uint32_t));	\
 				memset(new_flags, 0xaa, ((new_n_buckets>>4) + 1) * sizeof(uint32_t)); \
 				if (h->n_buckets < new_n_buckets) {						\
-					h->keys = (khkey_t*)realloc(h->keys, new_n_buckets * sizeof(khkey_t)); \
+					h->keys = (khkey_t*)TR_REALLOC(h->keys, new_n_buckets * sizeof(khkey_t)); \
 					if (kh_is_map)										\
-						h->vals = (khval_t*)realloc(h->vals, new_n_buckets * sizeof(khval_t)); \
+						h->vals = (khval_t*)TR_REALLOC(h->vals, new_n_buckets * sizeof(khval_t)); \
 				}														\
 			}															\
 		}																\
@@ -197,11 +197,11 @@ static const double __ac_HASH_UPPER = 0.77;
 				}														\
 			}															\
 			if (h->n_buckets > new_n_buckets) {							\
-				h->keys = (khkey_t*)realloc(h->keys, new_n_buckets * sizeof(khkey_t)); \
+				h->keys = (khkey_t*)TR_REALLOC(h->keys, new_n_buckets * sizeof(khkey_t)); \
 				if (kh_is_map)											\
-					h->vals = (khval_t*)realloc(h->vals, new_n_buckets * sizeof(khval_t)); \
+					h->vals = (khval_t*)TR_REALLOC(h->vals, new_n_buckets * sizeof(khval_t)); \
 			}															\
-			free(h->flags);												\
+			TR_FREE(h->flags);												\
 			h->flags = new_flags;										\
 			h->n_buckets = new_n_buckets;								\
 			h->n_occupied = h->size;									\

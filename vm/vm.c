@@ -114,6 +114,8 @@ OBJ TrVM_run(VM, TrBlock *b) {
 }
 
 TrVM *TrVM_new() {
+  GC_INIT();
+
   TrVM *vm = TR_ALLOC(TrVM);
   vm->symbols = kh_init(str);
   
@@ -131,4 +133,5 @@ TrVM *TrVM_new() {
 
 void TrVM_destroy(TrVM *vm) {
   kh_destroy(str, vm->symbols);
+  GC_gcollect();
 }

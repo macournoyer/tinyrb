@@ -54,30 +54,30 @@ int main() {
 
 #define kvec_t(type) struct { size_t n, m; type *a; }
 #define kv_init(v) ((v).n = (v).m = 0, (v).a = 0)
-#define kv_destroy(v) free((v).a)
+#define kv_destroy(v) TR_FREE((v).a)
 #define kv_A(v, i) ((v).a[(i)])
 #define kv_pop(v) ((v).a[--(v).n])
 #define kv_size(v) ((v).n)
 #define kv_max(v) ((v).m)
 
-#define kv_resize(type, v, s)  ((v).m = (s), (v).a = (type*)realloc((v).a, sizeof(type) * (v).m))
+#define kv_resize(type, v, s)  ((v).m = (s), (v).a = (type*)TR_REALLOC((v).a, sizeof(type) * (v).m))
 
 #define kv_push(type, v, x) do {									\
 		if ((v).n == (v).m) {										\
 			(v).m = (v).m? (v).m<<1 : 2;							\
-			(v).a = (type*)realloc((v).a, sizeof(type) * (v).m);	\
+			(v).a = (type*)TR_REALLOC((v).a, sizeof(type) * (v).m);	\
 		}															\
 		(v).a[(v).n++] = (x);										\
 	} while (0)
 
 #define kv_pushp(type, v) (((v).n == (v).m)?							\
 						   ((v).m = ((v).m? (v).m<<1 : 2),				\
-							(v).a = (type*)realloc((v).a, sizeof(type) * (v).m), 0)	\
+							(v).a = (type*)TR_REALLOC((v).a, sizeof(type) * (v).m), 0)	\
 						   : 0), ((v).a + ((v).n++))
 
 #define kv_a(type, v, i) ((v).m <= (size_t)(i)?						\
 						  ((v).m = (v).n = (i) + 1, kv_roundup32((v).m), \
-						   (v).a = (type*)realloc((v).a, sizeof(type) * (v).m), 0) \
+						   (v).a = (type*)TR_REALLOC((v).a, sizeof(type) * (v).m), 0) \
 						  : (v).n <= (size_t)(i)? (v).n = (i)			\
 						  : 0), (v).a[(i)]
 

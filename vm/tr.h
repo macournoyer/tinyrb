@@ -8,6 +8,15 @@
 #include "config.h"
 #include "vendor/kvec.h"
 #include "vendor/khash.h"
+#include "gc.h"
+
+#define TR_MALLOC            GC_malloc
+#define TR_REALLOC           GC_realloc
+#define TR_FREE(S)           
+
+/* #define TR_MALLOC            malloc
+#define TR_REALLOC           realloc
+#define TR_FREE              free */
 
 #define TR_COBJECT(X)        ((TrObject*)X)
 #define TR_TYPE(X)           (TR_COBJECT(X)->type)

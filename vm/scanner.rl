@@ -69,13 +69,12 @@
   write data nofinal;
 }%%
 
-inline void *tr_malloc(size_t size) { return TR_MALLOC(size); }
 inline void tr_free(void *ptr) { return TR_FREE(ptr); }
 
 TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace) {
   int cs, act;
   char *p, *pe, *ts, *te, *eof = 0;
-  void *parser = TrParserAlloc(tr_malloc);
+  void *parser = TrParserAlloc(TR_MALLOC);
   int last = 0;
   char *buf = 0;
   FILE *tracef = 0;

@@ -1,12 +1,6 @@
 #ifndef _INTERNAL_H_
 #define _INTERNAL_H_
 
-#include "gc.h"
-
-#define TR_MALLOC(size)      malloc(size)
-#define TR_REALLOC(ptr,size) realloc(ptr,size)
-#define TR_FREE(ptr)         free(ptr)
-
 #define TR_ALLOC(T)          (T *)TR_MALLOC(sizeof(T))
 #define TR_ALLOC_N(T,N)      (T *)TR_MALLOC(sizeof(T)*(N))
 
