@@ -1,9 +1,10 @@
-CC = gcc
-CFLAGS = -Wall -DDEBUG -g -O2
-INCS = -Ivm
-LIBS =
+GC = vendor/gc/build/lib/libgc.a
 LEMON = vendor/lemon/lemon
 RAGEL = ragel
+CC = gcc
+CFLAGS = -Wall -DDEBUG -g -O2
+INCS = -Ivm -Ivendor/gc/build/include
+LIBS = ${GC}
 
 SRC = vm/string.c vm/number.c vm/array.c vm/class.c vm/object.c vm/compiler.c vm/grammar.c vm/scanner.c vm/vm.c vm/tr.c
 OBJ = ${SRC:.c=.o}
@@ -29,6 +30,10 @@ vm/grammar.c: ${LEMON} vm/grammar.y
 ${LEMON}: ${LEMON}.c
 	@echo "   cc lemon"
 	@${CC} -o ${LEMON} ${LEMON}.c
+
+${GC}:
+	@echo " make gc"
+	@cd vendor/gc && ./configure --prefix=`pwd`/build --disable-threads -q && make -s && make install -s
 
 test: tinyrb
 	@ruby test/runner

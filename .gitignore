@@ -7,3 +7,4 @@ vm/grammar.h
 vm/grammar.out
 
 vendor/lemon/lemon
+vendor/gc
