@@ -117,10 +117,6 @@ TrVM *TrVM_new() {
   TrVM *vm = TR_ALLOC(TrVM);
   vm->symbols = kh_init(str);
   
-  /* setup GC */
-  /* TODO see http://www.dekorte.com/projects/opensource/libgarbagecollector/docs/ */
-  vm->collector = Collector_new();
-  
   /* bootstrap classes */
   TrClass_init(vm);
   TrObject_init(vm);
@@ -134,7 +130,5 @@ TrVM *TrVM_new() {
 }
 
 void TrVM_destroy(TrVM *vm) {
-  Collector_freeAllValues(vm->collector);
-  Collector_free(vm->collector);
   kh_destroy(str, vm->symbols);
 }

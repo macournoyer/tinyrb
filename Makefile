@@ -1,10 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -DDEBUG -g -O2
-INCS = -Ivm -Ivm/vendor/basekit/_build/headers -Ivm/vendor/garbagecollector/_build/headers
-BASEKIT = vm/vendor/basekit/_build/lib/libbasekit.a
-GC = vm/vendor/garbagecollector/_build/lib/libgarbagecollector.a
-LIBS = ${BASEKIT} ${GC}
-LEMON = tools/lemon/lemon
+INCS = -Ivm
+LIBS =
+LEMON = vendor/lemon/lemon
 RAGEL = ragel
 
 SRC = vm/string.c vm/number.c vm/array.c vm/class.c vm/object.c vm/compiler.c vm/grammar.c vm/scanner.c vm/vm.c vm/tr.c
@@ -31,16 +29,6 @@ vm/grammar.c: ${LEMON} vm/grammar.y
 ${LEMON}: ${LEMON}.c
 	@echo "   cc lemon"
 	@${CC} -o ${LEMON} ${LEMON}.c
-
-${BASEKIT}:
-	@echo " make basekit"
-	@cd vm/vendor/basekit && make -s
-
-${GC}:
-	@echo " make garbagecollector"
-	@cp -f vm/vendor/basekit/Makefile.lib vm/Makefile.lib
-	@cd vm/vendor/garbagecollector && make -s
-	@rm vm/Makefile.lib
 
 test: tinyrb
 	@ruby test/runner
