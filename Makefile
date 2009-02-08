@@ -5,7 +5,7 @@ OBJ_MIN = vm/tr.o
 CC = gcc
 CFLAGS = -Wall -DDEBUG -g -O2
 INCS = -Ivm
-LEMON = vendor/lemon/lemon
+LEMON = tools/lemon/lemon
 LIBS = 
 RAGEL = ragel
 
