@@ -5,9 +5,9 @@
 #include <stdio.h>
 #include <limits.h>
 #include <assert.h>
-#include "kvec.h"
-#include "khash.h"
 #include "config.h"
+#include "vendor/kvec.h"
+#include "vendor/khash.h"
 
 #define TR_COBJECT(X)        ((TrObject*)X)
 #define TR_TYPE(X)           (TR_COBJECT(X)->type)
