@@ -6,3 +6,6 @@ puts("ohaie".size)
 
 puts("ohaie".class.name)
 # => String
+
+puts("oh" + "aie")
+# => ohaie

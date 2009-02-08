@@ -61,7 +61,7 @@
     binop       => { TOKEN_V(BINOP, tr_intern(BUFFER(ts, te-ts))); };
     assign      => { TOKEN_V(ASSIGN, tr_intern(BUFFER(ts, te-ts))); };
     string      => { TOKEN_V(STRING, TrString_new(vm, BUFFER(ts+1, te-ts-2), te-ts-2)); };
-    int         => { TOKEN_V(INT, INT2FIX(atoi(BUFFER(ts, te-ts)))); };
+    int         => { TOKEN_V(INT, TrFixnum_new(vm, atoi(BUFFER(ts, te-ts)))); };
     term        => { TOKEN_U(TERM); };
     dot         => { TOKEN(DOT); };
   *|;

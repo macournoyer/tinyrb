@@ -43,7 +43,7 @@ static OBJ TrString_to_s(VM, OBJ self) {
 }
 
 static OBJ TrString_size(VM, OBJ self) {
-  return INT2FIX(TR_CSTRING(self)->len);
+  return TrFixnum_new(vm, TR_CSTRING(self)->len);
 }
 
 OBJ TrString_new(VM, const char *str, size_t len) {
@@ -60,10 +60,8 @@ OBJ TrString_new2(VM, const char *str) {
   return TrString_new(vm, str, strlen(str));
 }
 
-void TrString_init(VM) {
-  OBJ c = TR_INIT_CLASS(String, Object);
-  tr_def(c, "to_s", TrString_to_s, 0);
-  tr_def(c, "size", TrString_size, 0);
+OBJ TrString_concat(VM, OBJ self, OBJ other) {
+  return tr_sprintf(vm, "%s%s", TR_STR_PTR(self), TR_STR_PTR(other));
 }
 
 OBJ tr_sprintf(VM, const char *fmt, ...) {
@@ -84,4 +82,11 @@ OBJ tr_sprintf(VM, const char *fmt, ...) {
 void TrSymbol_init(VM) {
   OBJ c = TR_INIT_CLASS(Symbol, Object);
   tr_def(c, "to_s", TrSymbol_to_s, 0);
+}
+
+void TrString_init(VM) {
+  OBJ c = TR_INIT_CLASS(String, Object);
+  tr_def(c, "to_s", TrString_to_s, 0);
+  tr_def(c, "size", TrString_size, 0);
+  tr_def(c, "+", TrString_concat, 1);
 }

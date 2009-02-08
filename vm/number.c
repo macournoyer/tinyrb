@@ -7,19 +7,19 @@ OBJ TrFixnum_new(VM, int value) {
 }
 
 OBJ TrFixnum_add(VM, OBJ self, OBJ other) {
-  return INT2FIX(TR_CFIXNUM(self)->value + FIX2INT(other));
+  return TrFixnum_new(vm, TR_CFIXNUM(self)->value + TR_FIX2INT(other));
 }
 
 OBJ TrFixnum_sub(VM, OBJ self, OBJ other) {
-  return INT2FIX(TR_CFIXNUM(self)->value - FIX2INT(other));
+  return TrFixnum_new(vm, TR_CFIXNUM(self)->value - TR_FIX2INT(other));
 }
 
 OBJ TrFixnum_lt(VM, OBJ self, OBJ other) {
-  return TR_BOOL(TR_CFIXNUM(self)->value < FIX2INT(other));
+  return TR_BOOL(TR_CFIXNUM(self)->value < TR_FIX2INT(other));
 }
 
 OBJ TrFixnum_gt(VM, OBJ self, OBJ other) {
-  return TR_BOOL(TR_CFIXNUM(self)->value > FIX2INT(other));
+  return TR_BOOL(TR_CFIXNUM(self)->value > TR_FIX2INT(other));
 }
 
 OBJ TrFixnum_to_s(VM, OBJ self) {

@@ -12,7 +12,7 @@
 #define PUSH_OP_AB(OP,A,B)  PUSH_OP_ABC(OP,(A),(B),0)
 #define PUSH_OP_ABx(OP,A,B) PUSH_OP_ABC(OP,(A),(B)>>8,(B)-((B)>>8<<8))
 #define SET_Bx(I,B)         (I)->b=(B)>>8; (I)->c=(B)-((B)>>8<<8)
-#define INSPECT(K)          (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", FIX2INT(K)), buf))
+#define INSPECT(K)          (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", TR_FIX2INT(K)), buf))
 #define VBx(OP)             (unsigned short)(((OP.b<<8)+OP.c))
 #define sVBx(OP)            (short)(((OP.b<<8)+OP.c))
 
@@ -58,7 +58,7 @@ static void TrBlock_dump2(TrBlock *b, int level) {
     switch (op.i) {
       case TR_OP_LOADK:    printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->k, VBx(op)))); break;
       case TR_OP_STRING:   printf(" ; R[%d] = \"%s\"", op.a, kv_A(b->strings, VBx(op))); break;
-      case TR_OP_LOOKUP:   printf(" ; R[%d] = R[%d].method(:%s)", op.a+1, op.a, INSPECT(kv_A(b->k, op.b))); break;
+      case TR_OP_LOOKUP:   printf(" ; R[%d] = R[%d].method(:%s)", op.a+1, op.a, INSPECT(kv_A(b->k, VBx(op)))); break;
       case TR_OP_CALL:     printf(" ; R[%d] = R[%d].R[%d](%d)", op.a, op.a, op.a+1, op.b); break;
       case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", INSPECT(kv_A(b->locals, op.a)), op.b); break;
       case TR_OP_GETLOCAL: printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->locals, op.b))); break;
@@ -159,7 +159,7 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
           PUSH_OP_A(SELF, reg);
         i = TrBlock_pushk(b, msg->args[0]);
         PUSH_OP_A(BOING, 0);
-        PUSH_OP_AB(LOOKUP, reg, i);
+        PUSH_OP_ABx(LOOKUP, reg, i);
         size_t argc = 0;
         if (msg->args[1]) {
           argc = TR_ARRAY_SIZE(msg->args[1]);

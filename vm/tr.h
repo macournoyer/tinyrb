@@ -18,7 +18,7 @@
 #define TR_MEMCPY_N(X,Y,T,N) memcpy((X), (Y), sizeof(T)*(N))
 
 #define TR_COBJECT(X)        ((TrObject*)X)
-#define TR_TYPE(X)           (TR_IS_FIX(X) ? TR_T_Fixnum : TR_COBJECT(X)->type)
+#define TR_TYPE(X)           (TR_COBJECT(X)->type)
 #define TR_IS_A(X,T)         (TR_TYPE(X) == TR_T_##T)
 #define TR_CTYPE(X,T)        (assert(TR_IS_A(X,T)),(Tr##T*)(X))
 #define TR_CCLASS(X)         TR_CTYPE(X,Class)
@@ -29,6 +29,7 @@
 
 #define TR_STR_PTR(S)        (TR_CSTRING(S)->ptr)
 #define TR_STR_LEN(S)        (TR_CSTRING(S)->len)
+#define TR_FIX2INT(F)        (TR_CFIXNUM(F)->value)
 #define TR_ARRAY_PUSH(X,I)   kv_push(OBJ, (TR_CARRAY(X))->kv, (I))
 #define TR_ARRAY_AT(X,I)     kv_A((TR_CARRAY(X))->kv, (I))
 #define TR_ARRAY_SIZE(X)     kv_size(TR_CARRAY(X)->kv)
@@ -51,12 +52,7 @@
 #define TR_TRUE              ((OBJ)2)
 #define TR_TEST(X)           ((X) == TR_NIL || (X) == TR_FALSE ? 0 : 1)
 #define TR_BOOL(X)           ((X) ? TR_TRUE : TR_FALSE)
-#define TR_SHIFT             8
-#define TR_NUM_FLAG          0x01
-#define INT2FIX(i)           (OBJ)((i) << TR_SHIFT | TR_NUM_FLAG)
-#define FIX2INT(i)           (int)((i) >> TR_SHIFT)
-#define TR_IS_FIX(x)         (((x) & TR_NUM_FLAG) == TR_NUM_FLAG)
-#define TR_BOX(x)            (TR_IS_FIX(x) ? TrFixnum_new(vm, FIX2INT(x)) : (x))
+#define TR_BOX(X)            (X) /* TODO box nil, false, true */
 
 #define TR_OBJECT_HEADER \
   TR_T type; \
@@ -107,7 +103,7 @@ typedef struct {
 typedef struct TrBlock {
   kvec_t(OBJ) k; /* TODO rename to values ? */
   kvec_t(char *) strings;
-  kvec_t(OBJ) locals; /* TODO rename to local_names */
+  kvec_t(OBJ) locals;
   kvec_t(TrInst) code;
   kvec_t(struct TrBlock *) blocks;
   size_t regc;

@@ -66,15 +66,13 @@ static OBJ TrVM_step(VM) {
     
     /* method calling */
     OP(LOOKUP):
-      R[A] = TR_BOX(R[A]);
-      R[A+1] = TrObject_method(vm, R[A], k[B]);
-      if (!R[A+1]) tr_raise("Method not found: %s\n", TR_STR_PTR(k[B]));
+      R[A+1] = TrObject_method(vm, R[A], k[Bx]);
+      if (!R[A+1]) tr_raise("Method not found: %s\n", TR_STR_PTR(k[Bx]));
       /* TODO replace previous instruction w/ CACHE */
       DISPATCH;
     OP(CACHE):
+      /* TODO create CallSite */
       /* TODO how to expire cache? */
-      R[A] = TR_BOX(R[A]);
-      if (TR_TYPE(R[A]) == C) ip += B;
       DISPATCH;
     OP(CALL):
       f->method = TR_CMETHOD(R[A+1]);

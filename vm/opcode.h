@@ -18,24 +18,8 @@ enum TrInstCode {
   TR_OP_BOOL,       /* A B      R[A] = B + 1 */
   TR_OP_NIL,        /* A        R[A] = nil */
   TR_OP_SELF,       /* A        put self in R[A] */
-  /* TODO split SEND into LOOKUP & CALL
-     This way, I can implement inline cache:
-     
-  BOING
-  LOOKUP A Bx     lookup method K[Bx] on R[A] and store in R[A]
-  args...         stack:<0:receiver, 1:method, 2:arg1, 3:arg2>
-  CALL   A B C    call method R[A+1] on R[A] with B args starting at R[A+2], C = some flags (block, splat, etc.)
-     
-     (LOOKUP instruction replace BOING w/ CACHE instruction)
-     
-  CACHE  A B C    jmp B if R[A] type is C
-  LOOKUP (skipped by jmp)
-  args...
-  CALL
-  ...
-  */
-  TR_OP_LOOKUP,     /* A Bx     lookup method K[Bx] on R[A] and store in R[A] */
-  TR_OP_CACHE,      /* A B C    jmp B if R[A] type is C */
+  TR_OP_LOOKUP,     /* A Bx     R[A+1] = lookup method K[Bx] on R[A] and store */
+  TR_OP_CACHE,      /* A B C    jmp +B if sites[C] matches R[A] and R[A+1] = sites[C].method */
   TR_OP_CALL,       /* A B C    call method R[A+1] on R[A] with B args starting at R[A+2], C = some flags (block, splat, etc.) */
   TR_OP_JMP,        /*   sBx    jump sBx instructions */
   TR_OP_JMPIF,      /* A sBx    jump sBx instructions if R[A] */
