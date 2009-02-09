@@ -7,24 +7,25 @@
 [x] Implement if, unless
 [x] Implement simple method argument passing
 [x] Implement while, until
-[ ] Include GC (Io libgarbagecollector)
+[x] Include GC (Boehm)
 [ ] Bootstrap all class correctly
+[ ] Monomorphic method cache (using CallSite)
+[ ] Inline some methods (Fixnum +,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT,
 [ ] Implement basic method definition
 [ ] Make stackless
 [ ] Implement basic class definition
-[ ] Replace kvec & khash w/ http://sglib.sourceforge.net/
-[ ] Implement Array
-[ ] Implement Hash
 
 == Later
+[ ] Implement Module
+[ ] use getopt to parse cmd line args
 [ ] Implement splatted args
 [ ] Implement exceptions
 [ ] Implement Proc, yield and the like
-[ ] Monomorphic method cache
 [ ] Remove useless register allocations in compiler
 [ ] Compile to file
 [ ] Implement IO and File
 [ ] Implement case...when
+[ ] Replace GC w/ smaller, simpler & embedable one (Io's)
 
 == Oh Yeah That'd be Cool!
 [ ] Unicode

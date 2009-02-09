@@ -11,12 +11,9 @@
 #include "gc.h"
 
 #define TR_MALLOC            GC_malloc
+#define TR_CALLOC(m,n)       GC_MALLOC((m)*(n))
 #define TR_REALLOC           GC_realloc
 #define TR_FREE(S)           
-
-/* #define TR_MALLOC            malloc
-#define TR_REALLOC           realloc
-#define TR_FREE              free */
 
 #define TR_COBJECT(X)        ((TrObject*)X)
 #define TR_TYPE(X)           (TR_COBJECT(X)->type)

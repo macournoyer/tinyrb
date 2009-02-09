@@ -117,7 +117,7 @@ static const double __ac_HASH_UPPER = 0.77;
 		khval_t *vals;													\
 	} kh_##name##_t;													\
 	static inline kh_##name##_t *kh_init_##name() {						\
-		return (kh_##name##_t*)calloc(1, sizeof(kh_##name##_t));		\
+		return (kh_##name##_t*)TR_CALLOC(1, sizeof(kh_##name##_t));		\
 	}																	\
 	static inline void kh_destroy_##name(kh_##name##_t *h)				\
 	{																	\
