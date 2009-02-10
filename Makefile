@@ -51,4 +51,7 @@ clean:
 
 rebuild: clean tinyrb
 
-.PHONY: all sloc size clean rebuild test
+site:
+	scp site/* macournoyer@code.macournoyer.com:code.macournoyer.com/tinyrb
+
+.PHONY: all sloc size clean rebuild test site

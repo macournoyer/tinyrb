@@ -8,15 +8,16 @@
 [x] Implement simple method argument passing
 [x] Implement while, until
 [x] Include GC (Boehm)
-[ ] Bootstrap all class correctly
 [x] Monomorphic method cache (using CallSite)
-[ ] Implement basic method definition
+[x] Implement basic method definition
+[ ] Pass args to defined methods
 [ ] Make stackless
+[ ] Bootstrap all class correctly
 [ ] Implement basic class definition
-[ ] Inline some methods (Fixnum +,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT,
 
 == Later
 [ ] Implement Module
+[ ] Inline some methods (Fixnum +,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT,
 [ ] use getopt to parse cmd line args
 [ ] Implement splatted args
 [ ] Implement exceptions

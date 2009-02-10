@@ -148,7 +148,7 @@ OBJ TrVM_step(VM) {
         R[A+1] = SITE[C].method;
         ip += B;
       } else {
-        /* TODO remove CallSite if too much miss */
+        /* TODO remove CallSite if too much miss, CallSite should be linked list. */
         SITE[C].miss++;
       }
       DISPATCH;
