@@ -16,7 +16,7 @@ static void TrFrame_init(VM, size_t i, TrBlock *b) {
   f->class = TR_NIL;
   f->line = 1;
   f->ip = b->code.a;
-  if (!f->sites.a) /* HACK hu? */
+  if (!f->sites.a) /* HACK hu? required or can't init twice */
     kv_init(f->sites);
 }
 
@@ -47,6 +47,29 @@ static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip)
 #endif
   
   return method;
+}
+
+static inline OBJ TrVM_call(VM, TrFrame *f, OBJ receiver, OBJ method, int argc, OBJ *args) {
+  f->method = TR_CMETHOD(method);
+  if (f->method->arity == -1) {
+    return f->method->func(vm, receiver, argc, args);
+  } else {
+    if (f->method->arity != argc) tr_raise("Expected %d arguments, got %d.\n", f->method->arity, argc);
+    switch (argc) {
+      case 0:  return f->method->func(vm, receiver); break;
+      case 1:  return f->method->func(vm, receiver, args[0]); break;
+      case 2:  return f->method->func(vm, receiver, args[0], args[1]); break;
+      case 3:  return f->method->func(vm, receiver, args[0], args[1], args[2]); break;
+      case 4:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3]); break;
+      case 5:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4]); break;
+      case 6:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5]); break;
+      case 7:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6]); break;
+      case 8:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]); break;
+      case 9:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]); break;
+      case 10: return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]); break;
+      default: tr_raise("Too much arguments: %d, max is %d for now.\n", argc, 10);
+    }
+  }
 }
 
 static OBJ TrVM_interpret(VM, OBJ self) {
@@ -117,9 +140,8 @@ OBJ TrVM_step(VM) {
     OP(RETURN):     return R[A];
     
     /* method calling */
-    OP(LOOKUP):
-      R[A+1] = TrVM_lookup(vm, f, R[A], k[Bx], ip);
-      DISPATCH;
+    OP(LOOKUP):     R[A+1] = TrVM_lookup(vm, f, R[A], k[Bx], ip); DISPATCH;
+    OP(CALL):       R[A] = TrVM_call(vm, f, R[A], R[A+1], B, &R[A+2]); DISPATCH;
     OP(CACHE):
       /* TODO how to expire cache? */
       if (SITE[C].class == TR_COBJECT(R[A])->class) {
@@ -128,28 +150,6 @@ OBJ TrVM_step(VM) {
       } else {
         /* TODO remove CallSite if too much miss */
         SITE[C].miss++;
-      }
-      DISPATCH;
-    OP(CALL):
-      f->method = TR_CMETHOD(R[A+1]);
-      if (f->method->arity == -1) {
-        R[A] = f->method->func(vm, R[A], (int)B, &R[A+2]);
-      } else {
-        if (f->method->arity != B) tr_raise("Expected %d arguments, got %d.\n", f->method->arity, B);
-        switch (B) {
-          case 0:  R[A] = f->method->func(vm, R[A]); break;
-          case 1:  R[A] = f->method->func(vm, R[A], R[A+2]); break;
-          case 2:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3]); break;
-          case 3:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4]); break;
-          case 4:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5]); break;
-          case 5:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6]); break;
-          case 6:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7]); break;
-          case 7:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8]); break;
-          case 8:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9]); break;
-          case 9:  R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9], R[A+10]); break;
-          case 10: R[A] = f->method->func(vm, R[A], R[A+2], R[A+3], R[A+4], R[A+5], R[A+6], R[A+7], R[A+8], R[A+9], R[A+10], R[A+11]); break;
-          default: tr_raise("Too much arguments: %d, max is %d for now.\n", B, 10);
-        }
       }
       DISPATCH;
     
