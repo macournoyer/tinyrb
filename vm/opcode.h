@@ -29,6 +29,12 @@ enum TrInstCode {
   TR_OP_GETLOCAL,   /* A B      R[A] = locals[B] */
   TR_OP_FIXNUM_ADD,
   TR_OP_FIXNUM_LT,
+  TR_OP_DEF,
+  TR_OP_UNDEF,
+  TR_OP_ALIAS,
+  TR_OP_CLASS,
+  TR_OP_SUPER,
+  TR_OP_YIELD,
   TR_OP_GETDYN,
   TR_OP_SETDYN,
   TR_OP_GETCONST,
@@ -41,13 +47,7 @@ enum TrInstCode {
   TR_OP_SETGLOBAL,
   TR_OP_NEWARRAY,
   TR_OP_NEWHASH,
-  TR_OP_NEWRANGE,
-  TR_OP_DEF,
-  TR_OP_UNDEF,
-  TR_OP_ALIAS,
-  TR_OP_CLASS,
-  TR_OP_SUPER,
-  TR_OP_YIELD
+  TR_OP_NEWRANGE
 };
 
 #define TR_OP_NAMES \
@@ -69,6 +69,12 @@ enum TrInstCode {
   "getlocal", \
   "fixnum_add", \
   "fixnum_lt", \
+  "def", \
+  "undef", \
+  "alias", \
+  "class", \
+  "super", \
+  "yield", \
   "getdyn", \
   "setdyn", \
   "getconst", \
@@ -81,13 +87,7 @@ enum TrInstCode {
   "setglobal", \
   "newarray", \
   "newhash", \
-  "newrange", \
-  "def", \
-  "undef", \
-  "alias", \
-  "class", \
-  "super", \
-  "yield"
+  "newrange"
   
 
 #ifdef TR_THREADED_DISPATCH
@@ -110,7 +110,8 @@ enum TrInstCode {
   &&op_SETLOCAL, \
   &&op_GETLOCAL, \
   &&op_FIXNUM_ADD, \
-  &&op_FIXNUM_LT
+  &&op_FIXNUM_LT, \
+  &&op_DEF
   
 #endif
 

@@ -50,6 +50,7 @@
     "nil"       => { TOKEN(NIL); };
     "self"      => { TOKEN(SELF); };
     "return"    => { TOKEN(RETURN); };
+    "def"       => { TOKEN(DEF); };
     
     # ponctuation
     ","         => { TOKEN(COMMA); };

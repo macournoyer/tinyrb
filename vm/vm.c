@@ -4,6 +4,8 @@
 #include "opcode.h"
 #include "internal.h"
 
+OBJ TrVM_step(VM);
+
 static void TrFrame_init(VM, size_t i, TrBlock *b) {
   TrFrame *f = &vm->frames[i];
   f->block = b;
@@ -12,9 +14,10 @@ static void TrFrame_init(VM, size_t i, TrBlock *b) {
   f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals));
   f->self = TR_NIL;
   f->class = TR_NIL;
-  kv_init(f->sites);
   f->line = 1;
   f->ip = b->code.a;
+  if (!f->sites.a) /* HACK hu? */
+    kv_init(f->sites);
 }
 
 static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip) {
@@ -46,6 +49,21 @@ static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip)
   return method;
 }
 
+static OBJ TrVM_interpret(VM, OBJ self) {
+  TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
+  TrFrame *prev = FRAME;
+  vm->cf++;
+  TrFrame_init(vm, vm->cf, b);
+  FRAME->self = prev->self;
+  FRAME->class = prev->class;
+  
+  TrVM_step(vm);
+  
+  vm->cf--;
+  
+  return TR_NIL;
+}
+
 /* dispatch macros */
 #define NEXT_OP        (++ip, e=*ip)
 #ifdef TR_THREADED_DISPATCH
@@ -69,7 +87,7 @@ static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip)
 #define sBx  (short)(((B<<8)+C))
 #define SITE (f->sites.a)
 
-static OBJ TrVM_step(VM) {
+OBJ TrVM_step(VM) {
   TrFrame *f = FRAME;
   TrInst *ip = f->ip;
   TrInst e = *ip;
@@ -77,6 +95,7 @@ static OBJ TrVM_step(VM) {
   char **strings = f->block->strings.a;
   OBJ *regs = f->regs;
   OBJ *locals = f->locals;
+  TrBlock **blocks = f->block->blocks.a;
   
 #ifdef TR_THREADED_DISPATCH
   static void *labels[] = { TR_OP_LABELS };
@@ -133,7 +152,12 @@ static OBJ TrVM_step(VM) {
         }
       }
       DISPATCH;
-      
+    
+    /* definition */
+    OP(DEF):
+      TrClass_add_method(vm, f->class, k[Bx], TrMethod_new(vm, (TrFunc *)TrVM_interpret, (OBJ)blocks[A], 0));
+      DISPATCH;
+    
     /* jumps */
     OP(JMP):        ip += sBx; DISPATCH;
     OP(JMPIF):      if (TR_TEST(R[A])) ip += sBx; DISPATCH;

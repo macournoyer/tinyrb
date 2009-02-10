@@ -31,6 +31,7 @@ statements(A) ::= statement(B). { A = NODES(B); }
 statement(A) ::= expr(B). { A = B; }
 statement(A) ::= literal(B). { A = B; }
 statement(A) ::= flow(B). { A = B; }
+statement(A) ::= def(B). { A = B; }
 statement(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
 /*TODO*/
 statement(A) ::= literal(B) BINOP(C) statement(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
@@ -61,3 +62,5 @@ msg(A) ::= ID(B) O_PAR args(C) C_PAR. { A = NODE2(MSG, B, C); }
 
 args(A) ::= args(B) COMMA statement(C). { A = PUSH(B, C); }
 args(A) ::= statement(B). { A = NODES(B); }
+
+def(A) ::= DEF ID(B) TERM statements(C) TERM END. { A = NODE2(DEF, B, C); }
