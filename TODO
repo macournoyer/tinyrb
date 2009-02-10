@@ -9,11 +9,11 @@
 [x] Implement while, until
 [x] Include GC (Boehm)
 [ ] Bootstrap all class correctly
-[ ] Monomorphic method cache (using CallSite)
-[ ] Inline some methods (Fixnum +,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT,
+[x] Monomorphic method cache (using CallSite)
 [ ] Implement basic method definition
 [ ] Make stackless
 [ ] Implement basic class definition
+[ ] Inline some methods (Fixnum +,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT,
 
 == Later
 [ ] Implement Module
