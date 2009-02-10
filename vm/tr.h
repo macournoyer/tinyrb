@@ -116,6 +116,12 @@ typedef struct {
 } TrMethod;
 
 typedef struct {
+  OBJ class;
+  OBJ method;
+  size_t miss;
+} TrCallSite;
+
+typedef struct {
   struct TrBlock *block;
   TrMethod *method;  /* current called method */
   OBJ *regs;
@@ -123,6 +129,7 @@ typedef struct {
   OBJ self;
   OBJ class;
   OBJ fname;
+  kvec_t(TrCallSite) sites;
   size_t line;
   TrInst *ip;
 } TrFrame;
@@ -178,6 +185,8 @@ void TrString_init(VM);
 
 /* number */
 OBJ TrFixnum_new(VM, int value);
+OBJ TrFixnum_add(VM, OBJ self, OBJ other);
+OBJ TrFixnum_lt(VM, OBJ self, OBJ other);
 void TrFixnum_init(VM);
 
 /* array */

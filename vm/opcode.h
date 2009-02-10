@@ -19,7 +19,7 @@ enum TrInstCode {
   TR_OP_NIL,        /* A        R[A] = nil */
   TR_OP_SELF,       /* A        put self in R[A] */
   TR_OP_LOOKUP,     /* A Bx     R[A+1] = lookup method K[Bx] on R[A] and store */
-  TR_OP_CACHE,      /* A B C    jmp +B if sites[C] matches R[A] and R[A+1] = sites[C].method */
+  TR_OP_CACHE,      /* A B C    if sites[C] matches R[A].type, jmp +B and R[A+1] = sites[C].method */
   TR_OP_CALL,       /* A B C    call method R[A+1] on R[A] with B args starting at R[A+2], C = some flags (block, splat, etc.) */
   TR_OP_JMP,        /*   sBx    jump sBx instructions */
   TR_OP_JMPIF,      /* A sBx    jump sBx instructions if R[A] */
@@ -27,6 +27,8 @@ enum TrInstCode {
   TR_OP_RETURN,     /* A        return R[A] */
   TR_OP_SETLOCAL,   /* A B      locals[A] = R[B] */
   TR_OP_GETLOCAL,   /* A B      R[A] = locals[B] */
+  TR_OP_FIXNUM_ADD,
+  TR_OP_FIXNUM_LT,
   TR_OP_GETDYN,
   TR_OP_SETDYN,
   TR_OP_GETCONST,
@@ -65,6 +67,8 @@ enum TrInstCode {
   "return", \
   "setlocal", \
   "getlocal", \
+  "fixnum_add", \
+  "fixnum_lt", \
   "getdyn", \
   "setdyn", \
   "getconst", \
@@ -84,6 +88,7 @@ enum TrInstCode {
   "class", \
   "super", \
   "yield"
+  
 
 #ifdef TR_THREADED_DISPATCH
 /* has to be in some order as in enum TrInstCode */
@@ -103,7 +108,10 @@ enum TrInstCode {
   &&op_JMPUNLESS, \
   &&op_RETURN, \
   &&op_SETLOCAL, \
-  &&op_GETLOCAL
+  &&op_GETLOCAL, \
+  &&op_FIXNUM_ADD, \
+  &&op_FIXNUM_LT
+  
 #endif
 
 #endif /* _OPCODE_H_ */
