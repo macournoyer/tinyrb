@@ -15,3 +15,9 @@ unless nil
   puts :yay
 end
 # => yay
+
+puts :true if true
+# => true
+
+puts :nope unless true
+# =>

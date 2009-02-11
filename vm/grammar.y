@@ -15,8 +15,8 @@
 }
 
 %syntax_error {
-  printf("Syntax error:\n");
-  printf("  %s unexpected at line %d\n", yyTokenName[yymajor], compiler->curline);
+  tr_raise("Syntax error:\n"
+           "  %s unexpected at line %d\n", yyTokenName[yymajor], compiler->curline);
 }
 
 %right ASSIGN.
@@ -38,6 +38,9 @@ flow(A) ::= IF statement(B) TERM statements(C) opt_term END. { A = NODE2(IF, B, 
 flow(A) ::= UNLESS statement(B) TERM statements(C) opt_term END. { A = NODE2(UNLESS, B, C); }
 flow(A) ::= WHILE statement(B) TERM statements(C) opt_term END. { A = NODE2(WHILE, B, C); }
 flow(A) ::= UNTIL statement(B) TERM statements(C) opt_term END. { A = NODE2(UNTIL, B, C); }
+/* one-liner conditions */
+flow(A) ::= expr_out(C) IF statement(B). { A = NODE2(IF, B, NODES(C)); }
+flow(A) ::= expr_out(C) UNLESS statement(B). { A = NODE2(UNLESS, B, NODES(C)); }
 
 literal(A) ::= SYMBOL(B). { A = NODE(VALUE, B); }
 literal(A) ::= INT(B). { A = NODE(VALUE, B); }
