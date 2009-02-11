@@ -1,19 +1,17 @@
 if true
-  puts(:true)
+  puts :true
 end
 # => true
 
-if false
-  puts(:nope)
-end
+if false; puts :nope end
 # =>
 
 if nil
-  puts(:nope)
+  puts :nope
 end
 # =>
 
 unless nil
-  puts(:yay)
+  puts :yay
 end
 # => yay

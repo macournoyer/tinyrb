@@ -10,8 +10,8 @@
 [x] Include GC (Boehm)
 [x] Monomorphic method cache (using CallSite)
 [x] Implement basic method definition
-[ ] Implement GET/SETCONST
-[ ] Implement basic class definition
+[x] Implement GET/SETCONST
+[x] Implement basic class definition
 [ ] Pass args to defined methods
 [ ] Make stackless
 [ ] Bootstrap all class correctly

@@ -1,11 +1,11 @@
 class Pony
   def talk
-    puts("lol")
-    puts(self.class.name)
+    puts "lol"
+    puts self.class.name
   end
 end
 
-puts(Pony.name)
+puts Pony.name
 # => Pony
 
 Pony.allocate.talk

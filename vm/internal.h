@@ -19,7 +19,7 @@
 typedef enum {
   AST_ROOT,
   AST_BLOCK,
-  AST_CONST,
+  AST_VALUE,
   AST_STRING,
   AST_ASSIGN,
   AST_SEND,
@@ -34,7 +34,7 @@ typedef enum {
   AST_RETURN,
   AST_DEF,
   AST_CLASS,
-  AST_GETCONST,
+  AST_CONST,
   AST_SETCONST
 } TrNodeType;
 

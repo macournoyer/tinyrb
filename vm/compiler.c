@@ -135,7 +135,7 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
         TrCompiler_compile_node(c, b, (TrNode *)v, reg);
       });
       break;
-    case AST_CONST: {
+    case AST_VALUE: {
       int i = TrBlock_pushk(b, n->args[0]);
       PUSH_OP_ABx(b, LOADK, reg, i);
     } break;
@@ -233,7 +233,7 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
       PUSH_OP_A(blk, RETURN, 0);
       PUSH_OP_ABx(b, CLASS, blki, TrBlock_pushk(b, n->args[0]));
     } break;
-    case AST_GETCONST:
+    case AST_CONST:
       PUSH_OP_ABx(b, GETCONST, reg, TrBlock_pushk(b, n->args[0]));
       break;
     case AST_SETCONST:

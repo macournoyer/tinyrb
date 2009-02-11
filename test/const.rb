@@ -1,4 +1,4 @@
 Unicorn = "glitter"
 
-puts(Unicorn)
+puts Unicorn
 # => glitter

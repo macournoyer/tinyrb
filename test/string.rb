@@ -1,11 +1,11 @@
-puts("ohaie")
+puts "ohaie"
 # => ohaie
 
-puts("ohaie".size)
+puts "ohaie".size
 # => 5
 
-puts("ohaie".class.name)
+puts "ohaie".class.name
 # => String
 
-puts("oh" + "aie")
+puts "oh" + "aie"
 # => ohaie

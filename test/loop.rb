@@ -1,6 +1,6 @@
 x = 1
 while x < 4
-  puts(x)
+  puts x
   x = x + 1
 end
 # => 1
@@ -9,7 +9,7 @@ end
 
 x = 4
 until x < 1
-  puts(x)
+  puts x
   x = x - 1
 end
 # => 4

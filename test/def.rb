@@ -1,5 +1,5 @@
 def pony
-  puts("glitter")
+  puts "glitter"
 end
 
 pony
