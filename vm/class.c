@@ -11,6 +11,12 @@ OBJ TrClass_new(VM, OBJ name, OBJ super) {
   return (OBJ)c;
 }
 
+OBJ TrClass_allocate(VM, OBJ self) {
+  TrObject *o = TR_INIT_OBJ(Object);
+  o->class = self;
+  return (OBJ)o;
+}
+
 OBJ TrClass_lookup(VM, OBJ self, OBJ name) {
   TrClass *c = TR_CCLASS(self);
   khiter_t k = kh_get(OBJ, c->methods, name);
@@ -35,6 +41,7 @@ OBJ TrClass_name(VM, OBJ self) {
 void TrClass_init(VM) {
   OBJ c = TR_INIT_CLASS(Class, Object);
   tr_def(c, "name", TrClass_name, 0);
+  tr_def(c, "allocate", TrClass_allocate, 0);
 }
 
 /* method */

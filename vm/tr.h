@@ -139,6 +139,7 @@ typedef struct TrVM {
   OBJ classes[TR_T_MAX];
   TrFrame frames[TR_MAX_FRAMES];
   size_t cf; /* current frame */
+  khash_t(OBJ) *consts;
 } TrVM;
 
 typedef struct {
@@ -197,6 +198,8 @@ void TrArray_init(VM);
 /* object */
 OBJ TrObject_new(VM);
 OBJ TrObject_method(VM, OBJ self, OBJ name);
+OBJ TrObject_const_set(VM, OBJ self, OBJ name, OBJ value);
+OBJ TrObject_const_get(VM, OBJ self, OBJ name);
 void TrObject_init(VM);
 
 /* class */

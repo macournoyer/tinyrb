@@ -36,7 +36,7 @@ static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip)
   cache->b = 1; /* jmp */
   cache->c = kv_size(f->sites)-1; /* CallSite index */
 
-#if 0  
+#ifdef TR_INLINE_METHOD
   /* TODO find an unintrusive way to do this, how to fallback to lookup/call? */
   /* try to inline the method as an instruction if possible */
   do { ip++; } while (ip->i != TR_OP_CALL);
@@ -72,13 +72,27 @@ static inline OBJ TrVM_call(VM, TrFrame *f, OBJ receiver, OBJ method, int argc, 
   }
 }
 
-static OBJ TrVM_interpret(VM, OBJ self) {
-  TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
-  TrFrame *prev = FRAME;
+static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b) {
+  OBJ class = TrClass_new(vm, name, TR_CLASS(Object));
   vm->cf++;
   TrFrame_init(vm, vm->cf, b);
-  FRAME->self = prev->self;
-  FRAME->class = prev->class;
+  FRAME->self = class;
+  FRAME->class = class;
+  TrObject_const_set(vm, class, name, class);
+  
+  TrVM_step(vm);
+  
+  vm->cf--;
+  
+  return class;
+}
+
+static OBJ TrVM_interpret(VM, OBJ self) {
+  TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
+  vm->cf++;
+  TrFrame_init(vm, vm->cf, b);
+  FRAME->self = self;
+  FRAME->class = TR_COBJECT(self)->class;
   
   TrVM_step(vm);
   
@@ -113,10 +127,10 @@ static OBJ TrVM_interpret(VM, OBJ self) {
 OBJ TrVM_step(VM) {
   TrFrame *f = FRAME;
   TrInst *ip = f->ip;
-  TrInst e = *ip;
+  register TrInst e = *ip;
   OBJ *k = f->block->k.a;
   char **strings = f->block->strings.a;
-  OBJ *regs = f->regs;
+  register OBJ *regs = f->regs;
   OBJ *locals = f->locals;
   TrBlock **blocks = f->block->blocks.a;
   
@@ -133,11 +147,15 @@ OBJ TrVM_step(VM) {
     OP(LOADK):      R[A] = k[Bx]; DISPATCH;
     OP(STRING):     R[A] = TrString_new2(vm, strings[Bx]); DISPATCH;
     OP(SELF):       R[A] = f->self; DISPATCH;
-    OP(SETLOCAL):   locals[A] = R[B]; DISPATCH;
-    OP(GETLOCAL):   R[A] = locals[B]; DISPATCH;
     OP(NIL):        R[A] = TR_NIL; DISPATCH;
     OP(BOOL):       R[A] = B+1; DISPATCH;
     OP(RETURN):     return R[A];
+    
+    /* variable and consts */
+    OP(SETLOCAL):   locals[A] = R[B]; DISPATCH;
+    OP(GETLOCAL):   R[A] = locals[B]; DISPATCH;
+    OP(SETCONST):   TrObject_const_set(vm, f->self, k[Bx], R[A]); DISPATCH;
+    OP(GETCONST):   R[A] = TrObject_const_get(vm, f->self, k[Bx]); DISPATCH;
     
     /* method calling */
     OP(LOOKUP):     R[A+1] = TrVM_lookup(vm, f, R[A], k[Bx], ip); DISPATCH;
@@ -157,6 +175,7 @@ OBJ TrVM_step(VM) {
     OP(DEF):
       TrClass_add_method(vm, f->class, k[Bx], TrMethod_new(vm, (TrFunc *)TrVM_interpret, (OBJ)blocks[A], 0));
       DISPATCH;
+    OP(CLASS): R[A] = TrVM_defclass(vm, f, k[Bx], blocks[A]); DISPATCH;
     
     /* jumps */
     OP(JMP):        ip += sBx; DISPATCH;
@@ -183,6 +202,7 @@ TrVM *TrVM_new() {
 
   TrVM *vm = TR_ALLOC(TrVM);
   vm->symbols = kh_init(str);
+  vm->consts = kh_init(OBJ);
   
   /* bootstrap classes */
   TrClass_init(vm);

@@ -148,7 +148,7 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
       TrCompiler_compile_node(c, b, (TrNode *)n->args[1], reg);
       PUSH_OP_AB(b, SETLOCAL, i, reg);
     } break;
-    case AST_SEND: {
+    case AST_SEND: { /* can be a method send or a local var access */
       TrNode *msg = (TrNode *)n->args[1];
       assert(msg->ntype == AST_MSG);
       int i = TrBlock_haslocal(b, msg->args[0]);
@@ -222,6 +222,24 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
       PUSH_OP_A(defb, RETURN, 0);
       PUSH_OP_ABx(b, DEF, defi, TrBlock_pushk(b, n->args[0]));
     } break;
+    case AST_CLASS: {
+      /* TODO refactor, repetive w/ def */
+      TrBlock *blk = TrBlock_new();
+      size_t blki = kv_size(b->blocks);
+      kv_push(TrBlock *, b->blocks, blk);
+      TR_ARRAY_EACH(n->args[1], i, v, {
+        TrCompiler_compile_node(c, blk, (TrNode *)v, 0);
+      });
+      PUSH_OP_A(blk, RETURN, 0);
+      PUSH_OP_ABx(b, CLASS, blki, TrBlock_pushk(b, n->args[0]));
+    } break;
+    case AST_GETCONST:
+      PUSH_OP_ABx(b, GETCONST, reg, TrBlock_pushk(b, n->args[0]));
+      break;
+    case AST_SETCONST:
+      TrCompiler_compile_node(c, b, (TrNode *)n->args[1], reg);
+      PUSH_OP_ABx(b, SETCONST, reg, TrBlock_pushk(b, n->args[0]));
+      break;
     default:
       printf("unknown node type: %d\n", n->ntype);
   }

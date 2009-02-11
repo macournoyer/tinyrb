@@ -32,7 +32,10 @@ typedef enum {
   AST_NIL,
   AST_SELF,
   AST_RETURN,
-  AST_DEF
+  AST_DEF,
+  AST_CLASS,
+  AST_GETCONST,
+  AST_SETCONST
 } TrNodeType;
 
 typedef struct {

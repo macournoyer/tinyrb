@@ -32,8 +32,9 @@ statement(A) ::= expr(B). { A = B; }
 statement(A) ::= literal(B). { A = B; }
 statement(A) ::= flow(B). { A = B; }
 statement(A) ::= def(B). { A = B; }
+statement(A) ::= class(B). { A = B; }
+statement(A) ::= CONST(B) ASSIGN statement(C). { A = NODE2(SETCONST, B, C); }
 statement(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
-/*TODO*/
 statement(A) ::= literal(B) BINOP(C) statement(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
 statement(A) ::= expr(B) BINOP(C) statement(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
 
@@ -50,6 +51,7 @@ literal(A) ::= FALSE. { A = NODE(BOOL, 0); }
 literal(A) ::= NIL. { A = NODE(NIL, 0); }
 literal(A) ::= SELF. { A = NODE(SELF, 0); }
 literal(A) ::= RETURN. { A = NODE(RETURN, 0); }
+literal(A) ::= CONST(B). { A = NODE(GETCONST, B); }
 
 expr(A) ::= expr(B) DOT msg(C). { A = NODE2(SEND, B, C); }
 expr(A) ::= literal(B) DOT msg(C). { A = NODE2(SEND, B, C); }
@@ -58,9 +60,12 @@ expr(A) ::= msg(B). { A = NODE2(SEND, TR_NIL, B); }
 msg(A) ::= ID(B). { A = NODE(MSG, B); }
 msg(A) ::= ID(B) O_PAR C_PAR. { A = NODE(MSG, B); }
 msg(A) ::= ID(B) O_PAR args(C) C_PAR. { A = NODE2(MSG, B, C); }
+/* TODO how to do this? Maybe need to seperate the rules more to prevent nesting of this rule. */
 /*msg(A) ::= ID(B) args(C). { A = NODE2(MSG, B, C); }*/
 
 args(A) ::= args(B) COMMA statement(C). { A = PUSH(B, C); }
 args(A) ::= statement(B). { A = NODES(B); }
 
 def(A) ::= DEF ID(B) TERM statements(C) TERM END. { A = NODE2(DEF, B, C); }
+
+class(A) ::= CLASS CONST(B) TERM statements(C) TERM END. { A = NODE2(CLASS, B, C); }

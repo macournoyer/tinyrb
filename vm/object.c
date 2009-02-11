@@ -11,6 +11,21 @@ OBJ TrObject_method(VM, OBJ self, OBJ name) {
   return TrClass_lookup(vm, o->class, name);
 }
 
+/* TODO respect namespace */
+OBJ TrObject_const_get(VM, OBJ self, OBJ name) {
+  khiter_t k = kh_get(OBJ, vm->consts, name);
+  if (k != kh_end(vm->consts)) return kh_value(vm->consts, k);
+  return TR_NIL;
+}
+
+OBJ TrObject_const_set(VM, OBJ self, OBJ name, OBJ value) {
+  int ret;
+  khiter_t k = kh_put(OBJ, vm->consts, name, &ret);
+  if (!ret) kh_del(OBJ, vm->consts, k);
+  kh_value(vm->consts, k) = value;
+  return value;
+}
+
 static OBJ TrObject_class(VM, OBJ self) {
   return TR_COBJECT(self)->class;
 }

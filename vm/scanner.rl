@@ -25,7 +25,8 @@
   whitespace  = " " | "\f" | "\t" | "\v";
 
   term        = (newline | ";");
-  id          = [a-zA-Z_]+;
+  id          = [a-z_] [a-zA-Z0-9_]*;
+  const       = [A-Z] [a-zA-Z0-9_]*;
   int         = [0-9]+;
   string      = '"' (any - '"')* '"' | "'" (any - "'")* "'";
   symbol      = ':' id;
@@ -51,6 +52,9 @@
     "self"      => { TOKEN(SELF); };
     "return"    => { TOKEN(RETURN); };
     "def"       => { TOKEN(DEF); };
+    "class"     => { TOKEN(CLASS); };
+    # HACK any better way to do this?
+    ".class"    => { TOKEN(DOT); TOKEN_V(ID, tr_intern("class")); };
     
     # ponctuation
     ","         => { TOKEN(COMMA); };
@@ -58,6 +62,7 @@
     ")"         => { TOKEN(C_PAR); };
     
     id          => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts))); };
+    const       => { TOKEN_V(CONST, tr_intern(BUFFER(ts, te-ts))); };
     symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
     binop       => { TOKEN_V(BINOP, tr_intern(BUFFER(ts, te-ts))); };
     assign      => { TOKEN_V(ASSIGN, tr_intern(BUFFER(ts, te-ts))); };

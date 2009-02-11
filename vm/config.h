@@ -7,3 +7,6 @@
 #endif
 
 #define TR_MAX_FRAMES 255
+
+/* disabled for now, see vm.c */
+/* #define TR_INLINE_METHOD */

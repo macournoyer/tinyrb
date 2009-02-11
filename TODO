@@ -10,19 +10,20 @@
 [x] Include GC (Boehm)
 [x] Monomorphic method cache (using CallSite)
 [x] Implement basic method definition
+[ ] Implement GET/SETCONST
+[ ] Implement basic class definition
 [ ] Pass args to defined methods
 [ ] Make stackless
 [ ] Bootstrap all class correctly
-[ ] Implement basic class definition
 
 == Later
 [ ] Implement Module
-[ ] Inline some methods (Fixnum +,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT,
+[ ] Inline some methods (Fixnum +,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT (disabled for now)
 [ ] use getopt to parse cmd line args
 [ ] Implement splatted args
 [ ] Implement exceptions
 [ ] Implement Proc, yield and the like
-[ ] Remove useless register allocations in compiler
+[ ] Peephole optimization (Remove useless register allocations in compiler)
 [ ] Compile to file
 [ ] Implement IO and File
 [ ] Implement case...when

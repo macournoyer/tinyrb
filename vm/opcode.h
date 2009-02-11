@@ -29,16 +29,16 @@ enum TrInstCode {
   TR_OP_GETLOCAL,   /* A B      R[A] = locals[B] */
   TR_OP_FIXNUM_ADD,
   TR_OP_FIXNUM_LT,
-  TR_OP_DEF,
+  TR_OP_DEF,        /* A Bx     define method k[Bx] on self w/ blocks[A] */
+  TR_OP_GETCONST,   /* A Bx     R[A] = Consts[k[Bx]] */
+  TR_OP_SETCONST,   /* A Bx     Consts[k[Bx]] = R[A] */
+  TR_OP_CLASS,      /* A Bx     R[A] = define class k[Bx] on self w/ blocks[A] */
   TR_OP_UNDEF,
   TR_OP_ALIAS,
-  TR_OP_CLASS,
   TR_OP_SUPER,
   TR_OP_YIELD,
   TR_OP_GETDYN,
   TR_OP_SETDYN,
-  TR_OP_GETCONST,
-  TR_OP_SETCONST,
   TR_OP_GETIVAR,
   TR_OP_SETIVAR,
   TR_OP_GETCVAR,
@@ -70,15 +70,15 @@ enum TrInstCode {
   "fixnum_add", \
   "fixnum_lt", \
   "def", \
+  "getconst", \
+  "setconst", \
+  "class", \
   "undef", \
   "alias", \
-  "class", \
   "super", \
   "yield", \
   "getdyn", \
   "setdyn", \
-  "getconst", \
-  "setconst", \
   "getivar", \
   "setivar", \
   "getcvar", \
@@ -111,7 +111,10 @@ enum TrInstCode {
   &&op_GETLOCAL, \
   &&op_FIXNUM_ADD, \
   &&op_FIXNUM_LT, \
-  &&op_DEF
+  &&op_DEF, \
+  &&op_GETCONST, \
+  &&op_SETCONST, \
+  &&op_CLASS
   
 #endif
 

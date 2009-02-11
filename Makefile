@@ -44,7 +44,7 @@ sloc: clean
 	@rm vm/scanner.rl.c
 
 size: clean
-	@ruby -e 'puts "%0.2fK" % (Dir["vm/**.{c,y,rl,h}"].inject(0) {|s,f| s += File.size(f)} / 1024.0)'
+	@ruby -e 'puts "%0.2fK" % (Dir["vm/*.{c,y,rl,h}"].inject(0) {|s,f| s += File.size(f)} / 1024.0)'
 
 clean:
 	@rm -f vm/*.o vm/scanner.c vm/grammar.{c,h,out}
