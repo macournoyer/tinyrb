@@ -32,10 +32,7 @@ statement(A) ::= expr_out(B). { A = B; }
 statement(A) ::= flow(B). { A = B; }
 statement(A) ::= def(B). { A = B; }
 statement(A) ::= class(B). { A = B; }
-statement(A) ::= assign(B). { A = B; }
-
-assign(A) ::= CONST(B) ASSIGN statement(C). { A = NODE2(SETCONST, B, C); }
-assign(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
+statement(A) ::= assign_out(B). { A = B; }
 
 flow(A) ::= IF statement(B) TERM statements(C) opt_term END. { A = NODE2(IF, B, C); }
 flow(A) ::= UNLESS statement(B) TERM statements(C) opt_term END. { A = NODE2(UNLESS, B, C); }
@@ -52,30 +49,39 @@ literal(A) ::= SELF. { A = NODE(SELF, 0); }
 literal(A) ::= RETURN. { A = NODE(RETURN, 0); }
 literal(A) ::= CONST(B). { A = NODE(CONST, B); }
 
-expr(A) ::= expr(B) DOT msg(C). { A = NODE2(SEND, B, C); }
-expr(A) ::= expr(B) BINOP(C) msg(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(NODE2(SEND, TR_NIL, D)))); }
-expr(A) ::= expr(B) BINOP(C) literal(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
-expr(A) ::= msg(B). { A = NODE2(SEND, TR_NIL, B); }
-expr(A) ::= literal(B). { A = B; }
+assign_out(A) ::= CONST(B) ASSIGN statement(C). { A = NODE2(SETCONST, B, C); }
+assign_out(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
 
-expr_out(A) ::= expr(B) DOT msg_out(C). { A = NODE2(SEND, B, C); }
-expr_out(A) ::= expr(B) BINOP(C) msg_out(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(NODE2(SEND, TR_NIL, D)))); }
-expr_out(A) ::= expr(B) BINOP(C) literal(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
-expr_out(A) ::= msg_out(B). { A = NODE2(SEND, TR_NIL, B); }
-expr_out(A) ::= literal(B). { A = B; }
+assign(A) ::= CONST(B) ASSIGN expr(C). { A = NODE2(SETCONST, B, C); }
+assign(A) ::= ID(B) ASSIGN expr(C). { A = NODE2(ASSIGN, B, C); }
 
-msg(A) ::= ID(B). { A = NODE(MSG, B); }
-msg(A) ::= ID(B) O_PAR C_PAR. { A = NODE(MSG, B); }
-msg(A) ::= ID(B) O_PAR args(C) C_PAR. { A = NODE2(MSG, B, C); }
+expr(A) ::= expr(B) DOT name(C). { A = NODE2(SEND, B, C); }
+expr(A) ::= expr(B) BINOP(C) msg(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
+expr(A) ::= msg(B). { A = B; }
 
-msg_out(A) ::= msg(B). { A = B; }
-msg_out(A) ::= ID(B) args(C). { A = NODE2(MSG, B, C); }
+/* outer expression, can pass args w/out parenthesis, eg.: puts "poop" */
+expr_out(A) ::= expr(B) DOT name_out(C). { A = NODE2(SEND, B, C); }
+expr_out(A) ::= expr(B) BINOP(C) msg_out(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
+expr_out(A) ::= msg_out(B). { A = B; }
+
+name(A) ::= ID(B). { A = NODE(MSG, B); }
+name(A) ::= ID(B) O_PAR C_PAR. { A = NODE(MSG, B); }
+name(A) ::= ID(B) O_PAR args(C) C_PAR. { A = NODE2(MSG, B, C); }
+
+name_out(A) ::= name(B). { A = B; }
+name_out(A) ::= ID(B) args(C). { A = NODE2(MSG, B, C); }
+
+msg_out(A) ::= name_out(B). { A = NODE2(SEND, TR_NIL, B); }
+msg_out(A) ::= literal(B). { A = B; }
+
+msg(A) ::= name(B). { A = NODE2(SEND, TR_NIL, B); }
+msg(A) ::= literal(B). { A = B; }
 
 args(A) ::= args(B) COMMA arg(C). { A = PUSH(B, C); }
 args(A) ::= arg(B). { A = NODES(B); }
 
 arg(A) ::= expr(B). { A = B; }
-/*arg(A) ::= assign(B). { A = B; }*/
+arg(A) ::= assign(B). { A = B; }
 
 def(A) ::= DEF ID(B) TERM statements(C) opt_term END. { A = NODE2(DEF, B, C); }
 

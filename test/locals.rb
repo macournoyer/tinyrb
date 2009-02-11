@@ -9,3 +9,8 @@ puts y
 a = b = :muffin
 puts a
 # => muffin
+
+puts x = 7
+puts x
+# => 7
+# => 7
