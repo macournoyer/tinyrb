@@ -38,9 +38,14 @@ OBJ TrClass_name(VM, OBJ self) {
   return TR_CCLASS(self)->name;
 }
 
+OBJ TrClass_superclass(VM, OBJ self) {
+  return TR_CCLASS(self)->super;
+}
+
 void TrClass_init(VM) {
   OBJ c = TR_INIT_CLASS(Class, Object);
   tr_def(c, "name", TrClass_name, 0);
+  tr_def(c, "superclass", TrClass_superclass, 0);
   tr_def(c, "allocate", TrClass_allocate, 0);
 }
 

@@ -64,7 +64,9 @@
   o; \
 })
 #define TR_CLASS(T)          vm->classes[TR_T_##T]
-#define TR_INIT_CLASS(T,S)   TR_CLASS(T) = TrClass_new(vm, tr_intern(#T), TR_CLASS(S))
+#define TR_INIT_CLASS(T,S) \
+  TR_CLASS(T) = TrObject_const_set(vm, vm->self, tr_intern(#T), \
+                                   TrClass_new(vm, tr_intern(#T), TR_CLASS(S)))
 
 #define tr_intern(S)         TrSymbol_new(vm, (S))
 #define tr_raise(M,A...)     (printf("Error: "), printf(M, ##A), assert(0))
@@ -105,6 +107,7 @@ typedef struct TrBlock {
   kvec_t(TrInst) code;
   kvec_t(struct TrBlock *) blocks; /* TODO should not be pointers */
   size_t regc;
+  size_t argc;
 } TrBlock;
 
 typedef OBJ (TrFunc)(VM, OBJ receiver, ...);
@@ -140,6 +143,7 @@ typedef struct TrVM {
   TrFrame frames[TR_MAX_FRAMES];
   size_t cf; /* current frame */
   khash_t(OBJ) *consts;
+  OBJ self;
 } TrVM;
 
 typedef struct {

@@ -11,3 +11,6 @@ puts Pony.name
 Pony.allocate.talk
 # => lol
 # => Pony
+
+puts String.name
+# => String

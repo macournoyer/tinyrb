@@ -192,7 +192,7 @@ OBJ TrVM_step(VM) {
 OBJ TrVM_run(VM, TrBlock *b) {
   TrFrame_init(vm, 0, b);
   vm->cf = 0;
-  FRAME->self = TrObject_new(vm);
+  vm->self = FRAME->self = TrObject_new(vm);
   FRAME->class = TR_CLASS(Object);
   return TrVM_step(vm);
 }

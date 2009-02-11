@@ -35,6 +35,7 @@ static TrBlock *TrBlock_new() {
   kv_init(b->locals);
   kv_init(b->strings);
   b->regc = 0;
+  b->argc = 0;
   return b;
 }
 
