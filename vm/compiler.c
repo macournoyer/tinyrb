@@ -46,6 +46,7 @@ static void TrBlock_dump2(TrBlock *b, int level) {
   size_t i;
   printf("; block definition: %p (level %d)\n", b, level);
   printf("; %lu registers ; %lu nested blocks\n", b->regc, kv_size(b->blocks));
+  printf("; %lu args\n", b->argc);
   for (i = 0; i < kv_size(b->locals); ++i)
     printf(".local  %-8s ; %lu\n", INSPECT(kv_A(b->locals, i)), i);
   for (i = 0; i < kv_size(b->k); ++i) {
@@ -214,20 +215,29 @@ void TrCompiler_compile_node(TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
       PUSH_OP_A(b, RETURN, reg);
       break;
     case AST_DEF: {
-      TrBlock *defb = TrBlock_new();
-      size_t defi = kv_size(b->blocks);
-      kv_push(TrBlock *, b->blocks, defb);
-      TR_ARRAY_EACH(n->args[1], i, v, {
-        TrCompiler_compile_node(c, defb, (TrNode *)v, 0);
-      });
-      PUSH_OP_A(defb, RETURN, 0);
-      PUSH_OP_ABx(b, DEF, defi, TrBlock_pushk(b, n->args[0]));
-    } break;
-    case AST_CLASS: {
-      /* TODO refactor, repetive w/ def */
       TrBlock *blk = TrBlock_new();
       size_t blki = kv_size(b->blocks);
       kv_push(TrBlock *, b->blocks, blk);
+      if (n->args[1]) {
+        blk->argc = TR_ARRAY_SIZE(n->args[1]);
+        /* add parameters as locals in method context */
+        TR_ARRAY_EACH(n->args[1], i, v, {
+          TrNode *param = (TrNode *)v;
+          TrBlock_local(blk, param->args[0]);
+        });
+      }
+      /* compile body of method */
+      TR_ARRAY_EACH(n->args[2], i, v, {
+        TrCompiler_compile_node(c, blk, (TrNode *)v, 0);
+      });
+      PUSH_OP_A(blk, RETURN, 0);
+      PUSH_OP_ABx(b, DEF, blki, TrBlock_pushk(b, n->args[0]));
+    } break;
+    case AST_CLASS: {
+      TrBlock *blk = TrBlock_new();
+      size_t blki = kv_size(b->blocks);
+      kv_push(TrBlock *, b->blocks, blk);
+      /* compile body of class */
       TR_ARRAY_EACH(n->args[1], i, v, {
         TrCompiler_compile_node(c, blk, (TrNode *)v, 0);
       });

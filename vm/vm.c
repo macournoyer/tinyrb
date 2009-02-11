@@ -79,26 +79,25 @@ static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b) {
   FRAME->self = class;
   FRAME->class = class;
   TrObject_const_set(vm, class, name, class);
-  
+
   TrVM_step(vm);
-  
   vm->cf--;
-  
   return class;
 }
 
-static OBJ TrVM_interpret(VM, OBJ self) {
+static OBJ TrVM_interpret(VM, OBJ self, int argc, OBJ argv[]) {
   TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
+  size_t i;
+  if (b->argc != argc) tr_raise("Expected %lu arguments, got %d.\n", b->argc, argc);
   vm->cf++;
   TrFrame_init(vm, vm->cf, b);
   FRAME->self = self;
   FRAME->class = TR_COBJECT(self)->class;
-  
-  TrVM_step(vm);
-  
+  for (i = 0; i < argc; ++i) FRAME->locals[i] = argv[i];
+
+  OBJ ret = TrVM_step(vm);
   vm->cf--;
-  
-  return TR_NIL;
+  return ret;
 }
 
 /* dispatch macros */
@@ -173,7 +172,8 @@ OBJ TrVM_step(VM) {
     
     /* definition */
     OP(DEF):
-      TrClass_add_method(vm, f->class, k[Bx], TrMethod_new(vm, (TrFunc *)TrVM_interpret, (OBJ)blocks[A], 0));
+      TrClass_add_method(vm, f->class, k[Bx],
+                         TrMethod_new(vm, (TrFunc *)TrVM_interpret, (OBJ)blocks[A], -1));
       DISPATCH;
     OP(CLASS): R[A] = TrVM_defclass(vm, f, k[Bx], blocks[A]); DISPATCH;
     

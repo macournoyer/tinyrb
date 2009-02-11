@@ -86,7 +86,11 @@ args(A) ::= arg(B). { A = NODES(B); }
 arg(A) ::= expr(B). { A = B; }
 arg(A) ::= assign(B). { A = B; }
 
-def(A) ::= DEF ID(B) TERM statements(C) opt_term END. { A = NODE2(DEF, B, C); }
+def(A) ::= DEF ID(B) TERM statements(D) opt_term END. { A = NODE3(DEF, B, 0, D); }
+def(A) ::= DEF ID(B) O_PAR params(C) C_PAR TERM statements(D) opt_term END. { A = NODE3(DEF, B, C, D); }
+
+params(A) ::= params(B) COMMA ID(C). { A = PUSH(B, NODE(PARAM, C)); }
+params(A) ::= ID(B). { A = NODES(NODE(PARAM, B)); }
 
 class(A) ::= CLASS CONST(B) TERM statements(C) opt_term END. { A = NODE2(CLASS, B, C); }
 
