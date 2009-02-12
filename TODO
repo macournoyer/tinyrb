@@ -12,28 +12,30 @@
 [x] Implement basic method definition
 [x] Implement GET/SETCONST
 [x] Implement basic class definition
-[ ] Pass args to defined methods
-[ ] Make stackless
-[ ] Bootstrap all class correctly
+[x] Pass args to defined methods
+[ ] Bootstrap all class correctly (nil,true,false too)
 [ ] Fix operator precedence
-[ ] Box primitives (nil,true,false) as object in VM
+[ ] Implement Array, Hash
+[ ] Implement Module
 
 == Later
-[ ] Implement Module
-[ ] Inline some methods (Fixnum +,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT (disabled for now)
-[ ] use getopt to parse cmd line args
+[ ] Inline some methods (Fixnum +,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT (basic there, disabled for now)
 [ ] Implement splatted args
 [ ] Implement exceptions
 [ ] Implement Proc, yield and the like
 [ ] Peephole optimization (Remove useless register allocations in compiler)
 [ ] Compile to file
-[ ] Implement IO and File
+[ ] Implement IO and File (using libev?)
+[ ] Implement REPL
 [ ] Implement case...when
-[ ] Replace GC w/ smaller, simpler & embedable one (Io's)
+[ ] Implement Float, Bignum
+[ ] Run RubySpecs
+[ ] Replace GC w/ smaller, simpler & embedable one (Io's maybe?)
 
-== Oh Yeah That'd be Cool!
+== Oh Yeah That'll be Cool!
 [ ] Unicode
 [ ] FFI
-[ ] lightweight threads, coroutines? protothread?
+[ ] lightweight threads, coroutines (using libconcurrency?)
 [ ] Sandbox
 [ ] JIT
+[ ] Make stackless (really not sure about this as it's "fighting the CPU execution model" and makes it harder to JIT compile)
