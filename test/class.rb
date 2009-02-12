@@ -14,3 +14,12 @@ Pony.allocate.talk
 
 puts String.name
 # => String
+
+puts Object.name
+# => Object
+
+puts Class.name
+# => Class
+
+puts Symbol.name
+# => Symbol

@@ -204,12 +204,18 @@ TrVM *TrVM_new() {
   vm->symbols = kh_init(str);
   vm->consts = kh_init(OBJ);
   
-  /* bootstrap classes */
+  /* bootstrap core classes */
+  TrSymbol_init(vm);
   TrClass_init(vm);
   TrObject_init(vm);
-  TR_CCLASS(TR_CLASS(Class))->super = TR_CLASS(Object);
+  TrClass *symbolc = TR_CCLASS(TR_CLASS(Symbol));
+  TrClass *classc = TR_CCLASS(TR_CLASS(Class));
+  TrClass *objectc = TR_CCLASS(TR_CLASS(Object));
+  symbolc->super = classc->super = (OBJ)objectc;
+  symbolc->class = classc->class = objectc->class = (OBJ)classc;
+  TR_COBJECT(tr_intern("Symbol"))->class = (OBJ)symbolc;
+  
   TrPrimitive_init(vm);
-  TrSymbol_init(vm);
   TrString_init(vm);
   TrFixnum_init(vm);
   TrArray_init(vm);
