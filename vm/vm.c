@@ -208,6 +208,7 @@ TrVM *TrVM_new() {
   TrClass_init(vm);
   TrObject_init(vm);
   TR_CCLASS(TR_CLASS(Class))->super = TR_CLASS(Object);
+  TrPrimitive_init(vm);
   TrSymbol_init(vm);
   TrString_init(vm);
   TrFixnum_init(vm);

@@ -15,7 +15,7 @@
 #define TR_REALLOC           GC_realloc
 #define TR_FREE(S)           
 
-#define TR_COBJECT(X)        ((TrObject*)X)
+#define TR_COBJECT(X)        ((TrObject*)TR_BOX(X))
 #define TR_TYPE(X)           (TR_COBJECT(X)->type)
 #define TR_IS_A(X,T)         (TR_TYPE(X) == TR_T_##T)
 #define TR_CTYPE(X,T)        (assert(TR_IS_A(X,T)),(Tr##T*)(X))
@@ -28,7 +28,7 @@
 #define TR_STR_PTR(S)        (TR_CSTRING(S)->ptr)
 #define TR_STR_LEN(S)        (TR_CSTRING(S)->len)
 #define TR_FIX2INT(F)        (TR_CFIXNUM(F)->value)
-#define TR_ARRAY_PUSH(X,I)   kv_push(OBJ, (TR_CARRAY(X))->kv, (I))
+#define TR_ARRAY_PUSH(X,I)   kv_push(OBJ, ((TrArray*)(X))->kv, (I))
 #define TR_ARRAY_AT(X,I)     kv_A((TR_CARRAY(X))->kv, (I))
 #define TR_ARRAY_SIZE(X)     kv_size(TR_CARRAY(X)->kv)
 #define TR_ARRAY_EACH(T,I,V,B) ({ \
@@ -50,7 +50,7 @@
 #define TR_TRUE              ((OBJ)2)
 #define TR_TEST(X)           ((X) == TR_NIL || (X) == TR_FALSE ? 0 : 1)
 #define TR_BOOL(X)           ((X) ? TR_TRUE : TR_FALSE)
-#define TR_BOX(X)            (X) /* TODO box nil, false, true */
+#define TR_BOX(X)            ((X) < 3 ? vm->primitives[X] : (X))
 
 #define TR_OBJECT_HEADER \
   TR_T type; \
@@ -87,8 +87,8 @@ KHASH_MAP_INIT_INT(OBJ, OBJ);
 
 typedef enum {
   TR_T_Object, TR_T_Class, TR_T_Method,
-  TR_T_Symbol, TR_T_String,
-  TR_T_Fixnum,
+  TR_T_Symbol, TR_T_String, TR_T_Fixnum,
+  TR_T_NilClass, TR_T_TrueClass, TR_T_FalseClass,
   TR_T_Array, TR_T_Hash,
   TR_T_Node,
   TR_T_MAX /* keep last */
@@ -144,6 +144,7 @@ typedef struct TrVM {
   size_t cf; /* current frame */
   khash_t(OBJ) *consts;
   OBJ self;
+  OBJ primitives[3];
 } TrVM;
 
 typedef struct {
@@ -210,8 +211,12 @@ void TrObject_init(VM);
 OBJ TrClass_new(VM, OBJ name, OBJ super);
 OBJ TrClass_lookup(VM, OBJ self, OBJ name);
 OBJ TrClass_add_method(VM, OBJ self, OBJ name, OBJ method);
+OBJ TrClass_allocate(VM, OBJ self);
 void TrClass_init(VM);
 OBJ TrMethod_new(VM, TrFunc *func, OBJ data, int arity);
+
+/* primitive */
+void TrPrimitive_init(VM);
 
 /* compiler */
 TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace);
