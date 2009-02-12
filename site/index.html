@@ -12,8 +12,8 @@
       <h2>A tiny Ruby VM for you to love and play with</h2>
       
       <p class="first">
-        tinyrb is the smallest Ruby VM to date (64K).
-        It wont run all your Ruby code, but it's pretty fast.
+        <strong>tiny<span class="rb">rb</span></strong> is the smallest Ruby VM to date.
+        It wont run all your Ruby code, but it's fast and fun to play with.
       </p>
       
       <h3>Goals</h3>
@@ -22,7 +22,7 @@
         <li>Embedable</li>
         <li>Fast</li>
         <li>Low memory usage</li>
-        <li>Small code base, easy to read</li>
+        <li>Small code base, easy to understand</li>
         <li>Fun and awesome</li>
       </ul>
       
@@ -38,11 +38,10 @@
       
       <h3>VM specs</h3>
       <ul>
-        <li>Register based</li>
-        <li>Monomorphic inline cache</li>
-        <li>Direct threaded dispatch</li>
-        <li>Using the <a href="http://www.hpl.hp.com/personal/Hans_Boehm/gc/" title="A garbage collector for C and C++">Boehm GC</a> (for now)</li>
-        <li>Very small &lt; 64K</li>
+        <li>Register based, (like Lua)</li>
+        <li><a href="http://www.hpl.hp.com/personal/Hans_Boehm/gc/" title="A garbage collector for C and C++">Boehm GC</a></li>
+        <li>Very small &lt; 64K, ~2000 sloc</li>
+        <li>Method caching and some inlining</li>
       </ul>
       
       <div id="footer">

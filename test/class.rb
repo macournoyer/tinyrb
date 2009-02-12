@@ -5,21 +5,21 @@ class Pony
   end
 end
 
-puts Pony.name
+puts Pony
 # => Pony
 
 Pony.allocate.talk
 # => lol
 # => Pony
 
-puts String.name
+puts String
 # => String
 
-puts Object.name
+puts Object
 # => Object
 
-puts Class.name
+puts Class
 # => Class
 
-puts Symbol.name
+puts Symbol
 # => Symbol

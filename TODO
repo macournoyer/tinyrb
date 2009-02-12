@@ -13,7 +13,7 @@
 [x] Implement GET/SETCONST
 [x] Implement basic class definition
 [x] Pass args to defined methods
-[ ] Bootstrap all class correctly (nil,true,false too)
+[x] Bootstrap all class correctly (nil,true,false too)
 [ ] Fix operator precedence
 [ ] Implement Array, Hash
 [ ] Implement Module

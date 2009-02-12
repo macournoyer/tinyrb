@@ -30,6 +30,10 @@ static OBJ TrObject_class(VM, OBJ self) {
   return TR_COBJECT(self)->class;
 }
 
+static OBJ TrObject_inspect(VM, OBJ self) {
+  return tr_sprintf(vm, "#<Object:%p>", (void*)self);
+}
+
 static OBJ TrObject_puts(VM, OBJ self, int argc, OBJ argv[]) {
   size_t i;
   for (i = 0; i < argc; ++i)
@@ -41,4 +45,6 @@ void TrObject_init(VM) {
   OBJ c = TR_INIT_CLASS(Object, /* ignored */ Object);
   tr_def(c, "class", TrObject_class, 0);
   tr_def(c, "puts", TrObject_puts, -1);
+  tr_def(c, "to_s", TrObject_inspect, 0);
+  tr_def(c, "inspect", TrObject_inspect, 0);
 }

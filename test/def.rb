@@ -15,3 +15,10 @@ end
 volume("it goes to", 11)
 # => it goes to
 # => 11
+
+def lolcat(say)
+  say
+end
+
+puts lolcat("meow")
+# => meow
