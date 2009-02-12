@@ -34,13 +34,17 @@ statement(A) ::= def(B). { A = B; }
 statement(A) ::= class(B). { A = B; }
 statement(A) ::= assign_out(B). { A = B; }
 
-flow(A) ::= IF statement(B) TERM statements(C) opt_term END. { A = NODE2(IF, B, C); }
-flow(A) ::= UNLESS statement(B) TERM statements(C) opt_term END. { A = NODE2(UNLESS, B, C); }
+flow(A) ::= IF statement(B) TERM statements(C) opt_term else(D) END. { A = NODE3(IF, B, C, D); }
+flow(A) ::= UNLESS statement(B) TERM statements(C) opt_term else(D) END. { A = NODE3(UNLESS, B, C, D); }
+else(A) ::= ELSE TERM statements(B) opt_term. { A = B; }
+else(A) ::= . { A = 0; }
+
 flow(A) ::= WHILE statement(B) TERM statements(C) opt_term END. { A = NODE2(WHILE, B, C); }
 flow(A) ::= UNTIL statement(B) TERM statements(C) opt_term END. { A = NODE2(UNTIL, B, C); }
 /* one-liner conditions */
 flow(A) ::= expr_out(C) IF statement(B). { A = NODE2(IF, B, NODES(C)); }
 flow(A) ::= expr_out(C) UNLESS statement(B). { A = NODE2(UNLESS, B, NODES(C)); }
+
 
 literal(A) ::= SYMBOL(B). { A = NODE(VALUE, B); }
 literal(A) ::= INT(B). { A = NODE(VALUE, B); }

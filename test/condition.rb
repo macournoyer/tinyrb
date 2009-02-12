@@ -21,3 +21,17 @@ puts :true if true
 
 puts :nope unless true
 # =>
+
+if false
+  puts :nope
+else
+  puts :yay
+end
+# => yay
+
+unless true
+  puts :nope
+else
+  puts :yay
+end
+# => yay

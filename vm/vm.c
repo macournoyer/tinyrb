@@ -7,6 +7,7 @@
 OBJ TrVM_step(VM);
 
 static void TrFrame_init(VM, size_t i, TrBlock *b) {
+  if (i > TR_MAX_FRAMES) tr_raise("Stack overflow");
   TrFrame *f = &vm->frames[i];
   f->block = b;
   f->method = TR_NIL;
@@ -23,18 +24,21 @@ static void TrFrame_init(VM, size_t i, TrBlock *b) {
 static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip) {
   OBJ method = TrObject_method(vm, receiver, msg);
   if (!method) tr_raise("Method not found: %s\n", TR_STR_PTR(msg));
+
+#if TR_CACHE_METHOD
   TrCallSite *s = (kv_pushp(TrCallSite, f->sites));
   /* TODO support metaclass */
   s->class = TR_COBJECT(receiver)->class;
   s->method = method;
   s->miss = 0;
-  /* Implement Monomorphic methoc cache by replacing the previous instruction (BOING)
+  /* Implement Monomorphic method cache by replacing the previous instruction (BOING)
      w/ CACHE that uses the CallSite to find the method instead of doing a full lookup. */
   TrInst *cache = (ip-1);
   cache->i = TR_OP_CACHE;
   cache->a = ip->a; /* receiver */
   cache->b = 1; /* jmp */
   cache->c = kv_size(f->sites)-1; /* CallSite index */
+#endif
 
 #ifdef TR_INLINE_METHOD
   /* TODO find an unintrusive way to do this, how to fallback to lookup/call? */

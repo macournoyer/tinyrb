@@ -43,6 +43,7 @@
     # keywords
     "if"        => { TOKEN(IF); };
     "unless"    => { TOKEN(UNLESS); };
+    "else"      => { TOKEN(ELSE); };
     "while"     => { TOKEN(WHILE); };
     "until"     => { TOKEN(UNTIL); };
     "end"       => { TOKEN(END); };

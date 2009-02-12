@@ -8,5 +8,7 @@
 
 #define TR_MAX_FRAMES 255
 
+#define TR_CACHE_METHOD 1
+
 /* disabled for now, see vm.c */
-/* #define TR_INLINE_METHOD */
+/* #define TR_INLINE_METHOD 1 */

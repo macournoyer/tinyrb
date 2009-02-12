@@ -181,11 +181,21 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         PUSH_OP_ABx(b, JMPUNLESS, reg, 0);
       else
         PUSH_OP_ABx(b, JMPIF, reg, 0);
-      size_t i = kv_size(b->code);
+      size_t jmpi = kv_size(b->code);
+      /* body */
       TR_ARRAY_EACH(n->args[1], i, v, {
         TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg);
       });
-      SET_Bx(b->code.a + i - 1, kv_size(b->code) - i);
+      SET_Bx(b->code.a + jmpi - 1, kv_size(b->code) - jmpi + (n->args[2] ? 1 : 0));
+      /* else body */
+      if (n->args[2]) {
+        PUSH_OP_ABx(b, JMP, reg, 0);
+        jmpi = kv_size(b->code);
+        TR_ARRAY_EACH(n->args[2], i, v, {
+          TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg);
+        });
+        SET_Bx(b->code.a + jmpi - 1, kv_size(b->code) - jmpi);
+      }
     } break;
     case AST_WHILE:
     case AST_UNTIL: {

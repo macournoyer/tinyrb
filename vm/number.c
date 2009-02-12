@@ -31,6 +31,7 @@ void TrFixnum_init(VM) {
   tr_def(c, "==", TrFixnum_eq, 1);
   tr_def(c, "<", TrFixnum_lt, 1);
   tr_def(c, "<=", TrFixnum_le, 1);
+  tr_def(c, ">", TrFixnum_gt, 1);
   tr_def(c, ">=", TrFixnum_ge, 1);
   tr_def(c, "to_s", TrFixnum_to_s, 0);
 }
