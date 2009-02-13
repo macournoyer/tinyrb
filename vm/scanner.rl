@@ -30,7 +30,7 @@
   int         = [0-9]+;
   string      = '"' (any - '"')* '"' | "'" (any - "'")* "'";
   symbol      = ':' id;
-  comment     = "#"+ (any - newline)* newline;
+  comment     = "#"+ (any - newline)*;
   dot         = '.';
   assign      = '=' | '+=' | '-=';
   unop        = '!';

@@ -14,15 +14,16 @@
 [x] Implement basic class definition
 [x] Pass args to defined methods
 [x] Bootstrap all class correctly (nil,true,false too)
-[ ] Fix CallSite error in recursive calls
+[x] Fix CallSite error in recursive calls
 [x] Allow reopening classes
 [ ] Fix operator precedence, add (...)
 [ ] Implement Array, Hash
 [ ] Implement Module
 [ ] Implement some more corelib stuff in Ruby and embed bytecode
+*** See TODO in code too!
 
 == Later
-[ ] Inline some methods (+,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT
+[x] Inline some methods (+,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT
 [ ] Get it to build w/ -ansi gcc option (might need to get rid of khash.h)
 [ ] Implement metaclass
 [ ] Implement splat operator

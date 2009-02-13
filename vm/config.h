@@ -3,12 +3,13 @@
 /* Direct threaded code is used to dispatch instructions.
    It's very fast, but GCC specific. */
 #if __GNUC__ > 3
-#define TR_THREADED_DISPATCH 1
+#define TR_THREADED_DISPATCH
 #endif
 
 #define TR_MAX_FRAMES 255
 
-#define TR_CACHE_METHOD 1
+/* enable CallSite optimization */
+#define TR_CALL_SITE
 
-/* disabled for now, see vm.c */
-/* #define TR_INLINE_METHOD 1 */
+/* enable method inlining as intruction */
+#define TR_INLINE_METHOD

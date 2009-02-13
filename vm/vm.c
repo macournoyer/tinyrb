@@ -22,30 +22,39 @@ static void TrFrame_init(VM, size_t i, TrBlock *b) {
 static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip) {
   OBJ method = TrObject_method(vm, receiver, msg);
   if (!method) tr_raise("Method not found: %s\n", TR_STR_PTR(msg));
+  TrInst *boing = (ip-1);
 
-#ifdef TR_CACHE_METHOD
+#ifdef TR_CALL_SITE
   TrCallSite *s = (kv_pushp(TrCallSite, f->block->sites));
   /* TODO support metaclass */
   s->class = TR_COBJECT(receiver)->class;
   s->method = method;
   s->miss = 0;
-  /* Implement Monomorphic method cache by replacing the previous instruction (BOING)
-     w/ CACHE that uses the CallSite to find the method instead of doing a full lookup. */
-  TrInst *cache = (ip-1);
-  cache->i = TR_OP_CACHE;
-  cache->a = ip->a; /* receiver register */
-  cache->b = 1; /* jmp */
-  cache->c = kv_size(f->block->sites)-1; /* CallSite index */
+  
+#ifdef TR_INLINE_METHOD
+  #define DEF_INLINE(F, OP) \
+    if (func == (TrFunc*)(F)) { \
+      boing->i = TR_OP_##OP; \
+      boing->a = ip->a; \
+      boing->b = 2; \
+      return method; \
+    }
+  TrFunc *func = TR_CMETHOD(method)->func;
+  /* try to inline the method as an instruction if possible */
+  DEF_INLINE(TrFixnum_add, FIXNUM_ADD)
+  else
+  DEF_INLINE(TrFixnum_sub, FIXNUM_SUB)
+  else
+  DEF_INLINE(TrFixnum_lt, FIXNUM_LT)
+  #undef DEF_INLINE
 #endif
 
-#ifdef TR_INLINE_METHOD
-  /* TODO find an unintrusive way to do this, how to fallback to lookup/call? */
-  /* try to inline the method as an instruction if possible */
-  do { ip++; } while (ip->i != TR_OP_CALL);
-  if (TR_CMETHOD(method)->func == (TrFunc *)TrFixnum_add)
-    ip->i = TR_OP_FIXNUM_ADD;
-  else if (TR_CMETHOD(method)->func == (TrFunc *)TrFixnum_lt)
-    ip->i = TR_OP_FIXNUM_LT;
+  /* Implement Monomorphic method cache by replacing the previous instruction (BOING)
+     w/ CACHE that uses the CallSite to find the method instead of doing a full lookup. */
+  boing->i = TR_OP_CACHE;
+  boing->a = ip->a; /* receiver register */
+  boing->b = 1; /* jmp */
+  boing->c = kv_size(f->block->sites)-1; /* CallSite index */
 #endif
   
   return method;
@@ -167,13 +176,12 @@ OBJ TrVM_step(VM) {
     OP(CALL):       R[A] = TrVM_call(vm, f, R[A], R[A+1], B, &R[A+2]); DISPATCH;
     OP(CACHE):
       /* TODO how to expire cache? */
-      if (!&SITE[C]) TrBlock_dump(vm, f->block);
       assert(&SITE[C] && "Method cached but no CallSite found");
       if (SITE[C].class == TR_COBJECT(R[A])->class) {
         R[A+1] = SITE[C].method;
         ip += B;
       } else {
-        /* TODO remove CallSite if too much miss, CallSite should be linked list. */
+        /* TODO invalidate CallSite if too much miss. */
         SITE[C].miss++;
       }
       DISPATCH;
@@ -191,8 +199,16 @@ OBJ TrVM_step(VM) {
     OP(JMPUNLESS):  if (!TR_TEST(R[A])) ip += sBx; DISPATCH;
     
     /* optimizations */
-    OP(FIXNUM_ADD): R[A] = TrFixnum_new(vm, TR_FIX2INT(R[A]) + TR_FIX2INT(R[A+2])); DISPATCH;
-    OP(FIXNUM_LT):  R[A] = TR_BOOL(TR_FIX2INT(R[A]) < TR_FIX2INT(R[A+2])); DISPATCH;
+    #define INLINE_FUNC(FNC) if (SITE[C].class == TR_COBJECT(R[A])->class) { FNC; ip += B; }
+    OP(FIXNUM_ADD):
+      INLINE_FUNC(R[A] = TrFixnum_new(vm, TR_FIX2INT(R[A]) + TR_FIX2INT(R[A+2])));
+      DISPATCH;
+    OP(FIXNUM_SUB):
+      INLINE_FUNC(R[A] = TrFixnum_new(vm, TR_FIX2INT(R[A]) - TR_FIX2INT(R[A+2])));
+      DISPATCH;
+    OP(FIXNUM_LT):
+      INLINE_FUNC(R[A] = TR_BOOL(TR_FIX2INT(R[A]) < TR_FIX2INT(R[A+2])));
+      DISPATCH;
     
   END_OPCODES;
 }

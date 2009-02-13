@@ -164,8 +164,6 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         else
           PUSH_OP_A(b, SELF, reg);
         i = TrBlock_pushk(b, msg->args[0]);
-        PUSH_OP_A(b, BOING, 0);
-        PUSH_OP_ABx(b, LOOKUP, reg, i);
         size_t argc = 0;
         if (msg->args[1]) {
           argc = TR_ARRAY_SIZE(msg->args[1]);
@@ -173,6 +171,8 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
             TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg+i+2);
           });
         }
+        PUSH_OP_A(b, BOING, 0);
+        PUSH_OP_ABx(b, LOOKUP, reg, i);
         PUSH_OP_ABC(b, CALL, reg, argc, 0);
       }
     } break;

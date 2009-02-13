@@ -192,10 +192,9 @@ void TrSymbol_init(VM);
 void TrString_init(VM);
 
 /* number */
-#define TR_FIXNUM_MATH(A,OP,B)  TrFixnum_new(vm, TR_FIX2INT(A) OP TR_FIX2INT(B))
-#define TR_FIXNUM_CMP(A,OP,B)   TR_BOOL(TR_FIX2INT(A) OP TR_FIX2INT(B))
 OBJ TrFixnum_new(VM, int value);
 OBJ TrFixnum_add(VM, OBJ self, OBJ other);
+OBJ TrFixnum_sub(VM, OBJ self, OBJ other);
 OBJ TrFixnum_lt(VM, OBJ self, OBJ other);
 void TrFixnum_init(VM);
 

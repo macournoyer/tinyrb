@@ -28,6 +28,7 @@ enum TrInstCode {
   TR_OP_SETLOCAL,   /* A B      locals[A] = R[B] */
   TR_OP_GETLOCAL,   /* A B      R[A] = locals[B] */
   TR_OP_FIXNUM_ADD,
+  TR_OP_FIXNUM_SUB,
   TR_OP_FIXNUM_LT,
   TR_OP_DEF,        /* A Bx     define method k[Bx] on self w/ blocks[A] */
   TR_OP_GETCONST,   /* A Bx     R[A] = Consts[k[Bx]] */
@@ -68,6 +69,7 @@ enum TrInstCode {
   "setlocal", \
   "getlocal", \
   "fixnum_add", \
+  "fixnum_sub", \
   "fixnum_lt", \
   "def", \
   "getconst", \
@@ -110,6 +112,7 @@ enum TrInstCode {
   &&op_SETLOCAL, \
   &&op_GETLOCAL, \
   &&op_FIXNUM_ADD, \
+  &&op_FIXNUM_SUB, \
   &&op_FIXNUM_LT, \
   &&op_DEF, \
   &&op_GETCONST, \
