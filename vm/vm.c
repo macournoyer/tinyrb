@@ -17,8 +17,6 @@ static void TrFrame_init(VM, size_t i, TrBlock *b) {
   f->class = TR_NIL;
   f->line = 1;
   f->ip = b->code.a;
-  if (!f->sites.a) /* HACK hu? required or can't init twice */
-    kv_init(f->sites);
 }
 
 static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip) {
@@ -26,7 +24,7 @@ static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip)
   if (!method) tr_raise("Method not found: %s\n", TR_STR_PTR(msg));
 
 #ifdef TR_CACHE_METHOD
-  TrCallSite *s = (kv_pushp(TrCallSite, f->sites));
+  TrCallSite *s = (kv_pushp(TrCallSite, f->block->sites));
   /* TODO support metaclass */
   s->class = TR_COBJECT(receiver)->class;
   s->method = method;
@@ -37,7 +35,7 @@ static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip)
   cache->i = TR_OP_CACHE;
   cache->a = ip->a; /* receiver register */
   cache->b = 1; /* jmp */
-  cache->c = kv_size(f->sites)-1; /* CallSite index */
+  cache->c = kv_size(f->block->sites)-1; /* CallSite index */
 #endif
 
 #ifdef TR_INLINE_METHOD
@@ -129,7 +127,7 @@ static OBJ TrVM_interpret(VM, OBJ self, int argc, OBJ argv[]) {
 #define R    regs
 #define Bx   (unsigned short)(((B<<8)+C))
 #define sBx  (short)(((B<<8)+C))
-#define SITE (f->sites.a)
+#define SITE (f->block->sites.a)
 
 OBJ TrVM_step(VM) {
   TrFrame *f = FRAME;

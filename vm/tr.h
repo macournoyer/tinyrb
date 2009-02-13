@@ -100,7 +100,14 @@ typedef struct {
   unsigned char i, a, b, c;
 } TrInst;
 
+typedef struct {
+  OBJ class;
+  OBJ method;
+  size_t miss;
+} TrCallSite;
+
 typedef struct TrBlock {
+  /* static */
   kvec_t(OBJ) k; /* TODO rename to values ? */
   kvec_t(char *) strings;
   kvec_t(OBJ) locals;
@@ -108,6 +115,8 @@ typedef struct TrBlock {
   kvec_t(struct TrBlock *) blocks; /* TODO should not be pointers */
   size_t regc;
   size_t argc;
+  /* dynamic */
+  kvec_t(TrCallSite) sites;
 } TrBlock;
 
 typedef OBJ (TrFunc)(VM, OBJ receiver, ...);
@@ -119,12 +128,6 @@ typedef struct {
 } TrMethod;
 
 typedef struct {
-  OBJ class;
-  OBJ method;
-  size_t miss;
-} TrCallSite;
-
-typedef struct {
   struct TrBlock *block;
   TrMethod *method;  /* current called method */
   OBJ *regs;
@@ -132,7 +135,6 @@ typedef struct {
   OBJ self;
   OBJ class;
   OBJ fname;
-  kvec_t(TrCallSite) sites;
   size_t line;
   TrInst *ip;
 } TrFrame;
