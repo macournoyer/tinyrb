@@ -3,7 +3,7 @@
 A tiny subset of Ruby with a Lua'esc VM.
 
 Everything in TinyRb should run in the big Ruby.
-(except bugs and thing that don't comply to the principle of lease surprise.)
+(except bugs and things that don't comply to the principle of leas surprise.)
 But not everything in the big Ruby should run in TinyRb.
 
 This is a work in progress and not usable for "real things" yet.
