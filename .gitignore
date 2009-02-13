@@ -1,4 +1,5 @@
 *.o
+*.rbc
 tinyrb
 
 vm/scanner.c
