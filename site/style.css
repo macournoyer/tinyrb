@@ -1,5 +1,6 @@
 body {
-  background-color: #111;
+  background-color: #000;
+  background-image: url(back.jpg);
   color: #eee;
   font: Tahoma;
   font-size: 14px;
@@ -8,9 +9,12 @@ body {
 }
 
 #container {
+  background-color: #111;
   text-align: left;
   margin: 60px auto;
   width: 270px;
+  border: 1px solid #222;
+  padding: 20px 40px;
 }
 
 h1 {

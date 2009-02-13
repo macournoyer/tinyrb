@@ -46,3 +46,4 @@
 [ ] FFI
 [ ] lightweight threads, coroutines (using libconcurrency?)
 [ ] JIT
+[ ] SIMD acceleration

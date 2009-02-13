@@ -13,16 +13,16 @@
       
       <p class="first">
         <strong>tiny<span class="rb">rb</span></strong> is the smallest Ruby VM to date.
-        It wont run all your Ruby code, but it's fast and fun to play with.
+        It won't run all your Ruby code, but it's fast and fun to play with.
       </p>
       
       <h3>Goals</h3>
       <ul>
-        <li>Portable</li>
-        <li>Embedable</li>
+        <li>Small code base, easy to understand</li>
         <li>Fast</li>
         <li>Low memory usage</li>
-        <li>Small code base, easy to understand</li>
+        <li>Embedable</li>
+        <li>Portable</li>
         <li>Fun and awesome</li>
       </ul>
       
@@ -34,14 +34,15 @@
       </p>
       
       <h3>Contribute</h3>
-      <p>To discuss and share about tinyrb, comment on the <a href="http://github.com/macournoyer/tinyrb/commits/master" title="Commit History for macournoyer's tinyrb - GitHub">commits feed on GitHub</a>.</p>
+      <p>To discuss and share about tinyrb, comment on the <a href="http://github.com/macournoyer/tinyrb/commits/master" title="Commit History for macournoyer's tinyrb - GitHub">commits feed on GitHub</a> or join me on #tinyrb on freenode.</p>
       
       <h3>VM specs</h3>
       <ul>
-        <li>Register based, (like Lua)</li>
+        <li><a href="http://github.com/macournoyer/tinyrb/blob/master/vm/opcode.h" title="vm/opcode.h at master from macournoyer's tinyrb - GitHub">Register based</a>, (like Lua)</li>
         <li><a href="http://www.hpl.hp.com/personal/Hans_Boehm/gc/" title="A garbage collector for C and C++">Boehm GC</a></li>
         <li>Very small &lt; 64K, ~2000 sloc</li>
         <li>Method caching and some inlining</li>
+        <li>Lexer in Ragel, parser in Lemon</li>
       </ul>
       
       <div id="footer">
