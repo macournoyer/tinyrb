@@ -4,10 +4,10 @@
 /*
 == TinyRb opcodes.
 Format of one instruction: OPCODE A B C
-Bx  -- unsigned value of BC
+Bx   -- unsigned value of BC
 sBx  -- signed value of BC
 R[A] -- Value of register which index is stored in A of the current instruction.
-K[A] -- Value of the constant which index is stored in A of the current instruction.
+K[A] -- Value which index is stored in A of the current instruction.
 */
 enum TrInstCode {
   /* opname            operands description */

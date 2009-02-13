@@ -129,6 +129,7 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 }
 
 void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
+  assert(n && "nil node");
   if (reg >= b->regc) b->regc++;
   switch (n->ntype) {
     case AST_ROOT:

@@ -61,7 +61,10 @@
     ","         => { TOKEN(COMMA); };
     "("         => { TOKEN(O_PAR); };
     ")"         => { TOKEN(C_PAR); };
+    term        => { TOKEN_U(TERM); };
+    dot         => { TOKEN(DOT); };
     
+    # values
     id          => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts))); };
     const       => { TOKEN_V(CONST, tr_intern(BUFFER(ts, te-ts))); };
     symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
@@ -69,21 +72,18 @@
     assign      => { TOKEN_V(ASSIGN, tr_intern(BUFFER(ts, te-ts))); };
     string      => { TOKEN_V(STRING, TrString_new(vm, BUFFER(ts+1, te-ts-2), te-ts-2)); };
     int         => { TOKEN_V(INT, TrFixnum_new(vm, atoi(BUFFER(ts, te-ts)))); };
-    term        => { TOKEN_U(TERM); };
-    dot         => { TOKEN(DOT); };
   *|;
   
   write data nofinal;
 }%%
 
-inline void tr_free(void *ptr) { return TR_FREE(ptr); }
+void tr_free(void *ptr) { return TR_FREE(ptr); }
 
 TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace) {
   int cs, act;
-  char *p, *pe, *ts, *te, *eof = 0;
+  char *p, *pe, *ts, *te, *eof = 0, *buf = 0;
   void *parser = TrParserAlloc(TR_MALLOC);
   int last = 0;
-  char *buf = 0;
   FILE *tracef = 0;
   TrCompiler *compiler = TrCompiler_new(vm, fn);
   
@@ -100,10 +100,9 @@ TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace) {
   
   TrParser(parser, 0, 0, compiler);
   TrParserFree(parser, tr_free);
-  if (buf) TR_FREE(buf);
   
-  if (trace)
-    fclose(tracef);
+  if (buf) TR_FREE(buf);
+  if (trace) fclose(tracef);
     
   TrCompiler_compile(compiler);
   TrBlock *b = compiler->block;

@@ -27,6 +27,7 @@ root ::= statements(A) TERM. { compiler->node = (OBJ) NODE(ROOT, A); }
 
 statements(A) ::= statements(B) TERM statement(C). { A = PUSH(B, C); }
 statements(A) ::= statement(B). { A = NODES(B); }
+statements(A) ::= . { A = TrArray_new(compiler->vm); }
 
 statement(A) ::= expr_out(B). { A = B; }
 statement(A) ::= flow(B). { A = B; }

@@ -23,3 +23,13 @@ puts Class
 
 puts Symbol
 # => Symbol
+
+# Reopening
+class String
+  def yodelay
+    puts "yhoo!"
+  end
+end
+
+"sing".yodelay
+# => yhoo!

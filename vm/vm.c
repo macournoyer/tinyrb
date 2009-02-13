@@ -25,7 +25,7 @@ static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip)
   OBJ method = TrObject_method(vm, receiver, msg);
   if (!method) tr_raise("Method not found: %s\n", TR_STR_PTR(msg));
 
-#if TR_CACHE_METHOD
+#ifdef TR_CACHE_METHOD
   TrCallSite *s = (kv_pushp(TrCallSite, f->sites));
   /* TODO support metaclass */
   s->class = TR_COBJECT(receiver)->class;
@@ -35,7 +35,7 @@ static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip)
      w/ CACHE that uses the CallSite to find the method instead of doing a full lookup. */
   TrInst *cache = (ip-1);
   cache->i = TR_OP_CACHE;
-  cache->a = ip->a; /* receiver */
+  cache->a = ip->a; /* receiver register */
   cache->b = 1; /* jmp */
   cache->c = kv_size(f->sites)-1; /* CallSite index */
 #endif
@@ -77,12 +77,16 @@ static inline OBJ TrVM_call(VM, TrFrame *f, OBJ receiver, OBJ method, int argc, 
 }
 
 static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b) {
-  OBJ class = TrClass_new(vm, name, TR_CLASS(Object));
+  OBJ class = TrObject_const_get(vm, FRAME->class, name);
+  
+  if (!class) { /* new class */
+    class = TrClass_new(vm, name, TR_CLASS(Object));
+    TrObject_const_set(vm, FRAME->class, name, class);
+  }
   vm->cf++;
   TrFrame_init(vm, vm->cf, b);
   FRAME->self = class;
   FRAME->class = class;
-  TrObject_const_set(vm, class, name, class);
 
   TrVM_step(vm);
   vm->cf--;
@@ -165,6 +169,8 @@ OBJ TrVM_step(VM) {
     OP(CALL):       R[A] = TrVM_call(vm, f, R[A], R[A+1], B, &R[A+2]); DISPATCH;
     OP(CACHE):
       /* TODO how to expire cache? */
+      if (!&SITE[C]) TrBlock_dump(vm, f->block);
+      assert(&SITE[C] && "Method cached but no CallSite found");
       if (SITE[C].class == TR_COBJECT(R[A])->class) {
         R[A+1] = SITE[C].method;
         ip += B;
