@@ -34,6 +34,14 @@ static OBJ TrObject_object_id(VM, OBJ self) {
   return TrFixnum_new(vm, (int)&self);
 }
 
+static OBJ TrObject_instance_eval(VM, OBJ self, OBJ code) {
+  OBJ result;
+  TrBlock *b = TrBlock_compile(vm, TR_STR_PTR(code), "tinyrb", 0);
+  result = TrVM_run(vm, b);
+  TrBlock_destroy(vm, b);
+  return result;
+}
+
 static OBJ TrObject_inspect(VM, OBJ self) {
   const char *name;
   name = TR_STR_PTR(tr_send2(tr_send2(self, "class"), "name"));
@@ -51,6 +59,7 @@ void TrObject_init(VM) {
   OBJ c = TR_INIT_CLASS(Object, /* ignored */ Object);
   tr_def(c, "class", TrObject_class, 0);
   tr_def(c, "object_id", TrObject_object_id, 0);
+  tr_def(c, "instance_eval", TrObject_instance_eval, 1);
   tr_def(c, "puts", TrObject_puts, -1);
   tr_def(c, "to_s", TrObject_inspect, 0);
   tr_def(c, "inspect", TrObject_inspect, 0);
