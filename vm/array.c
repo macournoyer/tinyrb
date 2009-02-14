@@ -26,4 +26,5 @@ static OBJ TrArray_length(VM, OBJ self) {
 void TrArray_init(VM) {
   OBJ c = TR_INIT_CLASS(Array, Object);
   tr_def(c, "length", TrArray_length, 0);
+  tr_def(c, "size", TrArray_length, 0);
 }

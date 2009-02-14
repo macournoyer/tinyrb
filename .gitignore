@@ -4,6 +4,7 @@
 *.o
 *.lo
 *.la
+*.rbc
 
 vm/scanner.rl.c
 vm/grammar.c
