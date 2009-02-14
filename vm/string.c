@@ -65,6 +65,10 @@ OBJ TrString_concat(VM, OBJ self, OBJ other) {
   return tr_sprintf(vm, "%s%s", TR_STR_PTR(self), TR_STR_PTR(other));
 }
 
+OBJ TrString_length(VM, OBJ self) {
+  return tr_send2(self, "size");
+}
+
 OBJ tr_sprintf(VM, const char *fmt, ...) {
   va_list arg;
   va_start(arg, fmt);
@@ -89,5 +93,6 @@ void TrString_init(VM) {
   OBJ c = TR_INIT_CLASS(String, Object);
   tr_def(c, "to_s", TrString_to_s, 0);
   tr_def(c, "size", TrString_size, 0);
+  tr_def(c, "length", TrString_length, 0);
   tr_def(c, "+", TrString_concat, 1);
 }
