@@ -180,8 +180,9 @@ typedef struct {
 
 /* vm */
 TrVM *TrVM_new();
+void TrVM_start(VM, TrBlock *b);
+OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class);
 void TrVM_destroy(TrVM *vm);
-OBJ TrVM_run(VM, TrBlock *code);
 
 /* string */
 OBJ TrSymbol_new(VM, const char *str);
@@ -224,6 +225,5 @@ void TrPrimitive_init(VM);
 /* compiler */
 TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace);
 void TrBlock_dump(VM, TrBlock *b);
-void TrBlock_destroy(VM, TrBlock *b);
 
 #endif /* _TINYRB_H_ */

@@ -22,8 +22,7 @@ static int eval(char *code, char *filename, int verbose) {
   TrVM *vm = TrVM_new();
   TrBlock *b = TrBlock_compile(vm, code, filename, verbose > 1);
   if (verbose) TrBlock_dump(vm, b);
-  TrVM_run(vm, b);
-  TrBlock_destroy(vm, b);
+  TrVM_start(vm, b);
   TrVM_destroy(vm);
   return 0;
 }

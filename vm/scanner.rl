@@ -105,8 +105,5 @@ TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace) {
   if (trace) fclose(tracef);
     
   TrCompiler_compile(compiler);
-  TrBlock *b = compiler->block;
-  TrCompiler_destroy(compiler);
-  
-  return b;
+  return compiler->block;
 }

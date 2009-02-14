@@ -35,11 +35,8 @@ static OBJ TrObject_object_id(VM, OBJ self) {
 }
 
 static OBJ TrObject_instance_eval(VM, OBJ self, OBJ code) {
-  OBJ result;
-  TrBlock *b = TrBlock_compile(vm, TR_STR_PTR(code), "tinyrb", 0);
-  result = TrVM_run(vm, b);
-  TrBlock_destroy(vm, b);
-  return result;
+  TrBlock *b = TrBlock_compile(vm, TR_STR_PTR(code), "<eval>", 0);
+  return TrVM_run(vm, b, self, TR_COBJECT(self)->class);
 }
 
 static OBJ TrObject_inspect(VM, OBJ self) {

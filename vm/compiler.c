@@ -80,10 +80,6 @@ void TrBlock_dump(VM, TrBlock *b) {
   TrBlock_dump2(vm, b, 0);
 }
 
-void TrBlock_destroy(VM, TrBlock *b) {
-  /* TODO */
-}
-
 static int TrBlock_pushk(TrBlock *blk, OBJ k) {
   size_t i;
   for (i = 0; i < kv_size(blk->k); ++i)
@@ -272,8 +268,4 @@ void TrCompiler_compile(TrCompiler *c) {
   TrBlock *b = c->block;
   TrCompiler_compile_node(c->vm, c, b, (TrNode *)c->node, 0);
   PUSH_OP_A(b, RETURN, 0);
-}
-
-void TrCompiler_destroy(TrCompiler *c) {
-  
 }

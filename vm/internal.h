@@ -59,7 +59,6 @@ OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c);
 /* compiler */
 TrCompiler *TrCompiler_new(VM, const char *fn);
 void TrCompiler_compile(TrCompiler *c);
-void TrCompiler_destroy(TrCompiler *c);
 
 /* parser */
 void *TrParserAlloc(void *(*)(size_t));
