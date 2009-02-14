@@ -19,6 +19,11 @@ OBJ TrArray_new2(VM, int argc, ...) {
   return a;
 }
 
+static OBJ TrArray_length(VM, OBJ self) {
+  return TrFixnum_new(vm, TR_ARRAY_SIZE(self));
+}
+
 void TrArray_init(VM) {
-  TR_INIT_CLASS(Array, Object);
+  OBJ c = TR_INIT_CLASS(Array, Object);
+  tr_def(c, "length", TrArray_length, 0);
 }
