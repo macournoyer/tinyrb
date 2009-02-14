@@ -12,6 +12,15 @@ See TODO for a couple of those things that need to be done.
 http://github.com/macournoyer/tinyrb
 #tinyrb on freenode
 
+== Install
+Install Ragel (http://www.complang.org/ragel)
+  sudo port install ragel # or apt-get or install from source!
+
+Compile tinyrb
+  make
+  make test # optional
+  ./tinyrb -h
+
 == Credits
 Inspired by:
  lua,     http://www.lua.org

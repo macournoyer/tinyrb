@@ -16,19 +16,20 @@
 [x] Bootstrap all class correctly (nil,true,false too)
 [x] Fix CallSite error in recursive calls
 [x] Allow reopening classes
-[ ] Fix operator precedence, add (...)
 [ ] Implement Array, Hash
 [ ] Implement Module
+[ ] Implement Proc, yield and all that Jazz
 [ ] Implement some more corelib stuff in Ruby and embed bytecode
+[ ] puts nil # => nil in Ruby
 *** See TODO in code too!
 
 == Later
 [x] Inline some methods (+,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT
 [ ] Get it to build w/ -ansi gcc option (might need to get rid of khash.h)
+[ ] Fix operator precedence, add (...)
 [ ] Implement metaclass
 [ ] Implement splat operator
 [ ] Implement exceptions
-[ ] Implement Proc, yield and all that Jazz
 [ ] Implement super
 [ ] Peephole optimization (Remove useless register allocations)
 [ ] Implement IO and File (using libev?)
