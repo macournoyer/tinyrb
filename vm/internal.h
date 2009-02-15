@@ -33,6 +33,7 @@ typedef enum {
   AST_NIL,
   AST_SELF,
   AST_RETURN,
+  AST_YIELD,
   AST_DEF,
   AST_PARAM,
   AST_CLASS,

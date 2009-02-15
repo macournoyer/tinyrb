@@ -55,6 +55,7 @@
     "def"       => { TOKEN(DEF); };
     "class"     => { TOKEN(CLASS); };
     "do"        => { TOKEN(DO); };
+    "yield"     => { TOKEN(YIELD); };
     # HACK any better way to do this?
     ".class"    => { TOKEN(DOT); TOKEN_V(ID, tr_intern("class")); };
     

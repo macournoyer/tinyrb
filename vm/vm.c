@@ -7,17 +7,21 @@
 OBJ TrVM_step(VM);
 
 static void TrFrame_push(VM, TrBlock *b, OBJ self, OBJ class) {
+  TrFrame *prevf = FRAME;
   vm->cf++;
   if (vm->cf > TR_MAX_FRAMES) tr_raise("Stack overflow");
   TrFrame *f = FRAME;
-  f->block = b;
   f->method = TR_NIL;
-  f->regs = TR_ALLOC_N(OBJ, b->regc);
-  f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals));
+  f->block = b;
+  f->passed_block = prevf->passed_block;
+  if (b) {
+    f->regs = TR_ALLOC_N(OBJ, b->regc);
+    f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals));
+    f->ip = b->code.a;
+  }
   f->self = self;
   f->class = class;
   f->line = 1;
-  f->ip = b->code.a;
 }
 
 static void TrFrame_pop(VM) {
@@ -65,27 +69,32 @@ static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip)
   return method;
 }
 
-static inline OBJ TrVM_call(VM, TrFrame *f, OBJ receiver, OBJ method, int argc, OBJ *args) {
+static inline OBJ TrVM_call(VM, TrFrame *f, OBJ receiver, OBJ method, int argc, OBJ *args, TrBlock *b) {
+  /* TrFrame_push(vm, 0, receiver, TR_COBJECT(receiver)->class); */
   f->method = TR_CMETHOD(method);
+  f->passed_block = b;
+  OBJ ret;
   if (f->method->arity == -1) {
-    return f->method->func(vm, receiver, argc, args);
+    ret = f->method->func(vm, receiver, argc, args);
   } else {
     if (f->method->arity != argc) tr_raise("Expected %d arguments, got %d.\n", f->method->arity, argc);
     switch (argc) {
-      case 0:  return f->method->func(vm, receiver); break;
-      case 1:  return f->method->func(vm, receiver, args[0]); break;
-      case 2:  return f->method->func(vm, receiver, args[0], args[1]); break;
-      case 3:  return f->method->func(vm, receiver, args[0], args[1], args[2]); break;
-      case 4:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3]); break;
-      case 5:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4]); break;
-      case 6:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5]); break;
-      case 7:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6]); break;
-      case 8:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]); break;
-      case 9:  return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]); break;
-      case 10: return f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]); break;
+      case 0:  ret = f->method->func(vm, receiver); break;
+      case 1:  ret = f->method->func(vm, receiver, args[0]); break;
+      case 2:  ret = f->method->func(vm, receiver, args[0], args[1]); break;
+      case 3:  ret = f->method->func(vm, receiver, args[0], args[1], args[2]); break;
+      case 4:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3]); break;
+      case 5:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4]); break;
+      case 6:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5]); break;
+      case 7:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6]); break;
+      case 8:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]); break;
+      case 9:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]); break;
+      case 10: ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]); break;
       default: tr_raise("Too much arguments: %d, max is %d for now.\n", argc, 10);
     }
   }
+  /* TrFrame_pop(vm); */
+  return ret;
 }
 
 static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b) {
@@ -102,6 +111,7 @@ static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b) {
 }
 
 static OBJ TrVM_interpret(VM, OBJ self, int argc, OBJ argv[]) {
+  assert(FRAME->method);
   TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
   size_t i;
   if (b->argc != argc) tr_raise("Expected %lu arguments, got %d.\n", b->argc, argc);
@@ -163,7 +173,13 @@ OBJ TrVM_step(VM) {
     OP(BOOL):       R[A] = B+1; DISPATCH;
     OP(NEWARRAY):   R[A] = TrArray_new3(vm, B, &R[A+1]); DISPATCH;
     OP(NEWHASH):    R[A] = TrHash_new2(vm, B, &R[A+1]); DISPATCH;
+    
+    /* return */
     OP(RETURN):     return R[A];
+    OP(YIELD):
+      if (!f->passed_block) tr_raise("LocalJumpError: no block given");
+      R[A] = TrVM_run(vm, f->passed_block, f->self, f->class);
+      DISPATCH;
     
     /* variable and consts */
     OP(SETLOCAL):   locals[A] = R[B]; DISPATCH;
@@ -173,7 +189,7 @@ OBJ TrVM_step(VM) {
     
     /* method calling */
     OP(LOOKUP):     R[A+1] = TrVM_lookup(vm, f, R[A], k[Bx], ip); DISPATCH;
-    OP(CALL):       R[A] = TrVM_call(vm, f, R[A], R[A+1], B, &R[A+2]); DISPATCH;
+    OP(CALL):       R[A] = TrVM_call(vm, f, R[A], R[A+1], B, &R[A+2], C>0 ? blocks[C-1] : 0); DISPATCH;
     OP(CACHE):
       /* TODO how to expire cache? */
       assert(&SITE[C] && "Method cached but no CallSite found");

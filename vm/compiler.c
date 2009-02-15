@@ -257,6 +257,9 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     case AST_RETURN:
       PUSH_OP_A(b, RETURN, reg);
       break;
+    case AST_YIELD:
+      PUSH_OP_A(b, YIELD, reg);
+      break;
     case AST_DEF: {
       TrBlock *blk = TrBlock_new();
       size_t blki = kv_size(b->blocks);

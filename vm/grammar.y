@@ -54,12 +54,14 @@ literal(A) ::= TRUE. { A = NODE(BOOL, 1); }
 literal(A) ::= FALSE. { A = NODE(BOOL, 0); }
 literal(A) ::= NIL. { A = NODE(NIL, 0); }
 literal(A) ::= SELF. { A = NODE(SELF, 0); }
-literal(A) ::= RETURN. { A = NODE(RETURN, 0); }
 literal(A) ::= CONST(B). { A = NODE(CONST, B); }
 literal(A) ::= O_SBRA C_SBRA. { A = NODE(ARRAY, 0); }
 literal(A) ::= O_SBRA args(B) C_SBRA. { A = NODE(ARRAY, B); }
 literal(A) ::= O_CBRA C_CBRA. { A = NODE(HASH, 0); }
 literal(A) ::= O_CBRA hash_items(B) C_CBRA. { A = NODE(HASH, B); }
+
+leave(A) ::= RETURN. { A = NODE(RETURN, 0); }
+leave(A) ::= YIELD. { A = NODE(YIELD, 0); }
 
 assign_out(A) ::= CONST(B) ASSIGN statement(C). { A = NODE2(SETCONST, B, C); }
 assign_out(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
@@ -90,9 +92,11 @@ name_out(A) ::= ID(B) args(C). { A = NODE2(MSG, B, C); }
 msg_out(A) ::= name_out(B). { A = NODE2(SEND, TR_NIL, B); }
 msg_out(A) ::= name_out(B) block(C). { A = NODE3(SEND, TR_NIL, B, C); }
 msg_out(A) ::= literal(B). { A = B; }
+msg_out(A) ::= leave(B). { A = B; }
 
 msg(A) ::= name(B). { A = NODE2(SEND, TR_NIL, B); }
 msg(A) ::= literal(B). { A = B; }
+msg(A) ::= leave(B). { A = B; }
 
 args(A) ::= args(B) COMMA arg(C). { A = PUSH(B, C); }
 args(A) ::= arg(B). { A = NODES(B); }
