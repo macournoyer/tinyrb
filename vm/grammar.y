@@ -56,6 +56,8 @@ literal(A) ::= NIL. { A = NODE(NIL, 0); }
 literal(A) ::= SELF. { A = NODE(SELF, 0); }
 literal(A) ::= RETURN. { A = NODE(RETURN, 0); }
 literal(A) ::= CONST(B). { A = NODE(CONST, B); }
+literal(A) ::= O_SBRA C_SBRA. { A = NODE(ARRAY, 0); }
+literal(A) ::= O_SBRA args(B) C_SBRA. { A = NODE(ARRAY, B); }
 
 assign_out(A) ::= CONST(B) ASSIGN statement(C). { A = NODE2(SETCONST, B, C); }
 assign_out(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
@@ -66,11 +68,15 @@ assign(A) ::= ID(B) ASSIGN expr(C). { A = NODE2(ASSIGN, B, C); }
 expr(A) ::= expr(B) DOT name(C). { A = NODE2(SEND, B, C); }
 expr(A) ::= expr(B) BINOP(C) msg(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
 expr(A) ::= msg(B). { A = B; }
+expr(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA. { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]"), C)); }
+/*expr(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA ASSIGN expr(D). { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]="), PUSH(C, D))); }*/
 
 /* outer expression, can pass args w/out parenthesis, eg.: puts "poop" */
 expr_out(A) ::= expr(B) DOT name_out(C). { A = NODE2(SEND, B, C); }
 expr_out(A) ::= expr(B) BINOP(C) msg_out(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
 expr_out(A) ::= msg_out(B). { A = B; }
+expr_out(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA. { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]"), C)); }
+expr_out(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA ASSIGN expr(D). { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]="), PUSH(C, D))); }
 
 name(A) ::= ID(B). { A = NODE(MSG, B); }
 name(A) ::= ID(B) O_PAR C_PAR. { A = NODE(MSG, B); }

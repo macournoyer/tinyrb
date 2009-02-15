@@ -161,6 +161,7 @@ OBJ TrVM_step(VM) {
     OP(SELF):       R[A] = f->self; DISPATCH;
     OP(NIL):        R[A] = TR_NIL; DISPATCH;
     OP(BOOL):       R[A] = B+1; DISPATCH;
+    OP(NEWARRAY):   R[A] = TrArray_new3(vm, B, &R[A+1]); DISPATCH;
     OP(RETURN):     return R[A];
     
     /* variable and consts */

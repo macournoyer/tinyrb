@@ -143,6 +143,17 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       int i = TrBlock_push_string(b, TR_STR_PTR(n->args[0]));
       PUSH_OP_ABx(b, STRING, reg, i);
     } break;
+    case AST_ARRAY: {
+      size_t size = 0;
+      if (n->args[0]) {
+        size = TR_ARRAY_SIZE(n->args[0]);
+        /* compile args */
+        TR_ARRAY_EACH(n->args[0], i, v, {
+          TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg+i+1);
+        });
+      }
+      PUSH_OP_AB(b, NEWARRAY, reg, size);
+    } break;
     case AST_ASSIGN: {
       int i = TrBlock_local(c->block, n->args[0]);
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
@@ -162,6 +173,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         i = TrBlock_pushk(b, msg->args[0]);
         size_t argc = 0;
         if (msg->args[1]) {
+          /* compile args */
           argc = TR_ARRAY_SIZE(msg->args[1]);
           TR_ARRAY_EACH(msg->args[1], i, v, {
             TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg+i+2);

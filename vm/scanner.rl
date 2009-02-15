@@ -61,6 +61,9 @@
     ","         => { TOKEN(COMMA); };
     "("         => { TOKEN(O_PAR); };
     ")"         => { TOKEN(C_PAR); };
+    id "["      => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts-1))); TOKEN(O_SBRA_ID); };
+    "["         => { TOKEN(O_SBRA); };
+    "]"         => { TOKEN(C_SBRA); };
     term        => { TOKEN_U(TERM); };
     dot         => { TOKEN(DOT); };
     

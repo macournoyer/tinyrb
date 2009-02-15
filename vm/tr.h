@@ -202,6 +202,7 @@ void TrFixnum_init(VM);
 /* array */
 OBJ TrArray_new(VM);
 OBJ TrArray_new2(VM, int argc, ...);
+OBJ TrArray_new3(VM, int argc, OBJ items[]);
 void TrArray_init(VM);
 
 /* object */

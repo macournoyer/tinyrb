@@ -36,7 +36,8 @@ typedef enum {
   AST_PARAM,
   AST_CLASS,
   AST_CONST,
-  AST_SETCONST
+  AST_SETCONST,
+  AST_ARRAY
 } TrNodeType;
 
 typedef struct {
