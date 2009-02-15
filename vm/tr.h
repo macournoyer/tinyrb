@@ -129,7 +129,8 @@ typedef struct {
 } TrMethod;
 
 typedef struct {
-  struct TrBlock *block;
+  TrBlock *block;
+  TrBlock *passed_block;
   TrMethod *method;  /* current called method */
   OBJ *regs;
   OBJ *locals;

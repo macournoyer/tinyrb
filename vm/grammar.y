@@ -71,10 +71,10 @@ expr(A) ::= expr(B) DOT name(C). { A = NODE2(SEND, B, C); }
 expr(A) ::= expr(B) BINOP(C) msg(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
 expr(A) ::= msg(B). { A = B; }
 expr(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA. { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]"), C)); }
-/*expr(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA ASSIGN expr(D). { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]="), PUSH(C, D))); }*/
 
 /* outer expression, can pass args w/out parenthesis, eg.: puts "poop" */
 expr_out(A) ::= expr(B) DOT name_out(C). { A = NODE2(SEND, B, C); }
+expr_out(A) ::= expr(B) DOT name_out(C) block(D). { A = NODE3(SEND, B, C, D); }
 expr_out(A) ::= expr(B) BINOP(C) msg_out(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
 expr_out(A) ::= msg_out(B). { A = B; }
 expr_out(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA. { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]"), C)); }
@@ -88,6 +88,7 @@ name_out(A) ::= name(B). { A = B; }
 name_out(A) ::= ID(B) args(C). { A = NODE2(MSG, B, C); }
 
 msg_out(A) ::= name_out(B). { A = NODE2(SEND, TR_NIL, B); }
+msg_out(A) ::= name_out(B) block(C). { A = NODE3(SEND, TR_NIL, B, C); }
 msg_out(A) ::= literal(B). { A = B; }
 
 msg(A) ::= name(B). { A = NODE2(SEND, TR_NIL, B); }
@@ -98,6 +99,8 @@ args(A) ::= arg(B). { A = NODES(B); }
 
 arg(A) ::= expr(B). { A = B; }
 arg(A) ::= assign(B). { A = B; }
+
+block(A) ::= DO TERM statements(B) opt_term END. { A = B; }
 
 hash_items(A) ::= hash_items(B) COMMA expr(C) HASHI expr(D). { A = PUSH(B, C); A = PUSH(B, D); }
 hash_items(A) ::= expr(B) HASHI expr(C). { A = NODES_N(2, B, C); }

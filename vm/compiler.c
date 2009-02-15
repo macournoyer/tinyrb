@@ -191,9 +191,20 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
             TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg+i+2);
           });
         }
+        size_t blki = 0;
+        if (n->args[2]) {
+          /* compile block */
+          TrBlock *blk = TrBlock_new();
+          blki = kv_size(b->blocks) + 1;
+          kv_push(TrBlock *, b->blocks, blk);
+          TR_ARRAY_EACH(n->args[2], i, v, {
+            TrCompiler_compile_node(vm, c, blk, (TrNode *)v, 0);
+          });
+          PUSH_OP_A(blk, RETURN, 0);
+        }
         PUSH_OP_A(b, BOING, 0);
         PUSH_OP_ABx(b, LOOKUP, reg, i);
-        PUSH_OP_ABC(b, CALL, reg, argc, 0);
+        PUSH_OP_ABC(b, CALL, reg, argc, blki);
       }
     } break;
     case AST_IF:
