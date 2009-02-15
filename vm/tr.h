@@ -22,6 +22,7 @@
 #define TR_CCLASS(X)         TR_CTYPE(X,Class)
 #define TR_CFIXNUM(X)        TR_CTYPE(X,Fixnum)
 #define TR_CARRAY(X)         TR_CTYPE(X,Array)
+#define TR_CHASH(X)          TR_CTYPE(X,Hash)
 #define TR_CSTRING(X)        (assert(TR_IS_A(X,String)||TR_IS_A(X,Symbol)),(TrString*)(X))
 #define TR_CMETHOD(X)        ((TrMethod*)X)
 
@@ -178,6 +179,11 @@ typedef struct {
   kvec_t(OBJ) kv;
 } TrArray;
 
+typedef struct {
+  TR_OBJECT_HEADER;
+  khash_t(OBJ) *kh;
+} TrHash;
+
 /* vm */
 TrVM *TrVM_new();
 void TrVM_start(VM, TrBlock *b);
@@ -204,6 +210,11 @@ OBJ TrArray_new(VM);
 OBJ TrArray_new2(VM, int argc, ...);
 OBJ TrArray_new3(VM, int argc, OBJ items[]);
 void TrArray_init(VM);
+
+/* hash */
+OBJ TrHash_new(VM);
+OBJ TrHash_new2(VM, size_t n, OBJ items[]);
+void TrHash_init(VM);
 
 /* object */
 OBJ TrObject_new(VM);

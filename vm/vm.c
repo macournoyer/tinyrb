@@ -162,6 +162,7 @@ OBJ TrVM_step(VM) {
     OP(NIL):        R[A] = TR_NIL; DISPATCH;
     OP(BOOL):       R[A] = B+1; DISPATCH;
     OP(NEWARRAY):   R[A] = TrArray_new3(vm, B, &R[A+1]); DISPATCH;
+    OP(NEWHASH):    R[A] = TrHash_new2(vm, B, &R[A+1]); DISPATCH;
     OP(RETURN):     return R[A];
     
     /* variable and consts */
@@ -247,6 +248,7 @@ TrVM *TrVM_new() {
   TrString_init(vm);
   TrFixnum_init(vm);
   TrArray_init(vm);
+  TrHash_init(vm);
   
   return vm;
 }

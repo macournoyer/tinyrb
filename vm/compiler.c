@@ -128,6 +128,7 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
   assert(n && "nil node");
   if (reg >= b->regc) b->regc++;
+  /* TODO this shit is very repetitive, need to refactor */
   switch (n->ntype) {
     case AST_ROOT:
     case AST_BLOCK:
@@ -153,6 +154,17 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         });
       }
       PUSH_OP_AB(b, NEWARRAY, reg, size);
+    } break;
+    case AST_HASH: {
+      size_t size = 0;
+      if (n->args[0]) {
+        size = TR_ARRAY_SIZE(n->args[0]);
+        /* compile args */
+        TR_ARRAY_EACH(n->args[0], i, v, {
+          TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg+i+1);
+        });
+      }
+      PUSH_OP_AB(b, NEWHASH, reg, size/2);
     } break;
     case AST_ASSIGN: {
       int i = TrBlock_local(c->block, n->args[0]);

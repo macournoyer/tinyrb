@@ -35,6 +35,7 @@ enum TrInstCode {
   TR_OP_SETCONST,   /* A Bx     Consts[k[Bx]] = R[A] */
   TR_OP_CLASS,      /* A Bx     R[A] = define class k[Bx] on self w/ blocks[A] */
   TR_OP_NEWARRAY,   /* A B      R[A] = Array.new(R[A+1]..R[A+1+B]) */
+  TR_OP_NEWHASH,    /* A B      R[A] = Hash.new(R[A+1] => R[A+2] .. R[A+1+B*2] => R[A+2+B*2]) */
   TR_OP_UNDEF,
   TR_OP_ALIAS,
   TR_OP_SUPER,
@@ -47,7 +48,6 @@ enum TrInstCode {
   TR_OP_SETCVAR,
   TR_OP_GETGLOBAL,
   TR_OP_SETGLOBAL,
-  TR_OP_NEWHASH,
   TR_OP_NEWRANGE
 };
 
@@ -76,6 +76,7 @@ enum TrInstCode {
   "setconst", \
   "class", \
   "newarray", \
+  "newhash", \
   "undef", \
   "alias", \
   "super", \
@@ -88,7 +89,6 @@ enum TrInstCode {
   "setcvar", \
   "getglobal", \
   "setglobal", \
-  "newhash", \
   "newrange"
   
 
@@ -118,7 +118,8 @@ enum TrInstCode {
   &&op_GETCONST, \
   &&op_SETCONST, \
   &&op_CLASS, \
-  &&op_NEWARRAY
+  &&op_NEWARRAY, \
+  &&op_NEWHASH
   
 #endif
 

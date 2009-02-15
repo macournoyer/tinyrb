@@ -58,6 +58,8 @@ literal(A) ::= RETURN. { A = NODE(RETURN, 0); }
 literal(A) ::= CONST(B). { A = NODE(CONST, B); }
 literal(A) ::= O_SBRA C_SBRA. { A = NODE(ARRAY, 0); }
 literal(A) ::= O_SBRA args(B) C_SBRA. { A = NODE(ARRAY, B); }
+literal(A) ::= O_CBRA C_CBRA. { A = NODE(HASH, 0); }
+literal(A) ::= O_CBRA hash_items(B) C_CBRA. { A = NODE(HASH, B); }
 
 assign_out(A) ::= CONST(B) ASSIGN statement(C). { A = NODE2(SETCONST, B, C); }
 assign_out(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
@@ -96,6 +98,9 @@ args(A) ::= arg(B). { A = NODES(B); }
 
 arg(A) ::= expr(B). { A = B; }
 arg(A) ::= assign(B). { A = B; }
+
+hash_items(A) ::= hash_items(B) COMMA expr(C) HASHI expr(D). { A = PUSH(B, C); A = PUSH(B, D); }
+hash_items(A) ::= expr(B) HASHI expr(C). { A = NODES_N(2, B, C); }
 
 def(A) ::= DEF ID(B) TERM statements(D) opt_term END. { A = NODE3(DEF, B, 0, D); }
 def(A) ::= DEF ID(B) O_PAR params(C) C_PAR TERM statements(D) opt_term END. { A = NODE3(DEF, B, C, D); }

@@ -13,7 +13,8 @@
 #define NODE(T,A)            TrNode_new(compiler->vm, AST_##T, (A), 0, 0)
 #define NODE2(T,A,B)         TrNode_new(compiler->vm, AST_##T, (A), (B), 0)
 #define NODE3(T,A,B,C)       TrNode_new(compiler->vm, AST_##T, (A), (B), (C))
-#define NODES(N)             TrArray_new2(compiler->vm, 1, (N))
+#define NODES(I)             TrArray_new2(compiler->vm, 1, (I))
+#define NODES_N(N,I...)      TrArray_new2(compiler->vm, (N), ##I)
 #define PUSH(A,N)            (({ TR_ARRAY_PUSH((A), (N)); }), A)
 
 typedef enum {
@@ -37,7 +38,8 @@ typedef enum {
   AST_CLASS,
   AST_CONST,
   AST_SETCONST,
-  AST_ARRAY
+  AST_ARRAY,
+  AST_HASH
 } TrNodeType;
 
 typedef struct {

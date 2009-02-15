@@ -58,12 +58,15 @@
     ".class"    => { TOKEN(DOT); TOKEN_V(ID, tr_intern("class")); };
     
     # ponctuation
+    "=>"        => { TOKEN(HASHI); };
     ","         => { TOKEN(COMMA); };
     "("         => { TOKEN(O_PAR); };
     ")"         => { TOKEN(C_PAR); };
     id "["      => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts-1))); TOKEN(O_SBRA_ID); };
     "["         => { TOKEN(O_SBRA); };
     "]"         => { TOKEN(C_SBRA); };
+    "{"         => { TOKEN(O_CBRA); };
+    "}"         => { TOKEN(C_CBRA); };
     term        => { TOKEN_U(TERM); };
     dot         => { TOKEN(DOT); };
     
