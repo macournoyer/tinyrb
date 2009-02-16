@@ -70,14 +70,14 @@ assign(A) ::= CONST(B) ASSIGN expr(C). { A = NODE2(SETCONST, B, C); }
 assign(A) ::= ID(B) ASSIGN expr(C). { A = NODE2(ASSIGN, B, C); }
 
 expr(A) ::= expr(B) DOT name(C). { A = NODE2(SEND, B, C); }
-expr(A) ::= expr(B) BINOP(C) msg(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
+expr(A) ::= expr(B) bin_op(C) msg(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
 expr(A) ::= msg(B). { A = B; }
 expr(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA. { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]"), C)); }
 
 /* outer expression, can pass args w/out parenthesis, eg.: puts "poop" */
 expr_out(A) ::= expr(B) DOT name_out(C). { A = NODE2(SEND, B, C); }
 expr_out(A) ::= expr(B) DOT name_out(C) block(D). { A = NODE3(SEND, B, C, D); }
-expr_out(A) ::= expr(B) BINOP(C) msg_out(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
+expr_out(A) ::= expr(B) bin_op(C) msg_out(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
 expr_out(A) ::= msg_out(B). { A = B; }
 expr_out(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA. { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]"), C)); }
 expr_out(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA ASSIGN expr(D). { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]="), PUSH(C, D))); }
@@ -119,3 +119,22 @@ class(A) ::= CLASS CONST(B) TERM statements(C) opt_term END. { A = NODE2(CLASS, 
 
 opt_term ::= TERM.
 opt_term ::= .
+
+bin_op(A) ::= EQ(B). { A = B; }
+bin_op(A) ::= NEQ(B). { A = B; }
+bin_op(A) ::= OR(B). { A = B; }
+bin_op(A) ::= PIPE(B). { A = B; }
+bin_op(A) ::= AND(B). { A = B; }
+bin_op(A) ::= AMP(B). { A = B; }
+bin_op(A) ::= LT(B). { A = B; }
+bin_op(A) ::= LE(B). { A = B; }
+bin_op(A) ::= GT(B). { A = B; }
+bin_op(A) ::= GE(B). { A = B; }
+bin_op(A) ::= LSHIFT(B). { A = B; }
+bin_op(A) ::= RSHIFT(B). { A = B; }
+bin_op(A) ::= POW(B). { A = B; }
+bin_op(A) ::= MUL(B). { A = B; }
+bin_op(A) ::= DIV(B). { A = B; }
+bin_op(A) ::= MOD(B). { A = B; }
+bin_op(A) ::= PLUS(B). { A = B; }
+bin_op(A) ::= MINUS(B). { A = B; }

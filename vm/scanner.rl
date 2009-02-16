@@ -31,10 +31,6 @@
   string      = '"' (any - '"')* '"' | "'" (any - "'")* "'";
   symbol      = ':' id;
   comment     = "#"+ (any - newline)*;
-  dot         = '.';
-  assign      = '=' | '+=' | '-=';
-  unop        = '!';
-  binop       = '==' | '!=' | '||' | '&&' | '|' | '&' | '<' | '<=' | '>' | '>=' | '<<' | '>>' | '**' | '*' | '/' | '%' | '+' | '-' | '@@' | '@' | '..';
   
   main := |*
     whitespace;
@@ -69,15 +65,36 @@
     "]"         => { TOKEN(C_SBRA); };
     "{"         => { TOKEN(O_CBRA); };
     "}"         => { TOKEN(C_CBRA); };
+    "."         => { TOKEN(DOT); };
     term        => { TOKEN_U(TERM); };
-    dot         => { TOKEN(DOT); };
+    
+    # assign operators
+    "="         => { TOKEN_V(ASSIGN, tr_intern(BUFFER(ts, te-ts))); };
+
+    # binary operators
+    '=='        => { TOKEN_V(EQ, tr_intern(BUFFER(ts, te-ts))); };
+    '!='        => { TOKEN_V(NEQ, tr_intern(BUFFER(ts, te-ts))); };
+    '||'        => { TOKEN_V(OR, tr_intern(BUFFER(ts, te-ts))); };
+    '|'         => { TOKEN_V(PIPE, tr_intern(BUFFER(ts, te-ts))); };
+    '&&'        => { TOKEN_V(AND, tr_intern(BUFFER(ts, te-ts))); };
+    '&'         => { TOKEN_V(AMP, tr_intern(BUFFER(ts, te-ts))); };
+    '<'         => { TOKEN_V(LT, tr_intern(BUFFER(ts, te-ts))); };
+    '<='        => { TOKEN_V(LE, tr_intern(BUFFER(ts, te-ts))); };
+    '>'         => { TOKEN_V(GT, tr_intern(BUFFER(ts, te-ts))); };
+    '>='        => { TOKEN_V(GE, tr_intern(BUFFER(ts, te-ts))); };
+    '<<'        => { TOKEN_V(LSHIFT, tr_intern(BUFFER(ts, te-ts))); };
+    '>>'        => { TOKEN_V(RSHIFT, tr_intern(BUFFER(ts, te-ts))); };
+    '**'        => { TOKEN_V(POW, tr_intern(BUFFER(ts, te-ts))); };
+    '*'         => { TOKEN_V(MUL, tr_intern(BUFFER(ts, te-ts))); };
+    '/'         => { TOKEN_V(DIV, tr_intern(BUFFER(ts, te-ts))); };
+    '%'         => { TOKEN_V(MOD, tr_intern(BUFFER(ts, te-ts))); };
+    '+'         => { TOKEN_V(PLUS, tr_intern(BUFFER(ts, te-ts))); };
+    '-'         => { TOKEN_V(MINUS, tr_intern(BUFFER(ts, te-ts))); };
     
     # values
     id          => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts))); };
     const       => { TOKEN_V(CONST, tr_intern(BUFFER(ts, te-ts))); };
     symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
-    binop       => { TOKEN_V(BINOP, tr_intern(BUFFER(ts, te-ts))); };
-    assign      => { TOKEN_V(ASSIGN, tr_intern(BUFFER(ts, te-ts))); };
     string      => { TOKEN_V(STRING, TrString_new(vm, BUFFER(ts+1, te-ts-2), te-ts-2)); };
     int         => { TOKEN_V(INT, TrFixnum_new(vm, atoi(BUFFER(ts, te-ts)))); };
   *|;

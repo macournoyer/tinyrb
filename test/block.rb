@@ -8,3 +8,10 @@ make_awesome do
 end
 # => awesome!
 # => awesome!
+
+# def yielder(arg)
+#   yield arg
+# end
+# 
+# puts yielder("I feel like havin 2 muffins")
+# # => I feel like havin 2 muffins
