@@ -63,6 +63,9 @@ leave(A) ::= RETURN. { A = NODE(RETURN, 0); }
 leave(A) ::= YIELD. { A = NODE(YIELD, 0); }
 leave(A) ::= YIELD O_PAR args(B) C_PAR. { A = NODE(YIELD, B); }
 
+leave_out(A) ::= leave(B). { A = B; }
+leave_out(A) ::= YIELD args(B). { A = NODE(YIELD, B); }
+
 assign_out(A) ::= CONST(B) ASSIGN statement(C). { A = NODE2(SETCONST, B, C); }
 assign_out(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
 
@@ -92,7 +95,7 @@ name_out(A) ::= ID(B) args(C). { A = NODE2(MSG, B, C); }
 msg_out(A) ::= name_out(B). { A = NODE2(SEND, TR_NIL, B); }
 msg_out(A) ::= name_out(B) block(C). { A = NODE3(SEND, TR_NIL, B, C); }
 msg_out(A) ::= literal(B). { A = B; }
-msg_out(A) ::= leave(B). { A = B; }
+msg_out(A) ::= leave_out(B). { A = B; }
 
 msg(A) ::= name(B). { A = NODE2(SEND, TR_NIL, B); }
 msg(A) ::= literal(B). { A = B; }

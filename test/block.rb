@@ -10,7 +10,7 @@ end
 # => awesome!
 
 def yielder(arg)
-  yield(arg)
+  yield arg
 end
 
 yielder("I feel like having a cupcake") do |txt|
