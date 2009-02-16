@@ -46,7 +46,6 @@ flow(A) ::= UNTIL statement(B) TERM statements(C) opt_term END. { A = NODE2(UNTI
 flow(A) ::= expr_out(C) IF statement(B). { A = NODE2(IF, B, NODES(C)); }
 flow(A) ::= expr_out(C) UNLESS statement(B). { A = NODE2(UNLESS, B, NODES(C)); }
 
-
 literal(A) ::= SYMBOL(B). { A = NODE(VALUE, B); }
 literal(A) ::= INT(B). { A = NODE(VALUE, B); }
 literal(A) ::= STRING(B). { A = NODE(STRING, B); }
@@ -62,6 +61,7 @@ literal(A) ::= O_CBRA hash_items(B) C_CBRA. { A = NODE(HASH, B); }
 
 leave(A) ::= RETURN. { A = NODE(RETURN, 0); }
 leave(A) ::= YIELD. { A = NODE(YIELD, 0); }
+leave(A) ::= YIELD O_PAR args(B) C_PAR. { A = NODE(YIELD, B); }
 
 assign_out(A) ::= CONST(B) ASSIGN statement(C). { A = NODE2(SETCONST, B, C); }
 assign_out(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
@@ -104,7 +104,8 @@ args(A) ::= arg(B). { A = NODES(B); }
 arg(A) ::= expr(B). { A = B; }
 arg(A) ::= assign(B). { A = B; }
 
-block(A) ::= DO TERM statements(B) opt_term END. { A = B; }
+block(A) ::= DO TERM statements(B) opt_term END. { A = NODE(BLOCK, B); }
+block(A) ::= DO PIPE params(C) PIPE TERM statements(B) opt_term END. { A = NODE2(BLOCK, B, C); }
 
 hash_items(A) ::= hash_items(B) COMMA expr(C) HASHI expr(D). { A = PUSH(B, C); A = PUSH(B, D); }
 hash_items(A) ::= expr(B) HASHI expr(C). { A = NODES_N(2, B, C); }

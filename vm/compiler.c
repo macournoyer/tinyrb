@@ -178,28 +178,37 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       if (i != -1) { /* var */
         PUSH_OP_AB(b, GETLOCAL, reg, i);
       } else { /* method */
+        /* receiver */
         if (n->args[0])
           TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[0], reg);
         else
           PUSH_OP_A(b, SELF, reg);
         i = TrBlock_pushk(b, msg->args[0]);
+        /* args */
         size_t argc = 0;
         if (msg->args[1]) {
-          /* compile args */
           argc = TR_ARRAY_SIZE(msg->args[1]);
           TR_ARRAY_EACH(msg->args[1], i, v, {
             TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg+i+2);
           });
         }
+        /* block */
         size_t blki = 0;
         if (n->args[2]) {
-          /* compile block */
           TrBlock *blk = TrBlock_new();
+          TrNode *blkn = (TrNode *)n->args[2];
           blki = kv_size(b->blocks) + 1;
+          blk->argc = 0;
+          if (blkn->args[1]) {
+            blk->argc = TR_ARRAY_SIZE(blkn->args[1]);
+            /* add parameters as locals in block context */
+            TR_ARRAY_EACH(blkn->args[1], i, v, {
+              TrNode *param = (TrNode *)v;
+              TrBlock_local(blk, param->args[0]);
+            });
+          }
           kv_push(TrBlock *, b->blocks, blk);
-          TR_ARRAY_EACH(n->args[2], i, v, {
-            TrCompiler_compile_node(vm, c, blk, (TrNode *)v, 0);
-          });
+          TrCompiler_compile_node(vm, c, blk, blkn, 0);
           PUSH_OP_A(blk, RETURN, 0);
         }
         PUSH_OP_A(b, BOING, 0);
@@ -257,9 +266,16 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     case AST_RETURN:
       PUSH_OP_A(b, RETURN, reg);
       break;
-    case AST_YIELD:
-      PUSH_OP_A(b, YIELD, reg);
-      break;
+    case AST_YIELD: {
+      size_t argc = 0;
+      if (n->args[0]) {
+        argc = TR_ARRAY_SIZE(n->args[0]);
+        TR_ARRAY_EACH(n->args[0], i, v, {
+          TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg+i+1);
+        });
+      }
+      PUSH_OP_AB(b, YIELD, reg, argc);
+    } break;
     case AST_DEF: {
       TrBlock *blk = TrBlock_new();
       size_t blki = kv_size(b->blocks);

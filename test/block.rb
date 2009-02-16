@@ -9,9 +9,11 @@ end
 # => awesome!
 # => awesome!
 
-# def yielder(arg)
-#   yield arg
-# end
-# 
-# puts yielder("I feel like havin 2 muffins")
-# # => I feel like havin 2 muffins
+def yielder(arg)
+  yield(arg)
+end
+
+yielder("I feel like having a cupcake") do |txt|
+  puts txt
+end
+# => I feel like having a cupcake

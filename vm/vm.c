@@ -123,6 +123,16 @@ static OBJ TrVM_interpret(VM, OBJ self, int argc, OBJ argv[]) {
   return ret;
 }
 
+static inline OBJ TrVM_yield(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
+  if (!b) tr_raise("LocalJumpError: no block given");
+  TrFrame_push(vm, b, f->self, f->class);
+  size_t i;
+  for (i = 0; i < argc; ++i) FRAME->locals[i] = argv[i];
+  OBJ ret = TrVM_step(vm);
+  TrFrame_pop(vm);
+  return ret;
+}
+
 /* dispatch macros */
 #define NEXT_OP        (++ip, e=*ip)
 #ifdef TR_THREADED_DISPATCH
@@ -176,10 +186,7 @@ OBJ TrVM_step(VM) {
     
     /* return */
     OP(RETURN):     return R[A];
-    OP(YIELD):
-      if (!f->passed_block) tr_raise("LocalJumpError: no block given");
-      R[A] = TrVM_run(vm, f->passed_block, f->self, f->class);
-      DISPATCH;
+    OP(YIELD):      R[A] = TrVM_yield(vm, f, f->passed_block, B, &R[A+1]); DISPATCH;
     
     /* variable and consts */
     OP(SETLOCAL):   locals[A] = R[B]; DISPATCH;
