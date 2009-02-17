@@ -72,7 +72,7 @@ static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip)
 static inline OBJ TrVM_call(VM, TrFrame *f, OBJ receiver, OBJ method, int argc, OBJ *args, TrBlock *b) {
   /* TrFrame_push(vm, 0, receiver, TR_COBJECT(receiver)->class); */
   f->method = TR_CMETHOD(method);
-  f->passed_block = b;
+  if (b) f->passed_block = b;
   OBJ ret;
   if (f->method->arity == -1) {
     ret = f->method->func(vm, receiver, argc, args);

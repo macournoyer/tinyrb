@@ -22,3 +22,11 @@ end
 
 puts lolcat("meow")
 # => meow
+
+def local(x)
+  y = x
+  y
+end
+
+puts local(1)
+# => 1

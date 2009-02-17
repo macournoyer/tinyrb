@@ -26,6 +26,8 @@
 
   term        = (newline | ";");
   id          = [a-z_] [a-zA-Z0-9_]*;
+  self        = "self";
+  method      = id | self;
   const       = [A-Z] [a-zA-Z0-9_]*;
   int         = [0-9]+;
   string      = '"' (any - '"')* '"' | "'" (any - "'")* "'";
@@ -62,6 +64,7 @@
     ","         => { TOKEN(COMMA); };
     "("         => { TOKEN(O_PAR); };
     ")"         => { TOKEN(C_PAR); };
+    "self["     => { TOKEN(SELF); TOKEN(O_SBRA_ID); };
     id "["      => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts-1))); TOKEN(O_SBRA_ID); };
     "["         => { TOKEN(O_SBRA); };
     "]"         => { TOKEN(C_SBRA); };
