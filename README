@@ -13,10 +13,17 @@ http://github.com/macournoyer/tinyrb
 #tinyrb on freenode
 
 == Install
-Install Ragel (http://www.complang.org/ragel)
-  sudo port install ragel # or apt-get or install from source!
+Install Ragel v6.3 or greater:
 
-Compile tinyrb
+  wget http://www.complang.org/ragel/ragel-6.3.tar.gz
+  tar xzf ragel-6.3.tar.gz
+  cd ragel-6.3
+  ./configure
+  make
+  sudo make install
+
+Compile tinyrb:
+
   make
   make test # optional
   ./tinyrb -h
