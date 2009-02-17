@@ -40,7 +40,11 @@ typedef enum {
   AST_CONST,
   AST_SETCONST,
   AST_ARRAY,
-  AST_HASH  
+  AST_HASH,
+  AST_GETIVAR,
+  AST_SETIVAR,
+  AST_GETCVAR,
+  AST_SETCVAR
 } TrNodeType;
 
 typedef struct {

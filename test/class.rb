@@ -1,6 +1,13 @@
 class Pony
+  def set_cname(name)
+    @@name = name
+  end
+  def set_name(name)
+    @name = name
+  end
   def talk
-    puts "lol"
+    puts @name
+    puts @@name
     puts self.class.name
   end
 end
@@ -8,8 +15,12 @@ end
 puts Pony
 # => Pony
 
-Pony.allocate.talk
-# => lol
+Pony.allocate.set_cname("Bob")
+p = Pony.allocate
+p.set_name "Rick"
+p.talk
+# => Rick
+# => Bob
 # => Pony
 
 puts String

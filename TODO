@@ -26,7 +26,6 @@
 
 == Later
 [x] Inline some methods (+,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT
-[ ] Get it to build w/ -ansi gcc option (might need to get rid of khash.h)
 [ ] Fix operator precedence, add (...)
 [ ] Implement metaclass
 [ ] Implement splat operator
@@ -39,6 +38,7 @@
 [ ] Implement Float, Bignum
 [ ] Run RubySpecs
 [ ] Sandbox
+[ ] Get it to build w/ -ansi gcc option (might need to get rid of khash.h)
 
 == Oh Yeah That'll be Cool!
 [ ] Rubygem support w/ http://github.com/fabien/minigems

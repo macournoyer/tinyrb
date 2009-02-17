@@ -42,6 +42,22 @@
       } \
     } \
   })
+#define TR_KH_GET(KH,K) ({ \
+  OBJ key = (K); \
+  khash_t(OBJ) *kh = (KH); \
+  khiter_t k = kh_get(OBJ, kh, key); \
+  k == kh_end(kh) ? TR_NIL : kh_value(kh, k); \
+})
+#define TR_KH_SET(KH,K,V) ({ \
+  OBJ key = (K); \
+  khash_t(OBJ) *kh = (KH); \
+  int ret; \
+  khiter_t k = kh_put(OBJ, kh, key, &ret); \
+  if (!ret) kh_del(OBJ, kh, k); \
+  kh_value(kh, k) = (V); \
+})
+#define TR_GETIVAR(O,N)      TR_KH_GET(TR_COBJECT(O)->ivars, N)
+#define TR_SETIVAR(O,N,V)    TR_KH_SET(TR_COBJECT(O)->ivars, N, V)
 
 #define VM                   struct TrVM *vm
 #define FRAME                (&vm->frames[vm->cf])
@@ -57,11 +73,12 @@
   TR_T type; \
   OBJ class; \
   OBJ metaclass; \
-  OBJ ivars
+  khash_t(OBJ) *ivars
 #define TR_INIT_OBJ(T) ({ \
   Tr##T *o = TR_ALLOC(Tr##T); \
   o->type  = TR_T_##T; \
   o->class = vm->classes[TR_T_##T]; \
+  o->ivars = kh_init(OBJ); \
   o; \
 })
 #define TR_CLASS(T)          vm->classes[TR_T_##T]

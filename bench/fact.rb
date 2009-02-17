@@ -6,4 +6,4 @@ def fact(n)
   end
 end
 
-puts fact(4)
+puts fact(12)

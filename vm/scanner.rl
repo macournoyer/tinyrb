@@ -30,6 +30,8 @@
   int         = [0-9]+;
   string      = '"' (any - '"')* '"' | "'" (any - "'")* "'";
   symbol      = ':' id;
+  cvar        = '@@' id;
+  ivar        = '@' id;
   comment     = "#"+ (any - newline)*;
   
   main := |*
@@ -95,6 +97,8 @@
     id          => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts))); };
     const       => { TOKEN_V(CONST, tr_intern(BUFFER(ts, te-ts))); };
     symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
+    ivar        => { TOKEN_V(IVAR, tr_intern(BUFFER(ts, te-ts))); };
+    cvar        => { TOKEN_V(CVAR, tr_intern(BUFFER(ts, te-ts))); };
     string      => { TOKEN_V(STRING, TrString_new(vm, BUFFER(ts+1, te-ts-2), te-ts-2)); };
     int         => { TOKEN_V(INT, TrFixnum_new(vm, atoi(BUFFER(ts, te-ts)))); };
   *|;

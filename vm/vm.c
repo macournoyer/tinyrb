@@ -191,6 +191,10 @@ OBJ TrVM_step(VM) {
     /* variable and consts */
     OP(SETLOCAL):   locals[A] = R[B]; DISPATCH;
     OP(GETLOCAL):   R[A] = locals[B]; DISPATCH;
+    OP(SETIVAR):    TR_SETIVAR(f->self, k[Bx], R[A]); DISPATCH;
+    OP(GETIVAR):    R[A] = TR_GETIVAR(f->self, k[Bx]); DISPATCH;
+    OP(SETCVAR):    TR_SETIVAR(f->class, k[Bx], R[A]); DISPATCH;
+    OP(GETCVAR):    R[A] = TR_GETIVAR(f->class, k[Bx]); DISPATCH;
     OP(SETCONST):   TrObject_const_set(vm, f->self, k[Bx], R[A]); DISPATCH;
     OP(GETCONST):   R[A] = TrObject_const_get(vm, f->self, k[Bx]); DISPATCH;
     
