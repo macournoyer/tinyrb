@@ -4,21 +4,15 @@
 #include "opcode.h"
 #include "internal.h"
 
-OBJ TrVM_step(VM);
+OBJ TrVM_step(VM, TrFrame *f, TrBlock * b, int argc, OBJ argv[]);
 
-static void TrFrame_push(VM, TrBlock *b, OBJ self, OBJ class) {
-  TrFrame *prevf = FRAME;
+static void TrFrame_push(VM, OBJ self, OBJ class) {
+  TrFrame *prevf = vm->cf < 0 ? 0 : FRAME;
   vm->cf++;
-  if (vm->cf > TR_MAX_FRAMES) tr_raise("Stack overflow");
+  if (vm->cf >= TR_MAX_FRAMES) tr_raise("Stack overflow");
   TrFrame *f = FRAME;
   f->method = TR_NIL;
-  f->block = b;
-  f->passed_block = prevf->passed_block;
-  if (b) {
-    f->regs = TR_ALLOC_N(OBJ, b->regc);
-    f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals));
-    f->ip = b->code.a;
-  }
+  if (prevf) f->block = prevf->block;
   f->self = self;
   f->class = class;
   f->line = 1;
@@ -28,13 +22,13 @@ static void TrFrame_pop(VM) {
   vm->cf--;
 }
 
-static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip) {
+static inline OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
   OBJ method = TrObject_method(vm, receiver, msg);
   if (!method) tr_raise("Method not found: %s\n", TR_STR_PTR(msg));
   TrInst *boing = (ip-1);
 
 #ifdef TR_CALL_SITE
-  TrCallSite *s = (kv_pushp(TrCallSite, f->block->sites));
+  TrCallSite *s = (kv_pushp(TrCallSite, b->sites));
   /* TODO support metaclass */
   s->class = TR_COBJECT(receiver)->class;
   s->method = method;
@@ -63,16 +57,17 @@ static inline OBJ TrVM_lookup(VM, TrFrame *f, OBJ receiver, OBJ msg, TrInst *ip)
   boing->i = TR_OP_CACHE;
   boing->a = ip->a; /* receiver register */
   boing->b = 1; /* jmp */
-  boing->c = kv_size(f->block->sites)-1; /* CallSite index */
+  boing->c = kv_size(b->sites)-1; /* CallSite index */
 #endif
   
   return method;
 }
 
-static inline OBJ TrVM_call(VM, TrFrame *f, OBJ receiver, OBJ method, int argc, OBJ *args, TrBlock *b) {
-  /* TrFrame_push(vm, 0, receiver, TR_COBJECT(receiver)->class); */
+static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int argc, OBJ *args, TrBlock *b) {
+  TrFrame_push(vm, receiver, TR_COBJECT(receiver)->class);
+  TrFrame *f = FRAME;
   f->method = TR_CMETHOD(method);
-  if (b) f->passed_block = b;
+  if (b) (f->block = b)->frame = callingf;
   OBJ ret;
   if (f->method->arity == -1) {
     ret = f->method->func(vm, receiver, argc, args);
@@ -93,7 +88,7 @@ static inline OBJ TrVM_call(VM, TrFrame *f, OBJ receiver, OBJ method, int argc, 
       default: tr_raise("Too much arguments: %d, max is %d for now.\n", argc, 10);
     }
   }
-  /* TrFrame_pop(vm); */
+  TrFrame_pop(vm);
   return ret;
 }
 
@@ -104,8 +99,8 @@ static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b) {
     class = TrClass_new(vm, name, TR_CLASS(Object));
     TrObject_const_set(vm, FRAME->class, name, class);
   }
-  TrFrame_push(vm, b, class, class);
-  TrVM_step(vm);
+  TrFrame_push(vm, class, class);
+  TrVM_step(vm, FRAME, b, 0, 0);
   TrFrame_pop(vm);
   return class;
 }
@@ -113,24 +108,13 @@ static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b) {
 static OBJ TrVM_interpret(VM, OBJ self, int argc, OBJ argv[]) {
   assert(FRAME->method);
   TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
-  size_t i;
   if (b->argc != argc) tr_raise("Expected %lu arguments, got %d.\n", b->argc, argc);
-  TrFrame_push(vm, b, self, TR_COBJECT(self)->class);
-  /* transfer args */
-  for (i = 0; i < argc; ++i) FRAME->locals[i] = argv[i];
-  OBJ ret = TrVM_step(vm);
-  TrFrame_pop(vm);
-  return ret;
+  return TrVM_step(vm, FRAME, b, argc, argv);
 }
 
 static inline OBJ TrVM_yield(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
   if (!b) tr_raise("LocalJumpError: no block given");
-  TrFrame_push(vm, b, f->self, f->class);
-  size_t i;
-  for (i = 0; i < argc; ++i) FRAME->locals[i] = argv[i];
-  OBJ ret = TrVM_step(vm);
-  TrFrame_pop(vm);
-  return ret;
+  return TrVM_step(vm, b->frame, b, argc, argv);
 }
 
 /* dispatch macros */
@@ -154,17 +138,19 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
 #define R    regs
 #define Bx   (unsigned short)(((B<<8)+C))
 #define sBx  (short)(((B<<8)+C))
-#define SITE (f->block->sites.a)
+#define SITE (b->sites.a)
 
-OBJ TrVM_step(VM) {
-  TrFrame *f = FRAME;
-  TrInst *ip = f->ip;
+OBJ TrVM_step(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
+  TrInst *ip = b->code.a;
   register TrInst e = *ip;
-  OBJ *k = f->block->k.a;
-  char **strings = f->block->strings.a;
-  register OBJ *regs = f->regs;
-  OBJ *locals = f->locals;
-  TrBlock **blocks = f->block->blocks.a;
+  OBJ *k = b->k.a;
+  char **strings = b->strings.a;
+  TrBlock **blocks = b->blocks.a;
+  register OBJ *regs = TR_ALLOC_N(OBJ, b->regc);
+  /* locals */
+  OBJ *locals = TR_ALLOC_N(OBJ, kv_size(b->locals)+argc);
+  size_t i;
+  for (i = 0; i < argc; ++i) locals[i] = argv[i];
   
 #ifdef TR_THREADED_DISPATCH
   static void *labels[] = { TR_OP_LABELS };
@@ -186,7 +172,7 @@ OBJ TrVM_step(VM) {
     
     /* return */
     OP(RETURN):     return R[A];
-    OP(YIELD):      R[A] = TrVM_yield(vm, f, f->passed_block, B, &R[A+1]); DISPATCH;
+    OP(YIELD):      R[A] = TrVM_yield(vm, f, f->block, B, &R[A+1]); DISPATCH;
     
     /* variable and consts */
     OP(SETLOCAL):   locals[A] = R[B]; DISPATCH;
@@ -199,7 +185,7 @@ OBJ TrVM_step(VM) {
     OP(GETCONST):   R[A] = TrObject_const_get(vm, f->self, k[Bx]); DISPATCH;
     
     /* method calling */
-    OP(LOOKUP):     R[A+1] = TrVM_lookup(vm, f, R[A], k[Bx], ip); DISPATCH;
+    OP(LOOKUP):     R[A+1] = TrVM_lookup(vm, b, R[A], k[Bx], ip); DISPATCH;
     OP(CALL):       R[A] = TrVM_call(vm, f, R[A], R[A+1], B, &R[A+2], C>0 ? blocks[C-1] : 0); DISPATCH;
     OP(CACHE):
       /* TODO how to expire cache? */
@@ -242,13 +228,13 @@ OBJ TrVM_step(VM) {
 
 void TrVM_start(VM, TrBlock *b) {
   vm->self = TrObject_new(vm);
-  vm->cf = 0;
+  vm->cf = -1;
   TrVM_run(vm, b, vm->self, TR_COBJECT(vm->self)->class);
 }
 
 OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class) {
-  TrFrame_push(vm, b, self, class);
-  OBJ ret = TrVM_step(vm);
+  TrFrame_push(vm, self, class);
+  OBJ ret = TrVM_step(vm, FRAME, b, 0, 0);
   TrFrame_pop(vm);
   return ret;
 }

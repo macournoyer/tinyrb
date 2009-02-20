@@ -31,6 +31,7 @@ OBJ TrClass_add_method(VM, OBJ self, OBJ name, OBJ method) {
   khiter_t k = kh_put(OBJ, c->methods, name, &ret);
   if (!ret) kh_del(OBJ, c->methods, k);
   kh_value(c->methods, k) = method;
+  TR_CMETHOD(method)->name = name;
   return method;
 }
 

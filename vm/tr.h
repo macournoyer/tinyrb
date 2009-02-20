@@ -113,6 +113,7 @@ typedef enum {
 } TR_T;
 
 struct TrVM;
+struct TrFrame;
 
 typedef struct {
   unsigned char i, a, b, c;
@@ -135,6 +136,7 @@ typedef struct TrBlock {
   size_t argc;
   /* dynamic */
   kvec_t(TrCallSite) sites;
+  struct TrFrame *frame;
 } TrBlock;
 
 typedef OBJ (TrFunc)(VM, OBJ receiver, ...);
@@ -142,12 +144,12 @@ typedef struct {
   TR_OBJECT_HEADER;
   TrFunc *func;
   OBJ data;
+  OBJ name;
   int arity;
 } TrMethod;
 
-typedef struct {
+typedef struct TrFrame {
   TrBlock *block;
-  TrBlock *passed_block;
   TrMethod *method;  /* current called method */
   OBJ *regs;
   OBJ *locals;

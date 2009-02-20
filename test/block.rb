@@ -18,12 +18,31 @@ yielder("I feel like having a cupcake") do |txt|
 end
 # => I feel like having a cupcake
 
+def reyielder(arg)
+  yielder(arg) do |arg|
+    yield "again"
+    yield arg
+  end
+end
+
+reyielder("I really feel like having a cupcake") do |txt|
+  puts txt
+end
+# => again
+# => I really feel like having a cupcake
+
 class Array
-  def each
+  def each_with_index
     i = 0
     while i < size
-      yield self[i]
+      yield self[i], i
       i = i + 1
+    end
+  end
+  
+  def each # toplevel block
+    each_with_index do |x, i|
+      yield x
     end
   end
 end
@@ -33,3 +52,11 @@ end
 end
 # => 1
 # => 2
+
+[1, 2].each_with_index do |x, i|
+  puts x, i
+end
+# => 1
+# => 0
+# => 2
+# => 1
