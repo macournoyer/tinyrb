@@ -19,7 +19,8 @@
 #define TR_TYPE(X)           (TR_COBJECT(X)->type)
 #define TR_IS_A(X,T)         (TR_TYPE(X) == TR_T_##T)
 #define TR_CTYPE(X,T)        (assert(TR_IS_A(X,T)),(Tr##T*)(X))
-#define TR_CCLASS(X)         TR_CTYPE(X,Class)
+#define TR_CCLASS(X)         (assert(TR_IS_A(X,Class)||TR_IS_A(X,Module)),(TrClass*)(X))
+#define TR_CMODULE(X)        TR_CCLASS(X)
 #define TR_CFIXNUM(X)        TR_CTYPE(X,Fixnum)
 #define TR_CARRAY(X)         TR_CTYPE(X,Array)
 #define TR_CHASH(X)          TR_CTYPE(X,Hash)
@@ -88,7 +89,7 @@
 
 #define tr_intern(S)         TrSymbol_new(vm, (S))
 #define tr_raise(M,A...)     (printf("Error: "), printf(M, ##A), assert(0))
-#define tr_def(C,N,F,A)      TrClass_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
+#define tr_def(C,N,F,A)      TrModule_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_send(R,MSG,A...)  ({ \
   OBJ r = TR_BOX(R); \
   TrMethod *m = TR_CMETHOD(TrObject_method(vm, r, (MSG))); \
@@ -104,7 +105,7 @@ KHASH_MAP_INIT_STR(str, OBJ);
 KHASH_MAP_INIT_INT(OBJ, OBJ);
 
 typedef enum {
-  TR_T_Object, TR_T_Class, TR_T_Method,
+  TR_T_Object, TR_T_Module, TR_T_Class, TR_T_Method,
   TR_T_Symbol, TR_T_String, TR_T_Fixnum,
   TR_T_NilClass, TR_T_TrueClass, TR_T_FalseClass,
   TR_T_Array, TR_T_Hash,
@@ -179,7 +180,9 @@ typedef struct {
   OBJ name;
   OBJ super;
   khash_t(OBJ) *methods;
+  kvec_t(OBJ) modules;
 } TrClass;
+typedef TrClass TrModule;
 
 typedef struct {
   TR_OBJECT_HEADER;
@@ -243,12 +246,19 @@ OBJ TrObject_const_set(VM, OBJ self, OBJ name, OBJ value);
 OBJ TrObject_const_get(VM, OBJ self, OBJ name);
 void TrObject_init(VM);
 
+/* module */
+OBJ TrModule_new(VM, OBJ name);
+OBJ TrModule_lookup(VM, OBJ self, OBJ name);
+OBJ TrModule_add_method(VM, OBJ self, OBJ name, OBJ method);
+void TrModule_init(VM);
+
 /* class */
 OBJ TrClass_new(VM, OBJ name, OBJ super);
 OBJ TrClass_lookup(VM, OBJ self, OBJ name);
-OBJ TrClass_add_method(VM, OBJ self, OBJ name, OBJ method);
 OBJ TrClass_allocate(VM, OBJ self);
 void TrClass_init(VM);
+
+/* method */
 OBJ TrMethod_new(VM, TrFunc *func, OBJ data, int arity);
 
 /* primitive */

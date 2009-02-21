@@ -18,7 +18,7 @@
 [x] Allow reopening classes
 [x] Implement Array
 [x] Implement Hash
-[ ] Implement Module
+[x] Implement Module
 [x] Implement yield
 [ ] Implement Proc
 [ ] Implement some corelib stuff in Ruby (under /lib) and embed bytecode at compile time

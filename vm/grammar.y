@@ -128,6 +128,7 @@ params(A) ::= params(B) COMMA ID(C). { A = PUSH(B, NODE(PARAM, C)); }
 params(A) ::= ID(B). { A = NODES(NODE(PARAM, B)); }
 
 class(A) ::= CLASS CONST(B) TERM statements(C) opt_term END. { A = NODE2(CLASS, B, C); }
+class(A) ::= MODULE CONST(B) TERM statements(C) opt_term END. { A = NODE2(MODULE, B, C); }
 
 opt_term ::= TERM.
 opt_term ::= .

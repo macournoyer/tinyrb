@@ -37,6 +37,7 @@ typedef enum {
   AST_DEF,
   AST_PARAM,
   AST_CLASS,
+  AST_MODULE,
   AST_CONST,
   AST_SETCONST,
   AST_ARRAY,

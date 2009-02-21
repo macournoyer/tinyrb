@@ -54,6 +54,7 @@
     "return"    => { TOKEN(RETURN); };
     "def"       => { TOKEN(DEF); };
     "class"     => { TOKEN(CLASS); };
+    "module"    => { TOKEN(MODULE); };
     "do"        => { TOKEN(DO); };
     "yield"     => { TOKEN(YIELD); };
     # HACK any better way to do this?

@@ -92,17 +92,20 @@ static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int
   return ret;
 }
 
-static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b) {
-  OBJ class = TrObject_const_get(vm, FRAME->class, name);
+static inline OBJ TrVM_defmod(VM, TrFrame *f, OBJ name, TrBlock *b, int module) {
+  OBJ mod = TrObject_const_get(vm, FRAME->class, name);
   
-  if (!class) { /* new class */
-    class = TrClass_new(vm, name, TR_CLASS(Object));
-    TrObject_const_set(vm, FRAME->class, name, class);
+  if (!mod) { /* new module/class */
+    if (module)
+      mod = TrModule_new(vm, name);
+    else
+      mod = TrClass_new(vm, name, TR_CLASS(Object));
+    TrObject_const_set(vm, FRAME->class, name, mod);
   }
-  TrFrame_push(vm, class, class);
+  TrFrame_push(vm, mod, mod);
   TrVM_step(vm, FRAME, b, 0, 0);
   TrFrame_pop(vm);
-  return class;
+  return mod;
 }
 
 static OBJ TrVM_interpret(VM, OBJ self, int argc, OBJ argv[]) {
@@ -201,10 +204,11 @@ OBJ TrVM_step(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
     
     /* definition */
     OP(DEF):
-      TrClass_add_method(vm, f->class, k[Bx],
-                         TrMethod_new(vm, (TrFunc *)TrVM_interpret, (OBJ)blocks[A], -1));
+      TrModule_add_method(vm, f->class, k[Bx],
+                          TrMethod_new(vm, (TrFunc *)TrVM_interpret, (OBJ)blocks[A], -1));
       DISPATCH;
-    OP(CLASS): R[A] = TrVM_defclass(vm, f, k[Bx], blocks[A]); DISPATCH;
+    OP(CLASS):  R[A] = TrVM_defmod(vm, f, k[Bx], blocks[A], 0); DISPATCH;
+    OP(MODULE): R[A] = TrVM_defmod(vm, f, k[Bx], blocks[A], 1); DISPATCH;
     
     /* jumps */
     OP(JMP):        ip += sBx; DISPATCH;
@@ -248,13 +252,16 @@ TrVM *TrVM_new() {
   
   /* bootstrap core classes */
   TrSymbol_init(vm);
+  TrModule_init(vm);
   TrClass_init(vm);
   TrObject_init(vm);
   TrClass *symbolc = TR_CCLASS(TR_CLASS(Symbol));
+  TrClass *modulec = TR_CCLASS(TR_CLASS(Module));
   TrClass *classc = TR_CCLASS(TR_CLASS(Class));
   TrClass *objectc = TR_CCLASS(TR_CLASS(Object));
-  symbolc->super = classc->super = (OBJ)objectc;
-  symbolc->class = classc->class = objectc->class = (OBJ)classc;
+  symbolc->super = modulec->super = (OBJ)objectc;
+  classc->super = (OBJ)modulec;
+  symbolc->class = modulec->class = classc->class = objectc->class = (OBJ)classc;
   TR_COBJECT(tr_intern("Symbol"))->class = (OBJ)symbolc;
   
   TrPrimitive_init(vm);

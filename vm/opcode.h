@@ -34,6 +34,7 @@ enum TrInstCode {
   TR_OP_GETCONST,   /* A Bx     R[A] = Consts[k[Bx]] */
   TR_OP_SETCONST,   /* A Bx     Consts[k[Bx]] = R[A] */
   TR_OP_CLASS,      /* A Bx     R[A] = define class k[Bx] on self w/ blocks[A] */
+  TR_OP_MODULE,     /* A Bx     R[A] = define module k[Bx] on self w/ blocks[A] */
   TR_OP_NEWARRAY,   /* A B      R[A] = Array.new(R[A+1]..R[A+1+B]) */
   TR_OP_NEWHASH,    /* A B      R[A] = Hash.new(R[A+1] => R[A+2] .. R[A+1+B*2] => R[A+2+B*2]) */
   TR_OP_YIELD,      /* A B      R[A] = passed_block.call(R[A+1]..R[A+1+B]) */
@@ -75,6 +76,7 @@ enum TrInstCode {
   "getconst", \
   "setconst", \
   "class", \
+  "module", \
   "newarray", \
   "newhash", \
   "yield", \
@@ -118,6 +120,7 @@ enum TrInstCode {
   &&op_GETCONST, \
   &&op_SETCONST, \
   &&op_CLASS, \
+  &&op_MODULE, \
   &&op_NEWARRAY, \
   &&op_NEWHASH, \
   &&op_YIELD, \
