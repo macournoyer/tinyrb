@@ -61,6 +61,15 @@ OBJ TrString_new2(VM, const char *str) {
   return TrString_new(vm, str, strlen(str));
 }
 
+OBJ TrString_new3(VM, size_t len) {
+  TrString *s = TR_INIT_OBJ(String);
+  s->len = len;
+  s->ptr = TR_ALLOC_N(char, s->len+1);
+  s->interned = 0;
+  s->ptr[s->len] = '\0';
+  return (OBJ)s;
+}
+
 OBJ TrString_concat(VM, OBJ self, OBJ other) {
   return tr_sprintf(vm, "%s%s", TR_STR_PTR(self), TR_STR_PTR(other));
 }
