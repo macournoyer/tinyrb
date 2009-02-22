@@ -92,7 +92,7 @@ static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int
   return ret;
 }
 
-static inline OBJ TrVM_defmod(VM, TrFrame *f, OBJ name, TrBlock *b, int module) {
+static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module) {
   OBJ mod = TrObject_const_get(vm, FRAME->class, name);
   
   if (!mod) { /* new module/class */
@@ -108,18 +108,27 @@ static inline OBJ TrVM_defmod(VM, TrFrame *f, OBJ name, TrBlock *b, int module) 
   return mod;
 }
 
-/* TODO remove branch by spliting in specialized functions, eg.: one for splat, etc... */
-static OBJ TrVM_interpret(VM, OBJ self, int argc, OBJ argv[]) {
+static OBJ TrVM_interpret_method(VM, OBJ self, int argc, OBJ argv[]) {
   assert(FRAME->method);
   TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
-  if (b->arg_splat) {
-    if (argc < b->argc-1) tr_raise("Expected at least %lu arguments, got %d.\n", b->argc-1, argc);
-    argv[b->argc-1] = TrArray_new3(vm, argc - b->argc + 1, &argv[b->argc-1]);
-    return TrVM_step(vm, FRAME, b, b->argc, argv);
-  } else {
-    if (argc != b->argc) tr_raise("Expected %lu arguments, got %d.\n", b->argc, argc);
-    return TrVM_step(vm, FRAME, b, argc, argv);
-  }
+  if (argc != b->argc) tr_raise("Expected %lu arguments, got %d.\n", b->argc, argc);
+  return TrVM_step(vm, FRAME, b, argc, argv);
+}
+
+static OBJ TrVM_interpret_method_with_splat(VM, OBJ self, int argc, OBJ argv[]) {
+  assert(FRAME->method);
+  TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
+  if (argc < b->argc-1) tr_raise("Expected at least %lu arguments, got %d.\n", b->argc-1, argc);
+  argv[b->argc-1] = TrArray_new3(vm, argc - b->argc + 1, &argv[b->argc-1]);
+  return TrVM_step(vm, FRAME, b, b->argc, argv);
+}
+
+static inline OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b) {
+  TrFunc *func = (TrFunc *) (b->arg_splat
+    ? TrVM_interpret_method_with_splat
+    : TrVM_interpret_method);
+  TrModule_add_method(vm, f->class, name, TrMethod_new(vm, func, (OBJ)b, -1));
+  return TR_NIL;
 }
 
 static inline OBJ TrVM_yield(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
@@ -212,12 +221,9 @@ OBJ TrVM_step(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
       DISPATCH;
     
     /* definition */
-    OP(DEF):
-      TrModule_add_method(vm, f->class, k[Bx],
-                          TrMethod_new(vm, (TrFunc *)TrVM_interpret, (OBJ)blocks[A], -1));
-      DISPATCH;
-    OP(CLASS):  R[A] = TrVM_defmod(vm, f, k[Bx], blocks[A], 0); DISPATCH;
-    OP(MODULE): R[A] = TrVM_defmod(vm, f, k[Bx], blocks[A], 1); DISPATCH;
+    OP(DEF):    TrVM_defmethod(vm, f, k[Bx], blocks[A]); DISPATCH;
+    OP(CLASS):  R[A] = TrVM_defclass(vm, f, k[Bx], blocks[A], 0); DISPATCH;
+    OP(MODULE): R[A] = TrVM_defclass(vm, f, k[Bx], blocks[A], 1); DISPATCH;
     
     /* jumps */
     OP(JMP):        ip += sBx; DISPATCH;
