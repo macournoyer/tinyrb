@@ -48,6 +48,7 @@ static OBJ TrObject_inspect(VM, OBJ self) {
 void TrObject_init(VM) {
   OBJ c = TR_INIT_CLASS(Object, /* ignored */ Object);
   tr_def(c, "class", TrObject_class, 0);
+  tr_def(c, "method", TrObject_method, 1);
   tr_def(c, "object_id", TrObject_object_id, 0);
   tr_def(c, "instance_eval", TrObject_instance_eval, 1);
   tr_def(c, "to_s", TrObject_inspect, 0);

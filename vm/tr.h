@@ -58,6 +58,15 @@
   if (!ret) kh_del(OBJ, kh, k); \
   kh_value(kh, k) = (V); \
 })
+#define TR_KH_EACH(H,I,V,B) ({ \
+    khiter_t __k##V; \
+    for (__k##V = kh_begin(H); __k##V != kh_end(H); ++__k##V) \
+      if (kh_exist((H), __k##V)) { \
+        OBJ V = kh_value((H), __k##V); \
+        B \
+      } \
+  })
+
 #define TR_GETIVAR(O,N)      TR_KH_GET(TR_COBJECT(O)->ivars, N)
 #define TR_SETIVAR(O,N,V)    TR_KH_SET(TR_COBJECT(O)->ivars, N, V)
 
@@ -277,6 +286,7 @@ void TrClass_init(VM);
 
 /* method */
 OBJ TrMethod_new(VM, TrFunc *func, OBJ data, int arity);
+void TrMethod_init(VM);
 
 /* primitive */
 void TrPrimitive_init(VM);

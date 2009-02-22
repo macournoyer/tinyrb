@@ -97,3 +97,12 @@ OBJ TrMethod_new(VM, TrFunc *func, OBJ data, int arity) {
   m->arity = arity;
   return (OBJ)m;
 }
+
+OBJ TrMethod_name(VM, OBJ self) { return TR_CMETHOD(self)->name; }
+OBJ TrMethod_arity(VM, OBJ self) { return TrFixnum_new(vm, TR_CMETHOD(self)->arity); }
+
+void TrMethod_init(VM) {
+  OBJ c = TR_INIT_CLASS(Method, Object);
+  tr_def(c, "name", TrMethod_name, 0);
+  tr_def(c, "arity", TrMethod_arity, 0);
+}

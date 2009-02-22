@@ -265,6 +265,7 @@ TrVM *TrVM_new() {
   vm->consts = kh_init(OBJ);
   
   /* bootstrap core classes */
+  TrMethod_init(vm);
   TrSymbol_init(vm);
   TrModule_init(vm);
   TrClass_init(vm);
@@ -272,11 +273,16 @@ TrVM *TrVM_new() {
   TrClass *symbolc = TR_CCLASS(TR_CLASS(Symbol));
   TrClass *modulec = TR_CCLASS(TR_CLASS(Module));
   TrClass *classc = TR_CCLASS(TR_CLASS(Class));
+  TrClass *methodc = TR_CCLASS(TR_CLASS(Method));
   TrClass *objectc = TR_CCLASS(TR_CLASS(Object));
-  symbolc->super = modulec->super = (OBJ)objectc;
+  symbolc->super = modulec->super = methodc->super = (OBJ)objectc;
   classc->super = (OBJ)modulec;
-  symbolc->class = modulec->class = classc->class = objectc->class = (OBJ)classc;
-  TR_COBJECT(tr_intern("Symbol"))->class = (OBJ)symbolc;
+  symbolc->class = modulec->class = classc->class = methodc->class = objectc->class = (OBJ)classc;
+  
+  /* Some symbols are created before Object, so make sure all have proper class. */
+  TR_KH_EACH(vm->symbols, i, sym, {
+    TR_COBJECT(sym)->class = (OBJ)symbolc;
+  });
   
   TrPrimitive_init(vm);
   TrKernel_init(vm);
