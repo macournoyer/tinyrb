@@ -22,9 +22,10 @@
 [x] Implement yield
 [ ] Implement IO and File
 [ ] Implement some corelib stuff in Ruby (under /lib) and embed bytecode at compile time
-[ ] Implement splat operator
+[x] Implement splat operator
 [ ] Implement Proc
 [ ] Fix operator precedence, add () and unary -
+[ ] Add support for escape chars in strings, (\n, \r, etc.)
 *** See TODO in code too!
 
 == Later
