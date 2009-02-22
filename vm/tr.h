@@ -136,6 +136,7 @@ typedef struct TrBlock {
   kvec_t(struct TrBlock *) blocks; /* TODO should not be pointers */
   size_t regc;
   size_t argc;
+  size_t arg_splat;
   /* dynamic */
   kvec_t(TrCallSite) sites;
   struct TrFrame *frame;

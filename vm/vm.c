@@ -108,11 +108,18 @@ static inline OBJ TrVM_defmod(VM, TrFrame *f, OBJ name, TrBlock *b, int module) 
   return mod;
 }
 
+/* TODO remove branch by spliting in specialized functions, eg.: one for splat, etc... */
 static OBJ TrVM_interpret(VM, OBJ self, int argc, OBJ argv[]) {
   assert(FRAME->method);
   TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
-  if (b->argc != argc) tr_raise("Expected %lu arguments, got %d.\n", b->argc, argc);
-  return TrVM_step(vm, FRAME, b, argc, argv);
+  if (b->arg_splat) {
+    if (argc < b->argc-1) tr_raise("Expected at least %lu arguments, got %d.\n", b->argc-1, argc);
+    argv[b->argc-1] = TrArray_new3(vm, argc - b->argc + 1, &argv[b->argc-1]);
+    return TrVM_step(vm, FRAME, b, b->argc, argv);
+  } else {
+    if (argc != b->argc) tr_raise("Expected %lu arguments, got %d.\n", b->argc, argc);
+    return TrVM_step(vm, FRAME, b, argc, argv);
+  }
 }
 
 static inline OBJ TrVM_yield(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {

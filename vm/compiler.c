@@ -47,7 +47,9 @@ static void TrBlock_dump2(VM, TrBlock *b, int level) {
   size_t i;
   printf("; block definition: %p (level %d)\n", b, level);
   printf("; %lu registers ; %lu nested blocks\n", b->regc, kv_size(b->blocks));
-  printf("; %lu args\n", b->argc);
+  printf("; %lu args ", b->argc);
+  if (b->arg_splat) printf(", splat");
+  printf("\n");
   for (i = 0; i < kv_size(b->locals); ++i)
     printf(".local  %-8s ; %lu\n", INSPECT(kv_A(b->locals, i)), i);
   for (i = 0; i < kv_size(b->k); ++i) {
@@ -307,6 +309,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         TR_ARRAY_EACH(n->args[1], i, v, {
           TrNode *param = (TrNode *)v;
           TrBlock_local(blk, param->args[0]);
+          if (param->args[1]) blk->arg_splat = 1;
         });
       }
       /* compile body of method */

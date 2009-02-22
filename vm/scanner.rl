@@ -81,18 +81,18 @@
     # binary operators
     '=='        => { TOKEN_V(EQ, tr_intern(BUFFER(ts, te-ts))); };
     '!='        => { TOKEN_V(NEQ, tr_intern(BUFFER(ts, te-ts))); };
-    '||'        => { TOKEN_V(OR, tr_intern(BUFFER(ts, te-ts))); };
     '|'         => { TOKEN_V(PIPE, tr_intern(BUFFER(ts, te-ts))); };
-    '&&'        => { TOKEN_V(AND, tr_intern(BUFFER(ts, te-ts))); };
+    '||'        => { TOKEN_V(OR, tr_intern(BUFFER(ts, te-ts))); };
     '&'         => { TOKEN_V(AMP, tr_intern(BUFFER(ts, te-ts))); };
+    '&&'        => { TOKEN_V(AND, tr_intern(BUFFER(ts, te-ts))); };
     '<'         => { TOKEN_V(LT, tr_intern(BUFFER(ts, te-ts))); };
     '<='        => { TOKEN_V(LE, tr_intern(BUFFER(ts, te-ts))); };
     '>'         => { TOKEN_V(GT, tr_intern(BUFFER(ts, te-ts))); };
     '>='        => { TOKEN_V(GE, tr_intern(BUFFER(ts, te-ts))); };
     '<<'        => { TOKEN_V(LSHIFT, tr_intern(BUFFER(ts, te-ts))); };
     '>>'        => { TOKEN_V(RSHIFT, tr_intern(BUFFER(ts, te-ts))); };
-    '**'        => { TOKEN_V(POW, tr_intern(BUFFER(ts, te-ts))); };
     '*'         => { TOKEN_V(MUL, tr_intern(BUFFER(ts, te-ts))); };
+    '**'        => { TOKEN_V(POW, tr_intern(BUFFER(ts, te-ts))); };
     '/'         => { TOKEN_V(DIV, tr_intern(BUFFER(ts, te-ts))); };
     '%'         => { TOKEN_V(MOD, tr_intern(BUFFER(ts, te-ts))); };
     '+'         => { TOKEN_V(PLUS, tr_intern(BUFFER(ts, te-ts))); };

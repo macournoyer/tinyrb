@@ -129,7 +129,9 @@ def(A) ::= DEF ID(B) TERM statements(D) opt_term END. { A = NODE3(DEF, B, 0, D);
 def(A) ::= DEF ID(B) O_PAR params(C) C_PAR TERM statements(D) opt_term END. { A = NODE3(DEF, B, C, D); }
 
 params(A) ::= params(B) COMMA ID(C). { A = PUSH(B, NODE(PARAM, C)); }
+params(A) ::= params(B) COMMA MUL ID(C). { A = PUSH(B, NODE2(PARAM, C, 1)); }
 params(A) ::= ID(B). { A = NODES(NODE(PARAM, B)); }
+params(A) ::= MUL ID(B). { A = NODES(NODE2(PARAM, B, 1)); }
 
 class(A) ::= CLASS CONST(B) TERM statements(C) opt_term END. { A = NODE2(CLASS, B, C); }
 class(A) ::= MODULE CONST(B) TERM statements(C) opt_term END. { A = NODE2(MODULE, B, C); }
