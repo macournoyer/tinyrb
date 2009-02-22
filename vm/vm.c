@@ -279,6 +279,7 @@ TrVM *TrVM_new() {
   TR_COBJECT(tr_intern("Symbol"))->class = (OBJ)symbolc;
   
   TrPrimitive_init(vm);
+  TrKernel_init(vm);
   TrString_init(vm);
   TrFixnum_init(vm);
   TrArray_init(vm);

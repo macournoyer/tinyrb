@@ -38,7 +38,7 @@ OBJ TrModule_add_method(VM, OBJ self, OBJ name, OBJ method) {
   return method;
 }
 
-static OBJ TrModule_include(VM, OBJ self, OBJ mod) {
+OBJ TrModule_include(VM, OBJ self, OBJ mod) {
   TrClass *m = TR_CMODULE(self);
   kv_push(OBJ, m->modules, mod);
   return mod;

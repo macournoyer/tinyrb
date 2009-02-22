@@ -91,6 +91,8 @@
 #define tr_intern(S)         TrSymbol_new(vm, (S))
 #define tr_raise(M,A...)     (printf("Error: "), printf(M, ##A), assert(0))
 #define tr_def(C,N,F,A)      TrModule_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
+#define tr_defclass(N)       TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N)))
+#define tr_defmodule(N)      TrObject_const_set(vm, vm->self, tr_intern(N), TrModule_new(vm, tr_intern(N)))
 #define tr_send(R,MSG,A...)  ({ \
   OBJ r = TR_BOX(R); \
   TrMethod *m = TR_CMETHOD(TrObject_method(vm, r, (MSG))); \
@@ -263,7 +265,9 @@ void TrObject_init(VM);
 OBJ TrModule_new(VM, OBJ name);
 OBJ TrModule_lookup(VM, OBJ self, OBJ name);
 OBJ TrModule_add_method(VM, OBJ self, OBJ name, OBJ method);
+OBJ TrModule_include(VM, OBJ self, OBJ mod);
 void TrModule_init(VM);
+void TrKernel_init(VM);
 
 /* class */
 OBJ TrClass_new(VM, OBJ name, OBJ super);
