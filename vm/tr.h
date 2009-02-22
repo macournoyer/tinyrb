@@ -164,6 +164,7 @@ typedef struct TrFrame {
 
 typedef struct TrVM {
   khash_t(str) *symbols;
+  khash_t(OBJ) *globals;
   OBJ classes[TR_T_MAX];
   TrFrame frames[TR_MAX_FRAMES];
   size_t cf; /* current frame */

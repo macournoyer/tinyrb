@@ -185,6 +185,13 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     case AST_GETCVAR:
       PUSH_OP_ABx(b, GETCVAR, reg, TrBlock_pushk(b, n->args[0]));
       break;
+    case AST_SETGLOBAL:
+      TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
+      PUSH_OP_ABx(b, SETGLOBAL, reg, TrBlock_pushk(b, n->args[0]));
+      break;
+    case AST_GETGLOBAL:
+      PUSH_OP_ABx(b, GETGLOBAL, reg, TrBlock_pushk(b, n->args[0]));
+      break;
     case AST_SEND: { /* can be a method send or a local var access */
       TrNode *msg = (TrNode *)n->args[1];
       assert(msg->ntype == AST_MSG);

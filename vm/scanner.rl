@@ -34,6 +34,7 @@
   symbol      = ':' id;
   cvar        = '@@' id;
   ivar        = '@' id;
+  global      = '$' id;
   comment     = "#"+ (any - newline)*;
   
   main := |*
@@ -103,6 +104,7 @@
     symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
     ivar        => { TOKEN_V(IVAR, tr_intern(BUFFER(ts, te-ts))); };
     cvar        => { TOKEN_V(CVAR, tr_intern(BUFFER(ts, te-ts))); };
+    global      => { TOKEN_V(GLOBAL, tr_intern(BUFFER(ts, te-ts))); };
     string      => { TOKEN_V(STRING, TrString_new(vm, BUFFER(ts+1, te-ts-2), te-ts-2)); };
     int         => { TOKEN_V(INT, TrFixnum_new(vm, atoi(BUFFER(ts, te-ts)))); };
   *|;

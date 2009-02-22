@@ -70,11 +70,13 @@ assign_out(A) ::= CONST(B) ASSIGN statement(C). { A = NODE2(SETCONST, B, C); }
 assign_out(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
 assign_out(A) ::= IVAR(B) ASSIGN statement(C). { A = NODE2(SETIVAR, B, C); }
 assign_out(A) ::= CVAR(B) ASSIGN statement(C). { A = NODE2(SETCVAR, B, C); }
+assign_out(A) ::= GLOBAL(B) ASSIGN statement(C). { A = NODE2(SETGLOBAL, B, C); }
 
 assign(A) ::= CONST(B) ASSIGN expr(C). { A = NODE2(SETCONST, B, C); }
 assign(A) ::= ID(B) ASSIGN expr(C). { A = NODE2(ASSIGN, B, C); }
 assign(A) ::= IVAR(B) ASSIGN expr(C). { A = NODE2(SETIVAR, B, C); }
 assign(A) ::= CVAR(B) ASSIGN expr(C). { A = NODE2(SETCVAR, B, C); }
+assign(A) ::= GLOBAL(B) ASSIGN expr(C). { A = NODE2(SETGLOBAL, B, C); }
 
 expr(A) ::= expr(B) DOT name(C). { A = NODE2(SEND, B, C); }
 expr(A) ::= expr(B) bin_op(C) msg(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
@@ -102,12 +104,14 @@ msg_out(A) ::= literal(B). { A = B; }
 msg_out(A) ::= leave_out(B). { A = B; }
 msg_out(A) ::= IVAR(B). { A = NODE(GETIVAR, B); }
 msg_out(A) ::= CVAR(B). { A = NODE(GETCVAR, B); }
+msg_out(A) ::= GLOBAL(B). { A = NODE(GETGLOBAL, B); }
 
 msg(A) ::= name(B). { A = NODE2(SEND, TR_NIL, B); }
 msg(A) ::= literal(B). { A = B; }
 msg(A) ::= leave(B). { A = B; }
 msg(A) ::= IVAR(B). { A = NODE(GETIVAR, B); }
 msg(A) ::= CVAR(B). { A = NODE(GETCVAR, B); }
+msg(A) ::= GLOBAL(B). { A = NODE(GETGLOBAL, B); }
 
 args(A) ::= args(B) COMMA arg(C). { A = PUSH(B, C); }
 args(A) ::= arg(B). { A = NODES(B); }

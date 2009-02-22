@@ -186,6 +186,8 @@ OBJ TrVM_step(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
     OP(GETCVAR):    R[A] = TR_GETIVAR(f->class, k[Bx]); DISPATCH;
     OP(SETCONST):   TrObject_const_set(vm, f->self, k[Bx], R[A]); DISPATCH;
     OP(GETCONST):   R[A] = TrObject_const_get(vm, f->self, k[Bx]); DISPATCH;
+    OP(SETGLOBAL):  TR_KH_SET(vm->globals, k[Bx], R[A]); DISPATCH;
+    OP(GETGLOBAL):  R[A] = TR_KH_GET(vm->globals, k[Bx]); DISPATCH;
     
     /* method calling */
     OP(LOOKUP):     R[A+1] = TrVM_lookup(vm, b, R[A], k[Bx], ip); DISPATCH;
@@ -246,6 +248,7 @@ TrVM *TrVM_new() {
 
   TrVM *vm = TR_ALLOC(TrVM);
   vm->symbols = kh_init(str);
+  vm->globals = kh_init(OBJ);
   vm->consts = kh_init(OBJ);
   
   /* bootstrap core classes */

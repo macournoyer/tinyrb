@@ -42,13 +42,13 @@ enum TrInstCode {
   TR_OP_SETIVAR,
   TR_OP_GETCVAR,
   TR_OP_SETCVAR,
+  TR_OP_GETGLOBAL,  /* A Bx     R[A] = globals[k[Bx]] */
+  TR_OP_SETGLOBAL,  /* A Bx     globals[k[Bx]] = R[A] */
   TR_OP_UNDEF,
   TR_OP_ALIAS,
   TR_OP_SUPER,
   TR_OP_GETDYN,
   TR_OP_SETDYN,
-  TR_OP_GETGLOBAL,
-  TR_OP_SETGLOBAL,
   TR_OP_NEWRANGE
 };
 
@@ -84,13 +84,13 @@ enum TrInstCode {
   "setivar", \
   "getcvar", \
   "setcvar", \
+  "getglobal", \
+  "setglobal", \
   "undef", \
   "alias", \
   "super", \
   "getdyn", \
   "setdyn", \
-  "getglobal", \
-  "setglobal", \
   "newrange"
   
 
@@ -127,7 +127,9 @@ enum TrInstCode {
   &&op_GETIVAR, \
   &&op_SETIVAR, \
   &&op_GETCVAR, \
-  &&op_SETCVAR
+  &&op_SETCVAR, \
+  &&op_GETGLOBAL, \
+  &&op_SETGLOBAL
   
 #endif
 
