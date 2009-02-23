@@ -12,9 +12,10 @@ end
 puts bang!
 # => ouch
 
-# TODO
-# def name=(v)
-#   v
-# end
-# 
-# self.name = 1
+def name=(v)
+  @name = v
+end
+
+self.name = 1
+puts @name
+# => 1

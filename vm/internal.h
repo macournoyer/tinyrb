@@ -16,6 +16,7 @@
 #define NODES(I)             TrArray_new2(compiler->vm, 1, (I))
 #define NODES_N(N,I...)      TrArray_new2(compiler->vm, (N), ##I)
 #define PUSH(A,N)            (({ TR_ARRAY_PUSH((A), (N)); }), A)
+#define SYMCAT(A,B)          tr_intern(strcat(TR_STR_PTR(A), TR_STR_PTR(B)))
 
 typedef enum {
   AST_ROOT,

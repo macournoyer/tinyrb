@@ -86,6 +86,7 @@ expr(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA. { VM = compiler->vm; A = NODE2(SEN
 /* outer expression, can pass args w/out parenthesis, eg.: puts "poop" */
 expr_out(A) ::= expr(B) DOT name_out(C). { A = NODE2(SEND, B, C); }
 expr_out(A) ::= expr(B) DOT name_out(C) block(D). { A = NODE3(SEND, B, C, D); }
+expr_out(A) ::= expr(B) DOT VAR(C) ASSIGN(D) arg(E). { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, SYMCAT(C,D), NODES(E))); }
 expr_out(A) ::= expr(B) bin_op(C) msg_out(D). { A = NODE2(SEND, B, NODE2(MSG, C, NODES(D))); }
 expr_out(A) ::= msg_out(B). { A = B; }
 expr_out(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA. { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]"), C)); }
