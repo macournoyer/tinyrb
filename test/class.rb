@@ -1,8 +1,8 @@
 class Pony
-  def set_cname(name)
+  def cname=(name)
     @@name = name
   end
-  def set_name(name)
+  def name=(name)
     @name = name
   end
   def talk
@@ -15,9 +15,9 @@ end
 puts Pony
 # => Pony
 
-Pony.allocate.set_cname("Bob")
+Pony.allocate.cname = "Bob"
 p = Pony.allocate
-p.set_name "Rick"
+p.name = "Rick"
 p.talk
 # => Rick
 # => Bob
@@ -44,3 +44,10 @@ end
 
 "sing".yodelay
 # => yhoo!
+
+# Subclassing
+class Unicorn < Pony; end
+Unicorn.allocate.talk
+# => 
+# => 
+# => Unicorn

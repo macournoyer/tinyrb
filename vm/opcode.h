@@ -30,18 +30,18 @@ enum TrInstCode {
   TR_OP_FIXNUM_ADD,
   TR_OP_FIXNUM_SUB,
   TR_OP_FIXNUM_LT,
-  TR_OP_DEF,        /* A Bx     define method k[Bx] on self w/ blocks[A] */
+  TR_OP_DEF,        /* A Bx     R[0] = define method k[Bx] on self w/ blocks[A] */
   TR_OP_GETCONST,   /* A Bx     R[A] = Consts[k[Bx]] */
   TR_OP_SETCONST,   /* A Bx     Consts[k[Bx]] = R[A] */
-  TR_OP_CLASS,      /* A Bx     R[A] = define class k[Bx] on self w/ blocks[A] */
-  TR_OP_MODULE,     /* A Bx     R[A] = define module k[Bx] on self w/ blocks[A] */
+  TR_OP_CLASS,      /* A Bx     R[0] = define class k[Bx] on self w/ blocks[A] and superclass R[0] */
+  TR_OP_MODULE,     /* A Bx     R[0] = define module k[Bx] on self w/ blocks[A] */
   TR_OP_NEWARRAY,   /* A B      R[A] = Array.new(R[A+1]..R[A+1+B]) */
   TR_OP_NEWHASH,    /* A B      R[A] = Hash.new(R[A+1] => R[A+2] .. R[A+1+B*2] => R[A+2+B*2]) */
   TR_OP_YIELD,      /* A B      R[A] = passed_block.call(R[A+1]..R[A+1+B]) */
-  TR_OP_GETIVAR,
-  TR_OP_SETIVAR,
-  TR_OP_GETCVAR,
-  TR_OP_SETCVAR,
+  TR_OP_GETIVAR,    /* A Bx     R[A] = self.ivars[k[Bx]] */
+  TR_OP_SETIVAR,    /* A Bx     self.ivars[k[Bx]] = R[A] */
+  TR_OP_GETCVAR,    /* A Bx     R[A] = class.ivars[k[Bx]] */
+  TR_OP_SETCVAR,    /* A Bx     class.ivars[k[Bx]] = R[A] */
   TR_OP_GETGLOBAL,  /* A Bx     R[A] = globals[k[Bx]] */
   TR_OP_SETGLOBAL,  /* A Bx     globals[k[Bx]] = R[A] */
   TR_OP_UNDEF,

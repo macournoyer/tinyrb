@@ -92,14 +92,14 @@ static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int
   return ret;
 }
 
-static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module) {
+static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module, OBJ super) {
   OBJ mod = TrObject_const_get(vm, FRAME->class, name);
   
   if (!mod) { /* new module/class */
     if (module)
       mod = TrModule_new(vm, name);
     else
-      mod = TrClass_new(vm, name, TR_CLASS(Object));
+      mod = TrClass_new(vm, name, super ? super : TR_CLASS(Object));
     TrObject_const_set(vm, FRAME->class, name, mod);
   }
   TrFrame_push(vm, mod, mod);
@@ -221,9 +221,9 @@ OBJ TrVM_step(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
       DISPATCH;
     
     /* definition */
-    OP(DEF):    TrVM_defmethod(vm, f, k[Bx], blocks[A]); DISPATCH;
-    OP(CLASS):  R[A] = TrVM_defclass(vm, f, k[Bx], blocks[A], 0); DISPATCH;
-    OP(MODULE): R[A] = TrVM_defclass(vm, f, k[Bx], blocks[A], 1); DISPATCH;
+    OP(DEF):    R[0] = TrVM_defmethod(vm, f, k[Bx], blocks[A]); DISPATCH;
+    OP(CLASS):  R[0] = TrVM_defclass(vm, f, k[Bx], blocks[A], 0, R[0]); DISPATCH;
+    OP(MODULE): R[0] = TrVM_defclass(vm, f, k[Bx], blocks[A], 1, 0); DISPATCH;
     
     /* jumps */
     OP(JMP):        ip += sBx; DISPATCH;

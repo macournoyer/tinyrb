@@ -140,22 +140,25 @@ params(A) ::= params(B) COMMA MUL id(C). { A = PUSH(B, NODE2(PARAM, C, 1)); }
 params(A) ::= VAR(B). { A = NODES(NODE(PARAM, B)); }
 params(A) ::= MUL VAR(B). { A = NODES(NODE2(PARAM, B, 1)); }
 
-class(A) ::= CLASS CONST(B) TERM statements(C) opt_term END. { A = NODE2(CLASS, B, C); }
-class(A) ::= MODULE CONST(B) TERM statements(C) opt_term END. { A = NODE2(MODULE, B, C); }
+class(A) ::= CLASS CONST(B) subclass(C) TERM statements(D) opt_term END. { A = NODE3(CLASS, B, C, D); }
+class(A) ::= MODULE CONST(B) TERM statements(C) opt_term END. { A = NODE3(MODULE, B, 0, C); }
+
+subclass(A) ::= LT CONST(B). { A = B; }
+subclass(A) ::= . { A = 0; }
 
 opt_term ::= TERM.
 opt_term ::= .
 
 bin_op(A) ::= EQ(B). { A = B; }
 bin_op(A) ::= NEQ(B). { A = B; }
-bin_op(A) ::= OR(B). { A = B; }
-bin_op(A) ::= PIPE(B). { A = B; }
-bin_op(A) ::= AND(B). { A = B; }
-bin_op(A) ::= AMP(B). { A = B; }
 bin_op(A) ::= LT(B). { A = B; }
 bin_op(A) ::= LE(B). { A = B; }
 bin_op(A) ::= GT(B). { A = B; }
 bin_op(A) ::= GE(B). { A = B; }
+bin_op(A) ::= OR(B). { A = B; }
+bin_op(A) ::= PIPE(B). { A = B; }
+bin_op(A) ::= AND(B). { A = B; }
+bin_op(A) ::= AMP(B). { A = B; }
 bin_op(A) ::= LSHIFT(B). { A = B; }
 bin_op(A) ::= RSHIFT(B). { A = B; }
 bin_op(A) ::= POW(B). { A = B; }

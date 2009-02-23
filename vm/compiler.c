@@ -325,14 +325,20 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       size_t blki = kv_size(b->blocks);
       kv_push(TrBlock *, b->blocks, blk);
       /* compile body of class */
-      TR_ARRAY_EACH(n->args[1], i, v, {
+      TR_ARRAY_EACH(n->args[2], i, v, {
         TrCompiler_compile_node(vm, c, blk, (TrNode *)v, 0);
       });
       PUSH_OP_A(blk, RETURN, 0);
-      if (n->ntype == AST_CLASS)
+      if (n->ntype == AST_CLASS) {
+        /* superclass */
+        if (n->args[1])
+          PUSH_OP_ABx(b, GETCONST, 0, TrBlock_pushk(b, n->args[1]));
+        else
+          PUSH_OP_A(b, NIL, 0);
         PUSH_OP_ABx(b, CLASS, blki, TrBlock_pushk(b, n->args[0]));
-      else
+      } else {
         PUSH_OP_ABx(b, MODULE, blki, TrBlock_pushk(b, n->args[0]));
+      }
     } break;
     case AST_CONST:
       PUSH_OP_ABx(b, GETCONST, reg, TrBlock_pushk(b, n->args[0]));
