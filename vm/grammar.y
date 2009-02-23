@@ -67,13 +67,13 @@ leave_out(A) ::= leave(B). { A = B; }
 leave_out(A) ::= YIELD args(B). { A = NODE(YIELD, B); }
 
 assign_out(A) ::= CONST(B) ASSIGN statement(C). { A = NODE2(SETCONST, B, C); }
-assign_out(A) ::= ID(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
+assign_out(A) ::= VAR(B) ASSIGN statement(C). { A = NODE2(ASSIGN, B, C); }
 assign_out(A) ::= IVAR(B) ASSIGN statement(C). { A = NODE2(SETIVAR, B, C); }
 assign_out(A) ::= CVAR(B) ASSIGN statement(C). { A = NODE2(SETCVAR, B, C); }
 assign_out(A) ::= GLOBAL(B) ASSIGN statement(C). { A = NODE2(SETGLOBAL, B, C); }
 
 assign(A) ::= CONST(B) ASSIGN expr(C). { A = NODE2(SETCONST, B, C); }
-assign(A) ::= ID(B) ASSIGN expr(C). { A = NODE2(ASSIGN, B, C); }
+assign(A) ::= VAR(B) ASSIGN expr(C). { A = NODE2(ASSIGN, B, C); }
 assign(A) ::= IVAR(B) ASSIGN expr(C). { A = NODE2(SETIVAR, B, C); }
 assign(A) ::= CVAR(B) ASSIGN expr(C). { A = NODE2(SETCVAR, B, C); }
 assign(A) ::= GLOBAL(B) ASSIGN expr(C). { A = NODE2(SETGLOBAL, B, C); }
@@ -91,12 +91,15 @@ expr_out(A) ::= msg_out(B). { A = B; }
 expr_out(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA. { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]"), C)); }
 expr_out(A) ::= expr(B) O_SBRA_ID args(C) C_SBRA ASSIGN expr(D). { VM = compiler->vm; A = NODE2(SEND, B, NODE2(MSG, tr_intern("[]="), PUSH(C, D))); }
 
-name(A) ::= ID(B). { A = NODE(MSG, B); }
-name(A) ::= ID(B) O_PAR C_PAR. { A = NODE(MSG, B); }
-name(A) ::= ID(B) O_PAR args(C) C_PAR. { A = NODE2(MSG, B, C); }
+id(A) ::= VAR(B). { A = B; }
+id(A) ::= ID_OP(B). { A = B; }
+
+name(A) ::= id(B). { A = NODE(MSG, B); }
+name(A) ::= id(B) O_PAR C_PAR. { A = NODE(MSG, B); }
+name(A) ::= id(B) O_PAR args(C) C_PAR. { A = NODE2(MSG, B, C); }
 
 name_out(A) ::= name(B). { A = B; }
-name_out(A) ::= ID(B) args(C). { A = NODE2(MSG, B, C); }
+name_out(A) ::= id(B) args(C). { A = NODE2(MSG, B, C); }
 
 msg_out(A) ::= name_out(B). { A = NODE2(SEND, TR_NIL, B); }
 msg_out(A) ::= name_out(B) block(C). { A = NODE3(SEND, TR_NIL, B, C); }
@@ -125,13 +128,16 @@ block(A) ::= DO PIPE params(C) PIPE TERM statements(B) opt_term END. { A = NODE2
 hash_items(A) ::= hash_items(B) COMMA expr(C) HASHI expr(D). { A = PUSH(B, C); A = PUSH(B, D); }
 hash_items(A) ::= expr(B) HASHI expr(C). { A = NODES_N(2, B, C); }
 
-def(A) ::= DEF ID(B) TERM statements(D) opt_term END. { A = NODE3(DEF, B, 0, D); }
-def(A) ::= DEF ID(B) O_PAR params(C) C_PAR TERM statements(D) opt_term END. { A = NODE3(DEF, B, C, D); }
+method_name(A) ::= id(B). { A = B; }
+method_name(A) ::= bin_op(B). { A = B; }
 
-params(A) ::= params(B) COMMA ID(C). { A = PUSH(B, NODE(PARAM, C)); }
-params(A) ::= params(B) COMMA MUL ID(C). { A = PUSH(B, NODE2(PARAM, C, 1)); }
-params(A) ::= ID(B). { A = NODES(NODE(PARAM, B)); }
-params(A) ::= MUL ID(B). { A = NODES(NODE2(PARAM, B, 1)); }
+def(A) ::= DEF method_name(B) TERM statements(D) opt_term END. { A = NODE3(DEF, B, 0, D); }
+def(A) ::= DEF method_name(B) O_PAR params(C) C_PAR TERM statements(D) opt_term END. { A = NODE3(DEF, B, C, D); }
+
+params(A) ::= params(B) COMMA id(C). { A = PUSH(B, NODE(PARAM, C)); }
+params(A) ::= params(B) COMMA MUL id(C). { A = PUSH(B, NODE2(PARAM, C, 1)); }
+params(A) ::= VAR(B). { A = NODES(NODE(PARAM, B)); }
+params(A) ::= MUL VAR(B). { A = NODES(NODE2(PARAM, B, 1)); }
 
 class(A) ::= CLASS CONST(B) TERM statements(C) opt_term END. { A = NODE2(CLASS, B, C); }
 class(A) ::= MODULE CONST(B) TERM statements(C) opt_term END. { A = NODE2(MODULE, B, C); }

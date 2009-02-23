@@ -25,13 +25,14 @@
   whitespace  = " " | "\f" | "\t" | "\v";
 
   term        = (newline | ";");
-  id          = [a-z_] [a-zA-Z0-9_]*;
-  self        = "self";
-  method      = id | self;
-  const       = [A-Z] [a-zA-Z0-9_]*;
+  char        = [a-zA-Z0-9_];
+  var         = [a-z_] char*;
+  id          = [a-zA-Z] char*;
+  id_op       = id ("?" | "!" | "=");
+  const       = [A-Z] char*;
   int         = [0-9]+;
   string      = '"' (any - '"')* '"' | "'" (any - "'")* "'";
-  symbol      = ':' id;
+  symbol      = ':' (id | id_op);
   cvar        = '@@' id;
   ivar        = '@' id;
   global      = '$' id;
@@ -59,7 +60,7 @@
     "do"        => { TOKEN(DO); };
     "yield"     => { TOKEN(YIELD); };
     # HACK any better way to do this?
-    ".class"    => { TOKEN(DOT); TOKEN_V(ID, tr_intern("class")); };
+    ".class"    => { TOKEN(DOT); TOKEN_V(VAR, tr_intern("class")); };
     
     # ponctuation
     "=>"        => { TOKEN(HASHI); };
@@ -67,7 +68,7 @@
     "("         => { TOKEN(O_PAR); };
     ")"         => { TOKEN(C_PAR); };
     "self["     => { TOKEN(SELF); TOKEN(O_SBRA_ID); };
-    id "["      => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts-1))); TOKEN(O_SBRA_ID); };
+    id "["      => { TOKEN_V(VAR, tr_intern(BUFFER(ts, te-ts-1))); TOKEN(O_SBRA_ID); };
     "["         => { TOKEN(O_SBRA); };
     "]"         => { TOKEN(C_SBRA); };
     "{"         => { TOKEN(O_CBRA); };
@@ -99,9 +100,10 @@
     '-'         => { TOKEN_V(MINUS, tr_intern(BUFFER(ts, te-ts))); };
     
     # values
-    id          => { TOKEN_V(ID, tr_intern(BUFFER(ts, te-ts))); };
-    const       => { TOKEN_V(CONST, tr_intern(BUFFER(ts, te-ts))); };
+    var         => { TOKEN_V(VAR, tr_intern(BUFFER(ts, te-ts))); };
+    id_op       => { TOKEN_V(ID_OP, tr_intern(BUFFER(ts, te-ts))); };
     symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
+    const       => { TOKEN_V(CONST, tr_intern(BUFFER(ts, te-ts))); };
     ivar        => { TOKEN_V(IVAR, tr_intern(BUFFER(ts, te-ts))); };
     cvar        => { TOKEN_V(CVAR, tr_intern(BUFFER(ts, te-ts))); };
     global      => { TOKEN_V(GLOBAL, tr_intern(BUFFER(ts, te-ts))); };
