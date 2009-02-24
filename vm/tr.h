@@ -24,7 +24,6 @@
 #define TR_CFIXNUM(X)        TR_CTYPE(X,Fixnum)
 #define TR_CARRAY(X)         TR_CTYPE(X,Array)
 #define TR_CHASH(X)          TR_CTYPE(X,Hash)
-#define TR_CIO(X)            TR_CTYPE(X,IO)
 #define TR_CSTRING(X)        (assert(TR_IS_A(X,String)||TR_IS_A(X,Symbol)),(TrString*)(X))
 #define TR_CMETHOD(X)        ((TrMethod*)X)
 #define TR_CBINDING(X)       TR_CTYPE(X,Binding)
@@ -122,7 +121,7 @@ typedef enum {
   TR_T_Object, TR_T_Module, TR_T_Class, TR_T_Method, TR_T_Binding,
   TR_T_Symbol, TR_T_String, TR_T_Fixnum,
   TR_T_NilClass, TR_T_TrueClass, TR_T_FalseClass,
-  TR_T_Array, TR_T_Hash, TR_T_IO,
+  TR_T_Array, TR_T_Hash,
   TR_T_Node,
   TR_T_MAX /* keep last */
 } TR_T;
@@ -227,11 +226,6 @@ typedef struct {
   khash_t(OBJ) *kh;
 } TrHash;
 
-typedef struct {
-  TR_OBJECT_HEADER;
-  int fd;
-} TrIO;
-
 /* vm */
 TrVM *TrVM_new();
 void TrVM_start(VM, TrBlock *b);
@@ -264,10 +258,6 @@ void TrArray_init(VM);
 OBJ TrHash_new(VM);
 OBJ TrHash_new2(VM, size_t n, OBJ items[]);
 void TrHash_init(VM);
-
-/* io */
-OBJ TrIO_new(VM, int fd);
-void TrIO_init(VM);
 
 /* object */
 OBJ TrObject_new(VM);

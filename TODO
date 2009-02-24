@@ -20,12 +20,13 @@
 [x] Implement Hash
 [x] Implement Module
 [x] Implement yield
-[ ] Implement IO and File
 [ ] Implement some corelib stuff in Ruby (under /lib) and embed bytecode at compile time
 [x] Implement splat operator
 [ ] Implement Proc
 [ ] Fix operator precedence, add () and unary -
 [ ] Add support for escape chars in strings, (\n, \r, etc.)
+[ ] FFI
+[ ] Implement IO and File
 *** See TODO in code too!
 
 == Later
@@ -49,7 +50,6 @@
 [ ] Replace GC w/ smaller, simpler & embedable one (Io's maybe?)
 [ ] REPL
 [ ] Unicode
-[ ] FFI
 [ ] lightweight threads, coroutines (using libconcurrency?)
 [ ] JIT
 [ ] SIMD acceleration

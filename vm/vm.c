@@ -293,14 +293,9 @@ TrVM *TrVM_new() {
   TrFixnum_init(vm);
   TrArray_init(vm);
   TrHash_init(vm);
-  TrIO_init(vm);
   
   vm->self = TrObject_new(vm);
   vm->cf = -1;
-  
-  TrObject_const_set(vm, vm->self, tr_intern("STDIN"), TrIO_new(vm, 0));
-  TrObject_const_set(vm, vm->self, tr_intern("STDOUT"), TrIO_new(vm, 1));
-  TrObject_const_set(vm, vm->self, tr_intern("STDERR"), TrIO_new(vm, 2));
   
   return vm;
 }
