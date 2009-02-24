@@ -6,13 +6,14 @@
 
 OBJ TrVM_step(VM, TrFrame *f, TrBlock * b, int argc, OBJ argv[]);
 
-static void TrFrame_push(VM, OBJ self, OBJ class) {
+static void TrFrame_push(VM, OBJ self, OBJ class, TrBlock *block) {
   TrFrame *prevf = vm->cf < 0 ? 0 : FRAME;
   vm->cf++;
   if (vm->cf >= TR_MAX_FRAMES) tr_raise("Stack overflow");
   TrFrame *f = FRAME;
   f->method = TR_NIL;
   if (prevf) f->block = prevf->block;
+  if (block) f->block = block;
   f->self = self;
   f->class = class;
   f->line = 1;
@@ -64,11 +65,11 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
 }
 
 static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int argc, OBJ *args, TrBlock *b) {
-  TrFrame_push(vm, receiver, TR_COBJECT(receiver)->class);
+  TrFrame_push(vm, receiver, TR_COBJECT(receiver)->class, b);
   register TrFrame *f = FRAME;
   f->method = TR_CMETHOD(method);
   register TrFunc *func = f->method->func;
-  if (b) (f->block = b)->frame = callingf;
+  if (b) b->frame = callingf;
   OBJ ret;
   if (f->method->arity == -1) {
     ret = func(vm, receiver, argc, args);
@@ -103,7 +104,7 @@ static OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module, OBJ s
       mod = TrClass_new(vm, name, super ? super : TR_CLASS(Object));
     TrObject_const_set(vm, FRAME->class, name, mod);
   }
-  TrFrame_push(vm, mod, mod);
+  TrFrame_push(vm, mod, mod, 0);
   TrVM_step(vm, FRAME, b, 0, 0);
   TrFrame_pop(vm);
   return mod;
@@ -168,7 +169,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
   TrBlock **blocks = b->blocks.a;
   register OBJ *regs = TR_ALLOC_N(OBJ, b->regc);
   /* locals */
-  OBJ *locals = TR_ALLOC_N(OBJ, kv_size(b->locals)+argc);
+  OBJ *locals = f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals)+argc);
   size_t i;
   for (i = 0; i < argc; ++i) locals[i] = argv[i];
   
@@ -247,12 +248,12 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
 }
 
 void TrVM_start(VM, TrBlock *b) {
-  TrVM_run(vm, b, vm->self, TR_COBJECT(vm->self)->class);
+  TrVM_run(vm, b, vm->self, TR_COBJECT(vm->self)->class, 0, 0, 0);
 }
 
-OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class) {
-  TrFrame_push(vm, self, class);
-  OBJ ret = TrVM_step(vm, FRAME, b, 0, 0);
+OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[], TrBlock *block) {
+  TrFrame_push(vm, self, class, block);
+  OBJ ret = TrVM_step(vm, FRAME, b, argc, argv);
   TrFrame_pop(vm);
   return ret;
 }
@@ -285,6 +286,7 @@ TrVM *TrVM_new() {
     TR_COBJECT(sym)->class = (OBJ)symbolc;
   });
   
+  TrBinding_init(vm);
   TrPrimitive_init(vm);
   TrKernel_init(vm);
   TrString_init(vm);

@@ -27,6 +27,7 @@
 #define TR_CIO(X)            TR_CTYPE(X,IO)
 #define TR_CSTRING(X)        (assert(TR_IS_A(X,String)||TR_IS_A(X,Symbol)),(TrString*)(X))
 #define TR_CMETHOD(X)        ((TrMethod*)X)
+#define TR_CBINDING(X)       TR_CTYPE(X,Binding)
 
 #define TR_STR_PTR(S)        (TR_CSTRING(S)->ptr)
 #define TR_STR_LEN(S)        (TR_CSTRING(S)->len)
@@ -72,6 +73,7 @@
 
 #define VM                   struct TrVM *vm
 #define FRAME                (&vm->frames[vm->cf])
+#define PREV_FRAME           (&vm->frames[vm->cf-1])
 
 #define TR_NIL               ((OBJ)0)
 #define TR_FALSE             ((OBJ)1)
@@ -117,7 +119,7 @@ KHASH_MAP_INIT_STR(str, OBJ);
 KHASH_MAP_INIT_INT(OBJ, OBJ);
 
 typedef enum {
-  TR_T_Object, TR_T_Module, TR_T_Class, TR_T_Method,
+  TR_T_Object, TR_T_Module, TR_T_Class, TR_T_Method, TR_T_Binding,
   TR_T_Symbol, TR_T_String, TR_T_Fixnum,
   TR_T_NilClass, TR_T_TrueClass, TR_T_FalseClass,
   TR_T_Array, TR_T_Hash, TR_T_IO,
@@ -165,7 +167,6 @@ typedef struct {
 typedef struct TrFrame {
   TrBlock *block;
   TrMethod *method;  /* current called method */
-  OBJ *regs;
   OBJ *locals;
   OBJ self;
   OBJ class;
@@ -173,6 +174,11 @@ typedef struct TrFrame {
   size_t line;
   TrInst *ip;
 } TrFrame;
+
+typedef struct {
+  TR_OBJECT_HEADER;
+  TrFrame *frame;
+} TrBinding;
 
 typedef struct TrVM {
   khash_t(str) *symbols;
@@ -229,7 +235,7 @@ typedef struct {
 /* vm */
 TrVM *TrVM_new();
 void TrVM_start(VM, TrBlock *b);
-OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class);
+OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[], TrBlock *block);
 void TrVM_destroy(TrVM *vm);
 
 /* string */
@@ -287,12 +293,13 @@ void TrClass_init(VM);
 /* method */
 OBJ TrMethod_new(VM, TrFunc *func, OBJ data, int arity);
 void TrMethod_init(VM);
+void TrBinding_init(VM);
 
 /* primitive */
 void TrPrimitive_init(VM);
 
 /* compiler */
-TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace);
+TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno, int trace);
 void TrBlock_dump(VM, TrBlock *b);
 
 #endif /* _TINYRB_H_ */

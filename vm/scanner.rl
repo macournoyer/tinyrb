@@ -116,13 +116,14 @@
 
 void tr_free(void *ptr) { return TR_FREE(ptr); }
 
-TrBlock *TrBlock_compile(VM, char *code, char *fn, int trace) {
+TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno, int trace) {
   int cs, act;
   char *p, *pe, *ts, *te, *eof = 0, *buf = 0;
   void *parser = TrParserAlloc(TR_MALLOC);
   int last = 0;
   FILE *tracef = 0;
   TrCompiler *compiler = TrCompiler_new(vm, fn);
+  compiler->curline += lineno;
   
   p = code;
   pe = p + strlen(code) + 1;
