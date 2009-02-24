@@ -22,7 +22,7 @@ static void TrFrame_pop(VM) {
   vm->cf--;
 }
 
-static inline OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
+static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
   OBJ method = TrObject_method(vm, receiver, msg);
   if (!method) tr_raise("Method not found: %s\n", TR_STR_PTR(msg));
   TrInst *boing = (ip-1);
@@ -65,26 +65,27 @@ static inline OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip)
 
 static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int argc, OBJ *args, TrBlock *b) {
   TrFrame_push(vm, receiver, TR_COBJECT(receiver)->class);
-  TrFrame *f = FRAME;
+  register TrFrame *f = FRAME;
   f->method = TR_CMETHOD(method);
+  register TrFunc *func = f->method->func;
   if (b) (f->block = b)->frame = callingf;
   OBJ ret;
   if (f->method->arity == -1) {
-    ret = f->method->func(vm, receiver, argc, args);
+    ret = func(vm, receiver, argc, args);
   } else {
     if (f->method->arity != argc) tr_raise("Expected %d arguments, got %d.\n", f->method->arity, argc);
     switch (argc) {
-      case 0:  ret = f->method->func(vm, receiver); break;
-      case 1:  ret = f->method->func(vm, receiver, args[0]); break;
-      case 2:  ret = f->method->func(vm, receiver, args[0], args[1]); break;
-      case 3:  ret = f->method->func(vm, receiver, args[0], args[1], args[2]); break;
-      case 4:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3]); break;
-      case 5:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4]); break;
-      case 6:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5]); break;
-      case 7:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6]); break;
-      case 8:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]); break;
-      case 9:  ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]); break;
-      case 10: ret = f->method->func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]); break;
+      case 0:  ret = func(vm, receiver); break;
+      case 1:  ret = func(vm, receiver, args[0]); break;
+      case 2:  ret = func(vm, receiver, args[0], args[1]); break;
+      case 3:  ret = func(vm, receiver, args[0], args[1], args[2]); break;
+      case 4:  ret = func(vm, receiver, args[0], args[1], args[2], args[3]); break;
+      case 5:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4]); break;
+      case 6:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5]); break;
+      case 7:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6]); break;
+      case 8:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]); break;
+      case 9:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]); break;
+      case 10: ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]); break;
       default: tr_raise("Too much arguments: %d, max is %d for now.\n", argc, 10);
     }
   }
@@ -92,7 +93,7 @@ static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int
   return ret;
 }
 
-static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module, OBJ super) {
+static OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module, OBJ super) {
   OBJ mod = TrObject_const_get(vm, FRAME->class, name);
   
   if (!mod) { /* new module/class */
@@ -110,20 +111,20 @@ static inline OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module
 
 static OBJ TrVM_interpret_method(VM, OBJ self, int argc, OBJ argv[]) {
   assert(FRAME->method);
-  TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
+  register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
   if (argc != b->argc) tr_raise("Expected %lu arguments, got %d.\n", b->argc, argc);
   return TrVM_step(vm, FRAME, b, argc, argv);
 }
 
 static OBJ TrVM_interpret_method_with_splat(VM, OBJ self, int argc, OBJ argv[]) {
   assert(FRAME->method);
-  TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
+  register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
   if (argc < b->argc-1) tr_raise("Expected at least %lu arguments, got %d.\n", b->argc-1, argc);
   argv[b->argc-1] = TrArray_new3(vm, argc - b->argc + 1, &argv[b->argc-1]);
   return TrVM_step(vm, FRAME, b, b->argc, argv);
 }
 
-static inline OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b) {
+static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b) {
   TrFunc *func = (TrFunc *) (b->arg_splat
     ? TrVM_interpret_method_with_splat
     : TrVM_interpret_method);
@@ -159,8 +160,8 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
 #define sBx  (short)(((B<<8)+C))
 #define SITE (b->sites.a)
 
-OBJ TrVM_step(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
-  TrInst *ip = b->code.a;
+OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
+  register TrInst *ip = b->code.a;
   register TrInst e = *ip;
   OBJ *k = b->k.a;
   char **strings = b->strings.a;
