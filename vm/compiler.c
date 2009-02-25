@@ -17,13 +17,14 @@
 #define sVBx(OP)                (short)(((OP.b<<8)+OP.c))
 
 /* ast node */
-OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c) {
+OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c, size_t line) {
   TrNode *n = TR_ALLOC(TrNode);
   n->ntype = type;
   n->type = TR_T_Node;
   n->args[0] = a;
   n->args[1] = b;
   n->args[2] = c;
+  n->line = line;
   return (OBJ)n;
 }
 
@@ -38,7 +39,7 @@ static TrBlock *TrBlock_new(TrCompiler *compiler) {
   b->regc = 0;
   b->argc = 0;
   b->filename = compiler->filename;
-  b->line = compiler->line;
+  b->line = 1;
   return b;
 }
 
@@ -121,7 +122,7 @@ static int TrBlock_local(TrBlock *blk, OBJ name) {
 
 TrCompiler *TrCompiler_new(VM, const char *fn) {
   TrCompiler *c = TR_ALLOC(TrCompiler);
-  c->line = 1;
+  c->line = 0;
   c->vm = vm;
   c->block = TrBlock_new(c);
   c->reg = 0;
@@ -133,6 +134,7 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
   assert(n && "nil node");
   if (reg >= b->regc) b->regc++;
+  b->line = n->line;
   /* TODO this shit is very repetitive, need to refactor */
   switch (n->ntype) {
     case AST_ROOT:

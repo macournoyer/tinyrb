@@ -172,6 +172,7 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
 #define SITE (b->sites.a)
 
 OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
+  f->line = b->line;
   f->filename = b->filename;
   register TrInst *ip = b->code.a;
   register TrInst e = *ip;

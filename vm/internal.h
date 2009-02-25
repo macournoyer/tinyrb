@@ -10,9 +10,9 @@
 #define TR_MEMCPY_N(X,Y,T,N) memcpy((X), (Y), sizeof(T)*(N))
 
 /* ast building macros */
-#define NODE(T,A)            TrNode_new(compiler->vm, AST_##T, (A), 0, 0)
-#define NODE2(T,A,B)         TrNode_new(compiler->vm, AST_##T, (A), (B), 0)
-#define NODE3(T,A,B,C)       TrNode_new(compiler->vm, AST_##T, (A), (B), (C))
+#define NODE(T,A)            TrNode_new(compiler->vm, AST_##T, (A), 0, 0, compiler->line)
+#define NODE2(T,A,B)         TrNode_new(compiler->vm, AST_##T, (A), (B), 0, compiler->line)
+#define NODE3(T,A,B,C)       TrNode_new(compiler->vm, AST_##T, (A), (B), (C), compiler->line)
 #define NODES(I)             TrArray_new2(compiler->vm, 1, (I))
 #define NODES_N(N,I...)      TrArray_new2(compiler->vm, (N), ##I)
 #define PUSH(A,N)            (({ TR_ARRAY_PUSH((A), (N)); }), A)
@@ -65,6 +65,7 @@ typedef struct {
   TR_OBJECT_HEADER;
   TrNodeType ntype;
   OBJ args[3];
+  size_t line;
 } TrNode;
 
 typedef struct {
@@ -77,7 +78,7 @@ typedef struct {
 } TrCompiler;
 
 /* node */
-OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c);
+OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c, size_t line);
 
 /* compiler */
 TrCompiler *TrCompiler_new(VM, const char *fn);
