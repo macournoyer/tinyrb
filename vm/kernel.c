@@ -25,11 +25,16 @@ static OBJ TrKernel_eval(VM, OBJ self, int argc, OBJ argv[]) {
   if (argc < 1) tr_raise("string argument required");
   if (argc > 4) tr_raise("Too much arguments");
   OBJ string = argv[0];
-  TrFrame *f = argc > 1 ? TR_CBINDING(argv[1])->frame : PREV_FRAME;
-  char *filename = argc > 2 ? TR_STR_PTR(argv[2]) : "<eval>";
+  TrFrame *f = (argc > 1 && argv[1]) ? TR_CBINDING(argv[1])->frame : FRAME;
+  char *filename = (argc > 2 && argv[1]) ? TR_STR_PTR(argv[2]) : "<eval>";
   size_t lineno = argc > 3 ? TR_FIX2INT(argv[3]) : 0;
-  TrBlock *blk = TrBlock_compile(vm, TR_STR_PTR(string), filename, lineno, 0);
+  TrBlock *blk = TrBlock_compile(vm, TR_STR_PTR(string), filename, lineno);
+  if (vm->debug) TrBlock_dump(vm, blk);
   return TrVM_run(vm, blk, f->self, f->class, kv_size(blk->locals), f->locals, f->block);
+}
+
+static OBJ TrKernel_load(VM, OBJ self, OBJ filename) {
+  return TrVM_load(vm, TR_STR_PTR(filename));
 }
 
 void TrKernel_init(VM) {
@@ -37,5 +42,6 @@ void TrKernel_init(VM) {
   TrModule_include(vm, TR_CLASS(Object), m);
   tr_def(m, "puts", TrKernel_puts, -1);
   tr_def(m, "eval", TrKernel_eval, -1);
+  tr_def(m, "load", TrKernel_load, 1);
   tr_def(m, "binding", TrKernel_binding, 0);
 }

@@ -54,4 +54,4 @@ class TestRunner
     end
 end
 
-TestRunner.new("test/**.rb", File.dirname(__FILE__) + "/..").run
+TestRunner.new("test/*.rb", File.dirname(__FILE__) + "/..").run

@@ -116,7 +116,7 @@
 
 void tr_free(void *ptr) { return TR_FREE(ptr); }
 
-TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno, int trace) {
+TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
   int cs, act;
   char *p, *pe, *ts, *te, *eof = 0, *buf = 0;
   void *parser = TrParserAlloc(TR_MALLOC);
@@ -124,11 +124,12 @@ TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno, int trace) {
   FILE *tracef = 0;
   TrCompiler *compiler = TrCompiler_new(vm, fn);
   compiler->curline += lineno;
+  compiler->filename = fn;
   
   p = code;
   pe = p + strlen(code) + 1;
   
-  if (trace) {
+  if (vm->debug > 1) {
     tracef = fdopen(2, "w+");
     TrParserTrace(tracef, "[parse] ");
   }
@@ -140,8 +141,10 @@ TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno, int trace) {
   TrParserFree(parser, tr_free);
   
   if (buf) TR_FREE(buf);
-  if (trace) fclose(tracef);
+  if (vm->debug > 1) fclose(tracef);
     
   TrCompiler_compile(compiler);
+  compiler->block->filename = TrString_new2(vm, fn);
+  
   return compiler->block;
 }

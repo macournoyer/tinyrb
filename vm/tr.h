@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <assert.h>
+#include <errno.h>
 #include "config.h"
 #include "vendor/kvec.h"
 #include "vendor/khash.h"
@@ -100,6 +101,7 @@
 
 #define tr_intern(S)         TrSymbol_new(vm, (S))
 #define tr_raise(M,A...)     (printf("Error: "), printf(M, ##A), assert(0))
+#define tr_raise_errno(M)    tr_raise("%s: %s", strerror(errno), (M))
 #define tr_def(C,N,F,A)      TrModule_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_defclass(N)       TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N)))
 #define tr_defmodule(N)      TrObject_const_set(vm, vm->self, tr_intern(N), TrModule_new(vm, tr_intern(N)))
@@ -149,6 +151,7 @@ typedef struct TrBlock {
   size_t regc;
   size_t argc;
   size_t arg_splat;
+  OBJ filename;
   /* dynamic */
   kvec_t(TrCallSite) sites;
   struct TrFrame *frame;
@@ -188,6 +191,7 @@ typedef struct TrVM {
   khash_t(OBJ) *consts;
   OBJ self;
   OBJ primitives[3];
+  int debug;
 } TrVM;
 
 typedef struct {
@@ -228,7 +232,8 @@ typedef struct {
 
 /* vm */
 TrVM *TrVM_new();
-void TrVM_start(VM, TrBlock *b);
+OBJ TrVM_eval(VM, char *code, char *filename);
+OBJ TrVM_load(VM, char *filename);
 OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[], TrBlock *block);
 void TrVM_destroy(TrVM *vm);
 
@@ -272,6 +277,8 @@ OBJ TrModule_lookup(VM, OBJ self, OBJ name);
 OBJ TrModule_add_method(VM, OBJ self, OBJ name, OBJ method);
 OBJ TrModule_include(VM, OBJ self, OBJ mod);
 void TrModule_init(VM);
+
+/* kernel */
 void TrKernel_init(VM);
 
 /* class */
@@ -289,7 +296,7 @@ void TrBinding_init(VM);
 void TrPrimitive_init(VM);
 
 /* compiler */
-TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno, int trace);
+TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno);
 void TrBlock_dump(VM, TrBlock *b);
 
 #endif /* _TINYRB_H_ */

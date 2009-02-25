@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <sys/stat.h>
 #include <assert.h>
 #include "tr.h"
 #include "opcode.h"
@@ -26,9 +27,9 @@ static void TrFrame_pop(VM) {
 static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
   OBJ method = TrObject_method(vm, receiver, msg);
   if (!method) tr_raise("Method not found: %s\n", TR_STR_PTR(msg));
-  TrInst *boing = (ip-1);
 
 #ifdef TR_CALL_SITE
+  TrInst *boing = (ip-1);
   TrCallSite *s = (kv_pushp(TrCallSite, b->sites));
   /* TODO support metaclass */
   s->class = TR_COBJECT(receiver)->class;
@@ -168,7 +169,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
   char **strings = b->strings.a;
   TrBlock **blocks = b->blocks.a;
   register OBJ *regs = TR_ALLOC_N(OBJ, b->regc);
-  /* locals */
+  /* transfer locals */
   OBJ *locals = f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals)+argc);
   size_t i;
   for (i = 0; i < argc; ++i) locals[i] = argv[i];
@@ -213,7 +214,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
     OP(CACHE):
       /* TODO how to expire cache? */
       assert(&SITE[C] && "Method cached but no CallSite found");
-      if (SITE[C].class == TR_COBJECT(R[A])->class) {
+      if (likely(SITE[C].class == TR_COBJECT(R[A])->class)) {
         R[A+1] = SITE[C].method;
         ip += B;
       } else {
@@ -233,7 +234,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
     OP(JMPUNLESS):  if (!TR_TEST(R[A])) ip += sBx; DISPATCH;
     
     /* optimizations */
-    #define INLINE_FUNC(FNC) if (SITE[C].class == TR_COBJECT(R[A])->class) { FNC; ip += B; }
+    #define INLINE_FUNC(FNC) if (likely(SITE[C].class == TR_COBJECT(R[A])->class)) { FNC; ip += B; } else { SITE[C].miss++; }
     OP(FIXNUM_ADD):
       INLINE_FUNC(R[A] = TrFixnum_new(vm, TR_FIX2INT(R[A]) + TR_FIX2INT(R[A+2])));
       DISPATCH;
@@ -247,8 +248,25 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
   END_OPCODES;
 }
 
-void TrVM_start(VM, TrBlock *b) {
-  TrVM_run(vm, b, vm->self, TR_COBJECT(vm->self)->class, 0, 0, 0);
+OBJ TrVM_eval(VM, char *code, char *filename) {
+  TrBlock *b = TrBlock_compile(vm, code, filename, 0);
+  if (vm->debug) TrBlock_dump(vm, b);
+  return TrVM_run(vm, b, vm->self, TR_COBJECT(vm->self)->class, 0, 0, 0);
+}
+
+OBJ TrVM_load(VM, char *filename) {
+  FILE *fp;
+  struct stat stats;
+  
+  if (stat(filename, &stats) == -1) tr_raise_errno(filename);
+  fp = fopen(filename, "rb");
+  if (!fp) tr_raise_errno(filename);
+  
+  char *string = TR_ALLOC_N(char, stats.st_size + 1);
+  if (fread(string, 1, stats.st_size, fp) == stats.st_size)
+    return TrVM_eval(vm, string, filename);
+  
+  tr_raise_errno(filename);
 }
 
 OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[], TrBlock *block) {
@@ -265,6 +283,7 @@ TrVM *TrVM_new() {
   vm->symbols = kh_init(str);
   vm->globals = kh_init(OBJ);
   vm->consts = kh_init(OBJ);
+  vm->debug = 0;
   
   /* bootstrap core classes */
   TrMethod_init(vm);
@@ -296,6 +315,8 @@ TrVM *TrVM_new() {
   
   vm->self = TrObject_new(vm);
   vm->cf = -1;
+  
+  TrVM_load(vm, "lib/boot.rb");
   
   return vm;
 }

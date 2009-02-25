@@ -20,25 +20,26 @@
 [x] Implement Hash
 [x] Implement Module
 [x] Implement yield
-[ ] Implement some corelib stuff in Ruby (under /lib) and embed bytecode at compile time
+[x] Implement some corelib stuff in Ruby (under /lib)
 [x] Implement splat operator
 [ ] Implement Proc
 [ ] Fix operator precedence, add () and unary -
 [ ] Add support for escape chars in strings, (\n, \r, etc.)
-[ ] FFI
-[ ] Implement IO and File
+[ ] Implement exceptions
+[ ] Implement metaclass
+[ ] Implement super
 *** See TODO in code too!
 
 == Later
-[ ] Implement exceptions
+[ ] FFI
+[ ] Implement IO and File
+[ ] Compile to file
+[ ] Embed bytecode of /lib stuff inside executable
 [ ] puts nil # => nil in MRI
 [x] Inline some methods (+,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT
 [ ] Cache constant lookup
 [ ] Fix Hash to use key.hash (see TODO in hash.c)
-[ ] Implement metaclass
-[ ] Implement super
 [ ] Peephole optimization (Remove useless register allocations)
-[ ] Compile to file
 [ ] Implement case...when
 [ ] Implement Float, Bignum
 [ ] Run RubySpecs

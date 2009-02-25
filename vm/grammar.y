@@ -16,7 +16,7 @@
 
 %syntax_error {
   tr_raise("Syntax error:\n"
-           "  %s unexpected at line %d\n", yyTokenName[yymajor], compiler->curline);
+           "  %s unexpected at %s:%d\n", yyTokenName[yymajor], compiler->filename, compiler->curline);
 }
 
 %right ASSIGN.

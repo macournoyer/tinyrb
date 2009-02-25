@@ -18,6 +18,16 @@
 #define PUSH(A,N)            (({ TR_ARRAY_PUSH((A), (N)); }), A)
 #define SYMCAT(A,B)          tr_intern(strcat(TR_STR_PTR(A), TR_STR_PTR(B)))
 
+/* This provides the compiler about branch hints, so it
+   keeps the normal case fast. Stolen from Rubinius. */
+#ifdef __GNUC__
+#define likely(x)       __builtin_expect((long int)(x),1)
+#define unlikely(x)     __builtin_expect((long int)(x),0)
+#else
+#define likely(x) x
+#define unlikely(x) x
+#endif
+
 typedef enum {
   AST_ROOT,
   AST_BLOCK,
@@ -59,6 +69,7 @@ typedef struct {
 
 typedef struct {
   int curline;
+  char *filename;
   TrVM *vm;
   TrBlock *block;
   size_t reg;

@@ -32,7 +32,7 @@ end
 # => I really feel like having a cupcake
 
 class Array
-  def each_with_index
+  def test_each_with_index
     i = 0
     while i < size
       yield self[i], i
@@ -40,20 +40,20 @@ class Array
     end
   end
   
-  def each # toplevel block
-    each_with_index do |x, i|
+  def test_each # toplevel block
+    test_each_with_index do |x, i|
       yield x
     end
   end
 end
 
-[1, 2].each do |i|
+[1, 2].test_each do |i|
   puts i
 end
 # => 1
 # => 2
 
-[1, 2].each_with_index do |x, i|
+[1, 2].test_each_with_index do |x, i|
   puts x, i
 end
 # => 1
