@@ -37,6 +37,11 @@ static OBJ TrKernel_load(VM, OBJ self, OBJ filename) {
   return TrVM_load(vm, TR_STR_PTR(filename));
 }
 
+static OBJ TrKernel_raise(VM, OBJ self, OBJ exception) {
+  TrVM_raise(vm, exception);
+  return TR_NIL;
+}
+
 void TrKernel_init(VM) {
   OBJ m = tr_defmodule("Kernel");
   TrModule_include(vm, TR_CLASS(Object), m);
@@ -44,4 +49,5 @@ void TrKernel_init(VM) {
   tr_def(m, "eval", TrKernel_eval, -1);
   tr_def(m, "load", TrKernel_load, 1);
   tr_def(m, "binding", TrKernel_binding, 0);
+  tr_def(m, "raise", TrKernel_raise, 1);
 }

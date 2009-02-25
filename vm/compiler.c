@@ -28,7 +28,7 @@ OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c) {
 }
 
 /* code block */
-static TrBlock *TrBlock_new() {
+static TrBlock *TrBlock_new(TrCompiler *compiler) {
   TrBlock *b = TR_ALLOC(TrBlock);
   kv_init(b->k);
   kv_init(b->code);
@@ -37,6 +37,8 @@ static TrBlock *TrBlock_new() {
   kv_init(b->sites);
   b->regc = 0;
   b->argc = 0;
+  b->filename = compiler->filename;
+  b->line = compiler->line;
   return b;
 }
 
@@ -119,11 +121,12 @@ static int TrBlock_local(TrBlock *blk, OBJ name) {
 
 TrCompiler *TrCompiler_new(VM, const char *fn) {
   TrCompiler *c = TR_ALLOC(TrCompiler);
-  c->curline = 1;
+  c->line = 1;
   c->vm = vm;
-  c->block = TrBlock_new(vm);
+  c->block = TrBlock_new(c);
   c->reg = 0;
   c->node = TR_NIL;
+  c->filename = TrString_new2(vm, fn);
   return c;
 }
 
@@ -218,7 +221,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         /* block */
         size_t blki = 0;
         if (n->args[2]) {
-          TrBlock *blk = TrBlock_new();
+          TrBlock *blk = TrBlock_new(c);
           TrNode *blkn = (TrNode *)n->args[2];
           blki = kv_size(b->blocks) + 1;
           blk->argc = 0;
@@ -300,7 +303,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       PUSH_OP_AB(b, YIELD, reg, argc);
     } break;
     case AST_DEF: {
-      TrBlock *blk = TrBlock_new();
+      TrBlock *blk = TrBlock_new(c);
       size_t blki = kv_size(b->blocks);
       kv_push(TrBlock *, b->blocks, blk);
       if (n->args[1]) {
@@ -321,7 +324,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     } break;
     case AST_CLASS:
     case AST_MODULE: {
-      TrBlock *blk = TrBlock_new();
+      TrBlock *blk = TrBlock_new(c);
       size_t blki = kv_size(b->blocks);
       kv_push(TrBlock *, b->blocks, blk);
       /* compile body of class */
@@ -354,6 +357,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
 
 void TrCompiler_compile(TrCompiler *c) {
   TrBlock *b = c->block;
+  b->filename = c->filename;
   TrCompiler_compile_node(c->vm, c, b, (TrNode *)c->node, 0);
   PUSH_OP_A(b, RETURN, 0);
 }

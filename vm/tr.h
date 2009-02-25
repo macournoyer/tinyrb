@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <errno.h>
+#include <setjmp.h>
 #include "config.h"
 #include "vendor/kvec.h"
 #include "vendor/khash.h"
@@ -19,13 +20,13 @@
 #define TR_COBJECT(X)        ((TrObject*)TR_BOX(X))
 #define TR_TYPE(X)           (TR_COBJECT(X)->type)
 #define TR_IS_A(X,T)         (TR_TYPE(X) == TR_T_##T)
-#define TR_CTYPE(X,T)        (assert(TR_IS_A(X,T)),(Tr##T*)(X))
-#define TR_CCLASS(X)         (assert(TR_IS_A(X,Class)||TR_IS_A(X,Module)),(TrClass*)(X))
+#define TR_CTYPE(X,T)        (tr_assert(TR_IS_A(X,T), "TypeError: expected " #T),(Tr##T*)(X))
+#define TR_CCLASS(X)         (tr_assert(TR_IS_A(X,Class)||TR_IS_A(X,Module), "TypeError: expected Class"),(TrClass*)(X))
 #define TR_CMODULE(X)        TR_CCLASS(X)
 #define TR_CFIXNUM(X)        TR_CTYPE(X,Fixnum)
 #define TR_CARRAY(X)         TR_CTYPE(X,Array)
 #define TR_CHASH(X)          TR_CTYPE(X,Hash)
-#define TR_CSTRING(X)        (assert(TR_IS_A(X,String)||TR_IS_A(X,Symbol)),(TrString*)(X))
+#define TR_CSTRING(X)        (tr_assert(TR_IS_A(X,String)||TR_IS_A(X,Symbol), "TypeError: expected String"),(TrString*)(X))
 #define TR_CMETHOD(X)        ((TrMethod*)X)
 #define TR_CBINDING(X)       TR_CTYPE(X,Binding)
 
@@ -100,8 +101,10 @@
                                    TrClass_new(vm, tr_intern(#T), TR_CLASS(S)))
 
 #define tr_intern(S)         TrSymbol_new(vm, (S))
-#define tr_raise(M,A...)     (printf("Error: "), printf(M, ##A), assert(0))
+#define tr_raise(M,A...)     TrVM_raise(vm, tr_sprintf(vm, (M), ##A))
 #define tr_raise_errno(M)    tr_raise("%s: %s", strerror(errno), (M))
+#define tr_assert(X,M,A...)  ((X) ? (X) : TrVM_raise(vm, tr_sprintf(vm, (M), ##A)))
+#define TR_RESCUE(B)         if (setjmp(FRAME->rescue_jmp)) { TrVM_rescue(vm); B }
 #define tr_def(C,N,F,A)      TrModule_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_defclass(N)       TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N)))
 #define tr_defmodule(N)      TrObject_const_set(vm, vm->self, tr_intern(N), TrModule_new(vm, tr_intern(N)))
@@ -152,6 +155,7 @@ typedef struct TrBlock {
   size_t argc;
   size_t arg_splat;
   OBJ filename;
+  size_t line;
   /* dynamic */
   kvec_t(TrCallSite) sites;
   struct TrFrame *frame;
@@ -172,9 +176,10 @@ typedef struct TrFrame {
   OBJ *locals;
   OBJ self;
   OBJ class;
-  OBJ fname;
+  OBJ filename;
   size_t line;
   TrInst *ip;
+  jmp_buf rescue_jmp;
 } TrFrame;
 
 typedef struct {
@@ -192,6 +197,7 @@ typedef struct TrVM {
   OBJ self;
   OBJ primitives[3];
   int debug;
+  OBJ exception;
 } TrVM;
 
 typedef struct {
@@ -234,6 +240,8 @@ typedef struct {
 TrVM *TrVM_new();
 OBJ TrVM_eval(VM, char *code, char *filename);
 OBJ TrVM_load(VM, char *filename);
+void TrVM_raise(VM, OBJ exception);
+void TrVM_rescue(VM);
 OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[], TrBlock *block);
 void TrVM_destroy(TrVM *vm);
 

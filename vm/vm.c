@@ -13,11 +13,20 @@ static void TrFrame_push(VM, OBJ self, OBJ class, TrBlock *block) {
   if (vm->cf >= TR_MAX_FRAMES) tr_raise("Stack overflow");
   TrFrame *f = FRAME;
   f->method = TR_NIL;
+  f->filename = TR_NIL;
   if (prevf) f->block = prevf->block;
   if (block) f->block = block;
+  TR_MEMCPY(&f->rescue_jmp, &prevf->rescue_jmp, jmp_buf);
   f->self = self;
   f->class = class;
   f->line = 1;
+  
+  /* init first frame */
+  if (vm->cf == 0) {
+    TR_RESCUE({
+      exit(1);
+    })
+  }
 }
 
 static void TrFrame_pop(VM) {
@@ -163,6 +172,7 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
 #define SITE (b->sites.a)
 
 OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
+  f->filename = b->filename;
   register TrInst *ip = b->code.a;
   register TrInst e = *ip;
   OBJ *k = b->k.a;
@@ -267,6 +277,22 @@ OBJ TrVM_load(VM, char *filename) {
     return TrVM_eval(vm, string, filename);
   
   tr_raise_errno(filename);
+}
+
+void TrVM_raise(VM, OBJ exception) {
+  vm->exception = exception;
+  longjmp(FRAME->rescue_jmp, 1);
+}
+
+void TrVM_rescue(VM) {
+  printf("RuntimeError: %s\n", TR_STR_PTR(vm->exception));
+  size_t i;
+  for (i = vm->cf-1; i != -1 ; --i) {
+    TrFrame f = vm->frames[i];
+    printf("\tfrom %s:%lu", f.filename ? TR_STR_PTR(f.filename) : "?", f.line);
+    if (f.method) printf(":in `%s'", TR_STR_PTR(TR_CMETHOD(f.method)->name));
+    printf("\n");
+  }
 }
 
 OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[], TrBlock *block) {

@@ -68,8 +68,8 @@ typedef struct {
 } TrNode;
 
 typedef struct {
-  int curline;
-  char *filename;
+  int line;
+  OBJ filename;
   TrVM *vm;
   TrBlock *block;
   size_t reg;

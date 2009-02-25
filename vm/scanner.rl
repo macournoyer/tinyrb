@@ -21,7 +21,7 @@
 %%{
   machine tr;
   
-  newline     = "\r"? "\n" %{ compiler->curline++; };
+  newline     = "\r"? "\n" %{ compiler->line++; };
   whitespace  = " " | "\f" | "\t" | "\v";
 
   term        = (newline | ";");
@@ -123,8 +123,8 @@ TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
   int last = 0;
   FILE *tracef = 0;
   TrCompiler *compiler = TrCompiler_new(vm, fn);
-  compiler->curline += lineno;
-  compiler->filename = fn;
+  compiler->line += lineno;
+  compiler->filename = TrString_new2(vm, fn);
   
   p = code;
   pe = p + strlen(code) + 1;
@@ -144,7 +144,6 @@ TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
   if (vm->debug > 1) fclose(tracef);
     
   TrCompiler_compile(compiler);
-  compiler->block->filename = TrString_new2(vm, fn);
   
   return compiler->block;
 }
