@@ -28,6 +28,19 @@ Compile tinyrb:
   make test # optional
   ./tinyrb -h
 
+== What won't be in tinyrb
+* alias keyword (see alias_method)
+* undef keyword (see undefine_method)
+* Alternate string delimiters (%q, %Q, etc.)
+* heredoc strings
+* Parallel assignment (a, b = 1, 2)
+* :: as . (Class::new)
+* Character code literal (?c)
+* protected, private, public (yes everything is public, mind you)
+* ObjectSpace
+* Regexp literal (not sure about this one yet)
+* ... other to come for sure.
+
 == Credits
 Inspired by:
  lua,     http://www.lua.org

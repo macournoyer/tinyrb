@@ -1,44 +1,29 @@
-== Soon
-[x] Implement String
-[x] Implement Object
-[x] Implement Class
-[x] Implement Fixnum
-[x] Make parser output AST
-[x] Implement if, unless
-[x] Implement simple method argument passing
-[x] Implement while, until
-[x] Include GC (Boehm)
-[x] Monomorphic method cache (using CallSite)
-[x] Implement basic method definition
-[x] Implement GET/SETCONST
-[x] Implement basic class definition
-[x] Pass args to defined methods
-[x] Bootstrap all class correctly (nil,true,false too)
-[x] Fix CallSite error in recursive calls
-[x] Allow reopening classes
-[x] Implement Array
-[x] Implement Hash
-[x] Implement Module
-[x] Implement yield
-[x] Implement some corelib stuff in Ruby (under /lib)
-[x] Implement splat operator
-[ ] Implement Proc
-[ ] Fix operator precedence, add () and unary -
-[x] Add support for escape chars in strings, (\n, \r, etc.)
-[ ] Implement exceptions
+@Next
+[ ] Range
+[ ] Array splat
+[ ] Implement IO
+[ ] Implement File
 [ ] Implement metaclass
-[ ] Implement super
+[ ] def <object>.some_method
+[ ] Implement Dir
+[ ] Allow {...} for block
+[ ] Implement Proc
+[ ] require
+[ ] being...rescue
+[ ] def...rescue
+[ ] Fix operator precedence, add () and unary -
+[ ] super(...)
+[ ] return w/ args
 *** See TODO in code too!
 
-== Later
-[ ] FFI
-[ ] Implement IO and File
+@Later
+[ ] FFI or dl
 [ ] Compile to file
 [ ] Embed bytecode of /lib stuff inside executable
 [ ] puts nil # => nil in MRI
 [x] Inline some methods (+,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT
 [ ] Cache constant lookup
-[ ] Fix Hash to use key.hash (see TODO in hash.c)
+[ ] Reimplement Array, Hash using Tuple like Rubinius
 [ ] Peephole optimization (Remove useless register allocations)
 [ ] Implement case...when
 [ ] Implement Float, Bignum
@@ -46,7 +31,7 @@
 [ ] Sandbox
 [ ] Get it to build w/ -ansi gcc option (might need to get rid of khash.h)
 
-== Oh Yeah That'll be Cool!
+@Someday
 [ ] Rubygem support w/ http://github.com/fabien/minigems
 [ ] Replace GC w/ smaller, simpler & embedable one (Io's maybe?)
 [ ] REPL

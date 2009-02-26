@@ -44,7 +44,7 @@ test: tinyrb
 
 sloc: clean
 	@cp vm/scanner.rl vm/scanner.rl.c
-	@sloccount vm
+	@sloccount vm lib
 	@rm vm/scanner.rl.c
 
 size: clean
