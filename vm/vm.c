@@ -283,11 +283,18 @@ OBJ TrVM_load(VM, char *filename) {
 
 void TrVM_raise(VM, OBJ exception) {
   vm->exception = exception;
-  longjmp(FRAME->rescue_jmp, 1);
+  if (vm->cf == -1)
+    TrVM_rescue(vm);
+  else
+    longjmp(FRAME->rescue_jmp, 1);
 }
 
 void TrVM_rescue(VM) {
-  printf("RuntimeError: %s\n", TR_STR_PTR(vm->exception));
+  printf("Error: %s\n", TR_STR_PTR(vm->exception));
+  
+  /* Error before VM was started, can be bad... */
+  if (vm->cf == -1) exit(1);
+  
   size_t i;
   for (i = vm->cf-1; i != -1 ; --i) {
     TrFrame f = vm->frames[i];
