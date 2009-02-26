@@ -14,12 +14,14 @@ static void TrFrame_push(VM, OBJ self, OBJ class, TrBlock *block) {
   TrFrame *f = FRAME;
   f->method = TR_NIL;
   f->filename = TR_NIL;
-  if (prevf) f->block = prevf->block;
-  if (block) f->block = block;
-  TR_MEMCPY(&f->rescue_jmp, &prevf->rescue_jmp, jmp_buf);
   f->self = self;
   f->class = class;
   f->line = 1;
+  if (prevf) {
+    f->block = prevf->block;
+    TR_MEMCPY(&f->rescue_jmp, &prevf->rescue_jmp, jmp_buf);
+  }
+  if (block) f->block = block;
   
   /* init first frame */
   if (vm->cf == 0) {
