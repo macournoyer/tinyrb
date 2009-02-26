@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -DDEBUG -g -O3
+CFLAGS = -Wall -DDEBUG -g -O2
 INCS = -Ivm -Ivendor/gc/build/include
 LIBS = ${GC}
 GC = vendor/gc/build/lib/libgc.a

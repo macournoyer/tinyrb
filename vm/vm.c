@@ -35,7 +35,7 @@ static void TrFrame_pop(VM) {
 
 static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
   OBJ method = TrObject_method(vm, receiver, msg);
-  if (!method) tr_raise("Method not found: %s\n", TR_STR_PTR(msg));
+  if (!method) tr_raise("Method not found: `%s'\n", TR_STR_PTR(msg));
 
 #ifdef TR_CALL_SITE
   TrInst *boing = (ip-1);
@@ -80,7 +80,7 @@ static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int
   f->method = TR_CMETHOD(method);
   register TrFunc *func = f->method->func;
   if (b) b->frame = callingf;
-  OBJ ret;
+  OBJ ret = TR_NIL;
   if (f->method->arity == -1) {
     ret = func(vm, receiver, argc, args);
   } else {
@@ -278,6 +278,7 @@ OBJ TrVM_load(VM, char *filename) {
     return TrVM_eval(vm, string, filename);
   
   tr_raise_errno(filename);
+  return TR_NIL;
 }
 
 void TrVM_raise(VM, OBJ exception) {

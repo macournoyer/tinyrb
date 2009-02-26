@@ -16,11 +16,19 @@
 
 %syntax_error {
   VM = compiler->vm;
-  tr_raise("Syntax error:\n"
-           "  %s unexpected at %s:%d\n", yyTokenName[yymajor], TR_STR_PTR(compiler->filename), compiler->line);
+  printf("Syntax error:\n"
+         "  %s unexpected at %s:%d\n", yyTokenName[yymajor], TR_STR_PTR(compiler->filename), compiler->line+1);
 }
 
+%left OR AND.
 %right ASSIGN.
+%left CMP EQ NEQ.
+%left GT GTE LT LTE.
+%left PIPE AMP.
+%left LSHIFT RSHIFT.
+%left PLUS MINUS.
+%left TIMES DIV MOD.
+%right POW.
 
 /* rules */
 root ::= statements(A). { compiler->node = (OBJ) NODE(ROOT, A); }

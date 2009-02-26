@@ -23,14 +23,14 @@
   
   newline     = "\r"? "\n" %{ compiler->line++; };
   whitespace  = " " | "\f" | "\t" | "\v";
-
+  
   term        = (newline | ";");
   char        = [a-zA-Z0-9_];
   var         = [a-z_] char*;
   id          = [a-zA-Z] char*;
   id_op       = id ("?" | "!" | "=");
   const       = [A-Z] char*;
-  int         = [0-9]+;
+  int         = "-"? [0-9]+;
   string      = '"' (any - '"')* '"' | "'" (any - "'")* "'";
   symbol      = ':' (id | id_op);
   cvar        = '@@' id;

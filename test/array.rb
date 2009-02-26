@@ -6,9 +6,8 @@ puts a.size
 puts a[0]
 # => 1
 
-# TODO negative number not yet supported...
-# puts a[-1]
-# # => 3
+puts a[-1]
+# => 3
 
 a << 4
 puts a[3]
