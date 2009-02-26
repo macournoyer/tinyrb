@@ -12,3 +12,13 @@ puts "ohaie".class.name
 
 puts "oh" + "aie"
 # => ohaie
+
+puts "oh\naie"
+# => oh
+# => aie
+
+puts "\"oh\" \\ \\n"
+# => "oh" \ \n
+
+puts '\''
+# => '

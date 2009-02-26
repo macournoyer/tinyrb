@@ -22,6 +22,11 @@
 #define STRING(P,L) WITH_STR_TERM(P,L, TrString_new(vm, P, L))
 #define FIXNUM(P,L) WITH_STR_TERM(P,L, TrFixnum_new(vm, atoi(P)))
 
+#define STRING_START sbuf = TrString_new3(vm, 4096); nbuf = 0
+#define STRING_PUSH(P,L) \
+  TR_MEMCPY_N(TR_STR_PTR(sbuf) + nbuf, P, char, L); \
+  nbuf += L
+
 %%{
   machine tr;
   
@@ -35,12 +40,40 @@
   id_op       = id ("?" | "!" | "=");
   const       = [A-Z] char*;
   int         = "-"? [0-9]+;
-  string      = '"' (any - '"')* '"' | "'" (any - "'")* "'";
   symbol      = ':' (id | id_op);
   cvar        = '@@' id;
   ivar        = '@' id;
   global      = '$' id;
   comment     = "#"+ (any - newline)*;
+  
+  schar1      = any -- "\\'";
+  escape1     = "\\\"" | "\\\\" | "\\/";
+  escn        = "\\n";
+  escb        = "\\b";
+  escf        = "\\f";
+  escr        = "\\r";
+  esct        = "\\t";
+  escu        = "\\u" [0-9a-fA-F]{4};
+  schar2      = any -- (escn | escape1 | escb | escf | escn | escr | esct);
+  quote1      = "'";
+  quote2      = '"';
+  
+  string1 := |*
+    "\\'"       => { STRING_PUSH(ts + 1, 1); };
+    quote1      => { TOKEN_V(STRING, sbuf); fgoto main; };
+    schar1      => { STRING_PUSH(ts, te - ts); };
+  *|;
+
+  string2 := |*
+    escape1     => { STRING_PUSH(ts + 1, 1); };
+    escn        => { STRING_PUSH("\n", 1); };
+    escb        => { STRING_PUSH("\b", 1); };
+    escf        => { STRING_PUSH("\f", 1); };
+    escr        => { STRING_PUSH("\r", 1); };
+    esct        => { STRING_PUSH("\t", 1); };
+    quote2      => { TOKEN_V(STRING, sbuf); fgoto main; };
+    schar2      => { STRING_PUSH(ts, te - ts); };
+  *|;
   
   main := |*
     whitespace;
@@ -111,8 +144,9 @@
     ivar        => { TOKEN_V(IVAR, SYMBOL(ts, te-ts)); };
     cvar        => { TOKEN_V(CVAR, SYMBOL(ts, te-ts)); };
     global      => { TOKEN_V(GLOBAL, SYMBOL(ts, te-ts)); };
-    string      => { TOKEN_V(STRING, STRING(ts+1, te-ts-2)); };
     int         => { TOKEN_V(INT, FIXNUM(ts, te-ts)); };
+    quote1      => { STRING_START; fgoto string1; };
+    quote2      => { STRING_START; fgoto string2; };
   *|;
   
   write data nofinal;
@@ -124,7 +158,8 @@ TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
   int cs, act;
   char *p, *pe, *ts, *te, *eof = 0;
   void *parser = TrParserAlloc(TR_MALLOC);
-  int last = 0;
+  OBJ sbuf = 0;
+  int last = 0, nbuf = 0;
   FILE *tracef = 0;
   TrCompiler *compiler = TrCompiler_new(vm, fn);
   compiler->line += lineno;
