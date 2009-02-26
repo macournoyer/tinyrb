@@ -10,13 +10,17 @@
 #define TOKEN_U(id)   if (last != TR_TOK_##id) { TOKEN(id); }
 #define TOKEN(id)     TOKEN_V(id, 0)
 
-#define BUFFER(str,l)  ({ \
-  if (buf) TR_FREE(buf); \
-  buf = TR_ALLOC_N(char, (l)); \
-  TR_MEMCPY_N(buf, (str), char, (l)); \
-  buf[(l)] = '\0'; \
-  buf; \
+#define WITH_STR_TERM(P,L,B)  ({ \
+  char *str = (char*)P; \
+  char old = str[L]; \
+  str[L] = '\0'; \
+  OBJ obj = B; \
+  str[L] = old; \
+  obj; \
 })
+#define SYMBOL(P,L) WITH_STR_TERM(P,L, tr_intern(P))
+#define STRING(P,L) WITH_STR_TERM(P,L, TrString_new(vm, P, L))
+#define FIXNUM(P,L) WITH_STR_TERM(P,L, TrFixnum_new(vm, atoi(P)))
 
 %%{
   machine tr;
@@ -68,7 +72,7 @@
     "("         => { TOKEN(O_PAR); };
     ")"         => { TOKEN(C_PAR); };
     "self["     => { TOKEN(SELF); TOKEN(O_SBRA_ID); };
-    id "["      => { TOKEN_V(VAR, tr_intern(BUFFER(ts, te-ts-1))); TOKEN(O_SBRA_ID); };
+    id "["      => { TOKEN_V(VAR, SYMBOL(ts, te-ts-1)); TOKEN(O_SBRA_ID); };
     "["         => { TOKEN(O_SBRA); };
     "]"         => { TOKEN(C_SBRA); };
     "{"         => { TOKEN(O_CBRA); };
@@ -77,38 +81,38 @@
     term        => { TOKEN_U(TERM); };
     
     # assign operators
-    "="         => { TOKEN_V(ASSIGN, tr_intern(BUFFER(ts, te-ts))); };
+    "="         => { TOKEN_V(ASSIGN, SYMBOL(ts, te-ts)); };
 
     # binary operators
-    '=='        => { TOKEN_V(EQ, tr_intern(BUFFER(ts, te-ts))); };
-    '!='        => { TOKEN_V(NEQ, tr_intern(BUFFER(ts, te-ts))); };
-    '|'         => { TOKEN_V(PIPE, tr_intern(BUFFER(ts, te-ts))); };
-    '||'        => { TOKEN_V(OR, tr_intern(BUFFER(ts, te-ts))); };
-    '&'         => { TOKEN_V(AMP, tr_intern(BUFFER(ts, te-ts))); };
-    '&&'        => { TOKEN_V(AND, tr_intern(BUFFER(ts, te-ts))); };
-    '<'         => { TOKEN_V(LT, tr_intern(BUFFER(ts, te-ts))); };
-    '<='        => { TOKEN_V(LE, tr_intern(BUFFER(ts, te-ts))); };
-    '>'         => { TOKEN_V(GT, tr_intern(BUFFER(ts, te-ts))); };
-    '>='        => { TOKEN_V(GE, tr_intern(BUFFER(ts, te-ts))); };
-    '<<'        => { TOKEN_V(LSHIFT, tr_intern(BUFFER(ts, te-ts))); };
-    '>>'        => { TOKEN_V(RSHIFT, tr_intern(BUFFER(ts, te-ts))); };
-    '*'         => { TOKEN_V(MUL, tr_intern(BUFFER(ts, te-ts))); };
-    '**'        => { TOKEN_V(POW, tr_intern(BUFFER(ts, te-ts))); };
-    '/'         => { TOKEN_V(DIV, tr_intern(BUFFER(ts, te-ts))); };
-    '%'         => { TOKEN_V(MOD, tr_intern(BUFFER(ts, te-ts))); };
-    '+'         => { TOKEN_V(PLUS, tr_intern(BUFFER(ts, te-ts))); };
-    '-'         => { TOKEN_V(MINUS, tr_intern(BUFFER(ts, te-ts))); };
+    '=='        => { TOKEN_V(EQ, SYMBOL(ts, te-ts)); };
+    '!='        => { TOKEN_V(NEQ, SYMBOL(ts, te-ts)); };
+    '|'         => { TOKEN_V(PIPE, SYMBOL(ts, te-ts)); };
+    '||'        => { TOKEN_V(OR, SYMBOL(ts, te-ts)); };
+    '&'         => { TOKEN_V(AMP, SYMBOL(ts, te-ts)); };
+    '&&'        => { TOKEN_V(AND, SYMBOL(ts, te-ts)); };
+    '<'         => { TOKEN_V(LT, SYMBOL(ts, te-ts)); };
+    '<='        => { TOKEN_V(LE, SYMBOL(ts, te-ts)); };
+    '>'         => { TOKEN_V(GT, SYMBOL(ts, te-ts)); };
+    '>='        => { TOKEN_V(GE, SYMBOL(ts, te-ts)); };
+    '<<'        => { TOKEN_V(LSHIFT, SYMBOL(ts, te-ts)); };
+    '>>'        => { TOKEN_V(RSHIFT, SYMBOL(ts, te-ts)); };
+    '*'         => { TOKEN_V(MUL, SYMBOL(ts, te-ts)); };
+    '**'        => { TOKEN_V(POW, SYMBOL(ts, te-ts)); };
+    '/'         => { TOKEN_V(DIV, SYMBOL(ts, te-ts)); };
+    '%'         => { TOKEN_V(MOD, SYMBOL(ts, te-ts)); };
+    '+'         => { TOKEN_V(PLUS, SYMBOL(ts, te-ts)); };
+    '-'         => { TOKEN_V(MINUS, SYMBOL(ts, te-ts)); };
     
     # values
-    var         => { TOKEN_V(VAR, tr_intern(BUFFER(ts, te-ts))); };
-    id_op       => { TOKEN_V(ID_OP, tr_intern(BUFFER(ts, te-ts))); };
-    symbol      => { TOKEN_V(SYMBOL, tr_intern(BUFFER(ts+1, te-ts-1))); };
-    const       => { TOKEN_V(CONST, tr_intern(BUFFER(ts, te-ts))); };
-    ivar        => { TOKEN_V(IVAR, tr_intern(BUFFER(ts, te-ts))); };
-    cvar        => { TOKEN_V(CVAR, tr_intern(BUFFER(ts, te-ts))); };
-    global      => { TOKEN_V(GLOBAL, tr_intern(BUFFER(ts, te-ts))); };
-    string      => { TOKEN_V(STRING, TrString_new(vm, BUFFER(ts+1, te-ts-2), te-ts-2)); };
-    int         => { TOKEN_V(INT, TrFixnum_new(vm, atoi(BUFFER(ts, te-ts)))); };
+    var         => { TOKEN_V(VAR, SYMBOL(ts, te-ts)); };
+    id_op       => { TOKEN_V(ID_OP, SYMBOL(ts, te-ts)); };
+    symbol      => { TOKEN_V(SYMBOL, SYMBOL(ts+1, te-ts-1)); };
+    const       => { TOKEN_V(CONST, SYMBOL(ts, te-ts)); };
+    ivar        => { TOKEN_V(IVAR, SYMBOL(ts, te-ts)); };
+    cvar        => { TOKEN_V(CVAR, SYMBOL(ts, te-ts)); };
+    global      => { TOKEN_V(GLOBAL, SYMBOL(ts, te-ts)); };
+    string      => { TOKEN_V(STRING, STRING(ts+1, te-ts-2)); };
+    int         => { TOKEN_V(INT, FIXNUM(ts, te-ts)); };
   *|;
   
   write data nofinal;
@@ -118,7 +122,7 @@ void tr_free(void *ptr) { return TR_FREE(ptr); }
 
 TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
   int cs, act;
-  char *p, *pe, *ts, *te, *eof = 0, *buf = 0;
+  char *p, *pe, *ts, *te, *eof = 0;
   void *parser = TrParserAlloc(TR_MALLOC);
   int last = 0;
   FILE *tracef = 0;
@@ -140,7 +144,6 @@ TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
   TrParser(parser, 0, 0, compiler);
   TrParserFree(parser, tr_free);
   
-  if (buf) TR_FREE(buf);
   if (vm->debug > 1) fclose(tracef);
     
   TrCompiler_compile(compiler);
