@@ -4,9 +4,6 @@ puts "ohaie"
 puts "ohaie".size
 # => 5
 
-puts "ohaie".length
-# => 5
-
 puts "ohaie".class.name
 # => String
 
@@ -28,4 +25,21 @@ hey
 "
 # => 
 # => hey
+# => 
+
+a = "xxx"
+a.replace "aaa"
+puts a
+# => aaa
+
+puts "a" <=> "b"
+# => -1
+puts "a" <=> "a"
+# => 0
+
+puts "ohaie".substring(0,2)
+# => oh
+puts "ohaie".substring(2,3)
+# => aie
+puts "ohaie".substring(2,4)
 # => 

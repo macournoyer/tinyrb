@@ -160,6 +160,7 @@ opt_term ::= .
 
 bin_op(A) ::= EQ(B). { A = B; }
 bin_op(A) ::= NEQ(B). { A = B; }
+bin_op(A) ::= CMP(B). { A = B; }
 bin_op(A) ::= LT(B). { A = B; }
 bin_op(A) ::= LE(B). { A = B; }
 bin_op(A) ::= GT(B). { A = B; }

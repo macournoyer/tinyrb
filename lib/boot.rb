@@ -4,3 +4,4 @@
 load "lib/enumerable.rb"
 load "lib/array.rb"
 load "lib/fixnum.rb"
+load "lib/string.rb"

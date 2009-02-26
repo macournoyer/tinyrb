@@ -123,6 +123,7 @@
     '||'        => { TOKEN_V(OR, SYMBOL(ts, te-ts)); };
     '&'         => { TOKEN_V(AMP, SYMBOL(ts, te-ts)); };
     '&&'        => { TOKEN_V(AND, SYMBOL(ts, te-ts)); };
+    '<=>'       => { TOKEN_V(CMP, SYMBOL(ts, te-ts)); };
     '<'         => { TOKEN_V(LT, SYMBOL(ts, te-ts)); };
     '<='        => { TOKEN_V(LE, SYMBOL(ts, te-ts)); };
     '>'         => { TOKEN_V(GT, SYMBOL(ts, te-ts)); };

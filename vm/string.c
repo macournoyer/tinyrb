@@ -3,6 +3,8 @@
 #include "tr.h"
 #include "internal.h"
 
+/* symbol */
+
 static OBJ TrSymbol_lookup(VM, const char *str) {
   khash_t(str) *kh = vm->symbols;
   khiter_t k = kh_get(str, kh, str);
@@ -39,6 +41,13 @@ static OBJ TrSymbol_to_s(VM, OBJ self) {
   return TrString_new(vm, TR_STR_PTR(self), TR_STR_LEN(self));
 }
 
+void TrSymbol_init(VM) {
+  OBJ c = TR_INIT_CLASS(Symbol, Object);
+  tr_def(c, "to_s", TrSymbol_to_s, 0);
+}
+
+/* string */
+
 static OBJ TrString_to_s(VM, OBJ self) {
   return self;
 }
@@ -74,6 +83,24 @@ OBJ TrString_concat(VM, OBJ self, OBJ other) {
   return tr_sprintf(vm, "%s%s", TR_STR_PTR(self), TR_STR_PTR(other));
 }
 
+OBJ TrString_replace(VM, OBJ self, OBJ other) {
+  TR_STR_PTR(self) = TR_STR_PTR(other);
+  TR_STR_LEN(self) = TR_STR_LEN(other);
+  return self;
+}
+
+OBJ TrString_cmp(VM, OBJ self, OBJ other) {
+  if (!TR_IS_A(other, String)) return TrFixnum_new(vm, -1);
+  return TrFixnum_new(vm, strcmp(TR_STR_PTR(self), TR_STR_PTR(other)));
+}
+
+OBJ TrString_substring(VM, OBJ self, OBJ start, OBJ len) {
+  size_t s = TR_FIX2INT(start);
+  size_t l = TR_FIX2INT(len);
+  if (s < 0 || (s+l) > TR_STR_LEN(self)) return TR_NIL;
+  return TrString_new(vm, TR_STR_PTR(self)+s, l);
+}
+
 OBJ tr_sprintf(VM, const char *fmt, ...) {
   va_list arg;
   va_start(arg, fmt);
@@ -89,15 +116,12 @@ OBJ tr_sprintf(VM, const char *fmt, ...) {
   return str;
 }
 
-void TrSymbol_init(VM) {
-  OBJ c = TR_INIT_CLASS(Symbol, Object);
-  tr_def(c, "to_s", TrSymbol_to_s, 0);
-}
-
 void TrString_init(VM) {
   OBJ c = TR_INIT_CLASS(String, Object);
   tr_def(c, "to_s", TrString_to_s, 0);
   tr_def(c, "size", TrString_size, 0);
-  tr_def(c, "length", TrString_size, 0);
+  tr_def(c, "replace", TrString_replace, 1);
+  tr_def(c, "substring", TrString_substring, 2);
   tr_def(c, "+", TrString_concat, 1);
+  tr_def(c, "<=>", TrString_cmp, 1);
 }
