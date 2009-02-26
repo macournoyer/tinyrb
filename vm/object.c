@@ -8,7 +8,7 @@ OBJ TrObject_new(VM) {
 OBJ TrObject_method(VM, OBJ self, OBJ name) {
   TrObject *o = TR_COBJECT(self);
   /* TODO lookup in metaclass */
-  return TrClass_lookup(vm, o->class, name);
+  return TrClass_instance_method(vm, o->class, name);
 }
 
 /* TODO respect namespace */

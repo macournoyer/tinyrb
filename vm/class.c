@@ -14,7 +14,7 @@ OBJ TrModule_new(VM, OBJ name) {
   return (OBJ)m;
 }
 
-OBJ TrModule_lookup(VM, OBJ self, OBJ name) {
+OBJ TrModule_instance_method(VM, OBJ self, OBJ name) {
   TrModule *m = TR_CMODULE(self);
   /* lookup in self */
   khiter_t k = kh_get(OBJ, m->methods, name);
@@ -22,7 +22,7 @@ OBJ TrModule_lookup(VM, OBJ self, OBJ name) {
   /* lookup in included modules */
   size_t i;
   for (i = 0; i < kv_size(m->modules); ++i) {
-    OBJ ret = TrModule_lookup(vm, kv_A(m->modules, i), name);
+    OBJ ret = TrModule_instance_method(vm, kv_A(m->modules, i), name);
     if (ret) return ret;
   }
   return TR_NIL;
@@ -36,6 +36,10 @@ OBJ TrModule_add_method(VM, OBJ self, OBJ name, OBJ method) {
   kh_value(m->methods, k) = method;
   TR_CMETHOD(method)->name = name;
   return method;
+}
+
+OBJ TrModule_alias_method(VM, OBJ self, OBJ new_name, OBJ old_name) {
+  return TrModule_add_method(vm, self, new_name, TrModule_instance_method(vm, self, old_name));
 }
 
 OBJ TrModule_include(VM, OBJ self, OBJ mod) {
@@ -52,6 +56,8 @@ void TrModule_init(VM) {
   OBJ c = TR_INIT_CLASS(Module, Object);
   tr_def(c, "name", TrModule_name, 0);
   tr_def(c, "include", TrModule_include, 1);
+  tr_def(c, "instance_method", TrModule_instance_method, 1);
+  tr_def(c, "alias_method", TrModule_alias_method, 2);
   tr_def(c, "to_s", TrModule_name, 0);
 }
 
@@ -70,11 +76,11 @@ OBJ TrClass_allocate(VM, OBJ self) {
   return (OBJ)o;
 }
 
-OBJ TrClass_lookup(VM, OBJ self, OBJ name) {
-  OBJ m = TrModule_lookup(vm, self, name);
+OBJ TrClass_instance_method(VM, OBJ self, OBJ name) {
+  OBJ m = TrModule_instance_method(vm, self, name);
   if (m) return m;
   TrClass *c = TR_CCLASS(self);
-  if (c->super) return TrClass_lookup(vm, c->super, name);
+  if (c->super) return TrClass_instance_method(vm, c->super, name);
   return TR_NIL;
 }
 
@@ -86,6 +92,7 @@ void TrClass_init(VM) {
   OBJ c = TR_INIT_CLASS(Class, Module);
   tr_def(c, "superclass", TrClass_superclass, 0);
   tr_def(c, "allocate", TrClass_allocate, 0);
+  tr_def(c, "instance_method", TrClass_instance_method, 1);
 }
 
 /* method */

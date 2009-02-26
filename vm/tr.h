@@ -281,7 +281,7 @@ void TrObject_init(VM);
 
 /* module */
 OBJ TrModule_new(VM, OBJ name);
-OBJ TrModule_lookup(VM, OBJ self, OBJ name);
+OBJ TrModule_instance_method(VM, OBJ self, OBJ name);
 OBJ TrModule_add_method(VM, OBJ self, OBJ name, OBJ method);
 OBJ TrModule_include(VM, OBJ self, OBJ mod);
 void TrModule_init(VM);
@@ -291,7 +291,7 @@ void TrKernel_init(VM);
 
 /* class */
 OBJ TrClass_new(VM, OBJ name, OBJ super);
-OBJ TrClass_lookup(VM, OBJ self, OBJ name);
+OBJ TrClass_instance_method(VM, OBJ self, OBJ name);
 OBJ TrClass_allocate(VM, OBJ self);
 void TrClass_init(VM);
 
