@@ -9,7 +9,7 @@
 [ ] Allow {...} for block
 [ ] Implement Proc
 [ ] require
-[ ] being...rescue
+[ ] begin...rescue
 [ ] def...rescue
 [ ] Fix operator precedence, add () and unary -
 [ ] super(...)
@@ -22,7 +22,7 @@
 [ ] Compile to file
 [ ] Embed bytecode of /lib stuff inside executable
 [ ] puts nil # => nil in MRI
-[x] Inline some methods (+,<,>,==) as VM instructions, eg.: FIXNUM_ADD, STRING_CONCAT
+[x] Inline some methods (+,<,>,==) as VM instructions, e.g.: FIXNUM_ADD, STRING_CONCAT
 [ ] Cache constant lookup
 [ ] Reimplement Array, Hash using Tuple like Rubinius
 [ ] Peephole optimization (Remove useless register allocations)
@@ -34,7 +34,7 @@
 
 @Someday
 [ ] Rubygem support w/ http://github.com/fabien/minigems
-[ ] Replace GC w/ smaller, simpler & embedable one (Io's maybe?)
+[ ] Replace GC w/ smaller, simpler & embeddable one (Io's maybe?)
 [ ] REPL
 [ ] Unicode
 [ ] lightweight threads, coroutines (using libconcurrency?)
