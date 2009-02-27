@@ -285,6 +285,7 @@ OBJ TrVM_load(VM, char *filename) {
 }
 
 void TrVM_raise(VM, OBJ exception) {
+  if (vm->debug) assert(0);
   vm->exception = exception;
   if (vm->cf == -1)
     TrVM_rescue(vm);
