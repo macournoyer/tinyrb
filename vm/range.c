@@ -5,6 +5,7 @@ OBJ TrRange_new(VM, OBJ first, OBJ last, int exclusive) {
   TrRange *r = TR_INIT_OBJ(Range);
   r->first = first;
   r->last = last;
+  r->exclusive = exclusive;
   return (OBJ)r;
 }
 
