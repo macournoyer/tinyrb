@@ -17,6 +17,7 @@
 *** See TODO in code too!
 
 @Later
+[ ] Implement & operator
 [ ] FFI or dl
 [ ] Compile to file
 [ ] Embed bytecode of /lib stuff inside executable

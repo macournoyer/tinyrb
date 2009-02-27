@@ -26,6 +26,7 @@
 #define TR_CFIXNUM(X)        TR_CTYPE(X,Fixnum)
 #define TR_CARRAY(X)         TR_CTYPE(X,Array)
 #define TR_CHASH(X)          TR_CTYPE(X,Hash)
+#define TR_CRANGE(X)         TR_CTYPE(X,Range)
 #define TR_CSTRING(X)        (tr_assert(TR_IS_A(X,String)||TR_IS_A(X,Symbol), "TypeError: expected String"),(TrString*)(X))
 #define TR_CMETHOD(X)        ((TrMethod*)X)
 #define TR_CBINDING(X)       TR_CTYPE(X,Binding)
@@ -124,7 +125,7 @@ KHASH_MAP_INIT_INT(OBJ, OBJ);
 
 typedef enum {
   TR_T_Object, TR_T_Module, TR_T_Class, TR_T_Method, TR_T_Binding,
-  TR_T_Symbol, TR_T_String, TR_T_Fixnum,
+  TR_T_Symbol, TR_T_String, TR_T_Fixnum, TR_T_Range,
   TR_T_NilClass, TR_T_TrueClass, TR_T_FalseClass,
   TR_T_Array, TR_T_Hash,
   TR_T_Node,
@@ -228,6 +229,13 @@ typedef struct {
 
 typedef struct {
   TR_OBJECT_HEADER;
+  OBJ first;
+  OBJ last;
+  int exclusive;
+} TrRange;
+
+typedef struct {
+  TR_OBJECT_HEADER;
   kvec_t(OBJ) kv;
 } TrArray;
 
@@ -271,6 +279,10 @@ void TrArray_init(VM);
 OBJ TrHash_new(VM);
 OBJ TrHash_new2(VM, size_t n, OBJ items[]);
 void TrHash_init(VM);
+
+/* range */
+OBJ TrRange_new(VM, OBJ start, OBJ end, int exclusive);
+void TrRange_init(VM);
 
 /* object */
 OBJ TrObject_new(VM);

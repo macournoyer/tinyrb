@@ -67,6 +67,8 @@ literal(A) ::= O_SBRA C_SBRA. { A = NODE(ARRAY, 0); }
 literal(A) ::= O_SBRA args(B) C_SBRA. { A = NODE(ARRAY, B); }
 literal(A) ::= O_CBRA C_CBRA. { A = NODE(HASH, 0); }
 literal(A) ::= O_CBRA hash_items(B) C_CBRA. { A = NODE(HASH, B); }
+literal(A) ::= O_PAR arg(B) RANGE arg(C) C_PAR. { A = NODE3(RANGE, B, C, 0); }
+literal(A) ::= O_PAR arg(B) RANGE_EX arg(C) C_PAR. { A = NODE3(RANGE, B, C, 1); }
 
 leave(A) ::= RETURN. { A = NODE(RETURN, 0); }
 leave(A) ::= YIELD. { A = NODE(YIELD, 0); }

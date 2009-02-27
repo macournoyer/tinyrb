@@ -108,8 +108,19 @@ OBJ TrMethod_new(VM, TrFunc *func, OBJ data, int arity) {
 OBJ TrMethod_name(VM, OBJ self) { return TR_CMETHOD(self)->name; }
 OBJ TrMethod_arity(VM, OBJ self) { return TrFixnum_new(vm, TR_CMETHOD(self)->arity); }
 
+OBJ TrMethod_dump(VM, OBJ self) {
+  TrMethod *m = TR_CMETHOD(self);
+  if (m->name) printf("<Method '%s':%p>\n", TR_STR_PTR(m->name), m);
+  if (m->data)
+    TrBlock_dump(vm, (TrBlock*)m->data);
+  else
+    printf("<CFunction:%p>\n", m->func);
+  return TR_NIL;
+}
+
 void TrMethod_init(VM) {
   OBJ c = TR_INIT_CLASS(Method, Object);
   tr_def(c, "name", TrMethod_name, 0);
   tr_def(c, "arity", TrMethod_arity, 0);
+  tr_def(c, "dump", TrMethod_dump, 0);
 }

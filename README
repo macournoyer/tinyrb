@@ -31,6 +31,7 @@ Compile tinyrb:
 == What won't be in tinyrb
 * alias keyword (see alias_method)
 * undef keyword (see undefine_method)
+* throw, catch
 * Alternate string delimiters (%q, %Q, etc.)
 * heredoc strings
 * Parallel assignment (a, b = 1, 2)

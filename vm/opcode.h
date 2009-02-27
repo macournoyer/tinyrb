@@ -44,12 +44,10 @@ enum TrInstCode {
   TR_OP_SETCVAR,    /* A Bx     class.ivars[k[Bx]] = R[A] */
   TR_OP_GETGLOBAL,  /* A Bx     R[A] = globals[k[Bx]] */
   TR_OP_SETGLOBAL,  /* A Bx     globals[k[Bx]] = R[A] */
-  TR_OP_UNDEF,
-  TR_OP_ALIAS,
-  TR_OP_SUPER,
-  TR_OP_GETDYN,
-  TR_OP_SETDYN,
-  TR_OP_NEWRANGE
+  TR_OP_NEWRANGE,   /* A B C    R[A] = Range.new(start:R[A], end:R[B], exclusive:C) */
+  TR_OP_SUPER,      /* TODO */
+  TR_OP_GETDYN,     /* TODO */
+  TR_OP_SETDYN      /* TODO */
 };
 
 #define TR_OP_NAMES \
@@ -86,13 +84,10 @@ enum TrInstCode {
   "setcvar", \
   "getglobal", \
   "setglobal", \
-  "undef", \
-  "alias", \
+  "newrange", \
   "super", \
   "getdyn", \
-  "setdyn", \
-  "newrange"
-  
+  "setdyn"
 
 #ifdef TR_THREADED_DISPATCH
 /* has to be in some order as in enum TrInstCode */
@@ -129,7 +124,8 @@ enum TrInstCode {
   &&op_GETCVAR, \
   &&op_SETCVAR, \
   &&op_GETGLOBAL, \
-  &&op_SETGLOBAL
+  &&op_SETGLOBAL, \
+  &&op_NEWRANGE
   
 #endif
 

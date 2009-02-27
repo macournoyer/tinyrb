@@ -110,6 +110,8 @@
     "]"         => { TOKEN(C_SBRA); };
     "{"         => { TOKEN(O_CBRA); };
     "}"         => { TOKEN(C_CBRA); };
+    ".."        => { TOKEN(RANGE); };
+    "..."       => { TOKEN(RANGE_EX); };
     "."         => { TOKEN(DOT); };
     term        => { TOKEN_U(TERM); };
     

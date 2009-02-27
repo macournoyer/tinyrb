@@ -7,7 +7,7 @@ LEMON = vendor/lemon/lemon
 RAGEL = ragel
 RAGELV = `${RAGEL} -v | sed "/ version /!d; s/.* version //; s/ .*//"`
 
-SRC = vm/string.c vm/number.c vm/primitive.c vm/array.c vm/hash.c vm/class.c vm/kernel.c vm/object.c vm/compiler.c vm/grammar.c vm/scanner.c vm/vm.c vm/tr.c
+SRC = vm/string.c vm/number.c vm/range.c vm/primitive.c vm/array.c vm/hash.c vm/class.c vm/kernel.c vm/object.c vm/compiler.c vm/grammar.c vm/scanner.c vm/vm.c vm/tr.c
 OBJ = ${SRC:.c=.o}
 OBJ_MIN = vm/tr.o
 

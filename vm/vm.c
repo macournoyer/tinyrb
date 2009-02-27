@@ -204,6 +204,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
     OP(BOOL):       R[A] = B+1; DISPATCH;
     OP(NEWARRAY):   R[A] = TrArray_new3(vm, B, &R[A+1]); DISPATCH;
     OP(NEWHASH):    R[A] = TrHash_new2(vm, B, &R[A+1]); DISPATCH;
+    OP(NEWRANGE):   R[A] = TrRange_new(vm, R[A], R[B], C); DISPATCH;
     
     /* return */
     OP(RETURN):     return R[A];
@@ -292,7 +293,7 @@ void TrVM_raise(VM, OBJ exception) {
 }
 
 void TrVM_rescue(VM) {
-  printf("Error: %s\n", TR_STR_PTR(vm->exception));
+  printf("%s\n", TR_STR_PTR(vm->exception));
   
   /* Error before VM was started, can be bad... */
   if (vm->cf == -1) exit(1);
@@ -349,6 +350,7 @@ TrVM *TrVM_new() {
   TrFixnum_init(vm);
   TrArray_init(vm);
   TrHash_init(vm);
+  TrRange_init(vm);
   
   vm->self = TrObject_new(vm);
   vm->cf = -1;

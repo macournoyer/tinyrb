@@ -173,6 +173,11 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       }
       PUSH_OP_AB(b, NEWHASH, reg, size/2);
     } break;
+    case AST_RANGE: {
+      TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[0], reg);
+      TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg+1);
+      PUSH_OP_ABC(b, NEWRANGE, reg, reg+1, n->args[2]);
+    } break;
     case AST_ASSIGN: {
       int i = TrBlock_local(b, n->args[0]);
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
