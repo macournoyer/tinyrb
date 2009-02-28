@@ -28,7 +28,7 @@ Compile tinyrb:
   make test # optional
   ./tinyrb -h
 
-== What won't be in tinyrb
+== What WON'T be in tinyrb
 * alias keyword (see alias_method)
 * undef keyword (see undefine_method)
 * throw, catch
@@ -40,6 +40,7 @@ Compile tinyrb:
 * protected, private, public (yes everything is public, mind you)
 * ObjectSpace
 * Regexp literal (not sure about this one yet)
+* $SAFE (but Sandbox mode at the VM level)
 * ... other to come for sure.
 
 == Credits
