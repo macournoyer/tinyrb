@@ -1,0 +1,11 @@
+%{
+#include "tr.h"
+#include "internal.h"
+TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
+  return 0;
+}
+%}
+
+Value   = NUMBER
+
+NUMBER  = < [0-9]+ >
