@@ -15,4 +15,5 @@ vm/scanner.c
 tinyrb
 
 vendor/lemon/lemon
+vendor/peg
 vendor/gc
