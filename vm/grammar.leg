@@ -1,11 +1,18 @@
 %{
+#include <stdlib.h>    /* atoi() */
 #include "tr.h"
 #include "internal.h"
-TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
-  return 0;
-}
 %}
 
-Value   = NUMBER
+Value   = i:NUMBER    { printf("%d\n", i); }
 
-NUMBER  = < [0-9]+ >
+NUMBER  = < [0-9]+ >  { $$ = atoi(yytext); }
+
+%%
+
+TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
+  while (yyparse())
+    ;
+  exit(0);
+  return 0;
+}
