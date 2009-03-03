@@ -34,8 +34,7 @@ Expr    = Call
         | Value
         | '(' Expr ')'
 
-Call    = m:Message                       { $$ = NODE2(SEND, 0, m) }
-        | rcv:Value '.' m:Message         { $$ = NODE2(SEND, rcv, m) }
+Call    = (rcv:Value '.')? msg:Message    { $$ = NODE2(SEND, rcv, msg) }
 
 Message = m:ID ('(' args:Args? ')'
                | SPACE args:Args
