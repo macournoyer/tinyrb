@@ -25,30 +25,36 @@ static TrCompiler *compiler;
 %}
 
 Stmt    = - exp:Expr SEP*                 { PUSH_NODE(compiler->stms, exp) }
-        | ( !SEP . )* SEP                 { VM = yyvm; tr_raise("SyntaxError\n"); }
+        | ( !SEP . )* SEP                 { VM = yyvm; tr_raise("SyntaxError\n") }
 
 Expr    = Value
         | Call
 
-Call    = m:Message                       { $$ = NODE2(SEND, 0, m); }
+Call    = m:Message                       { $$ = NODE2(SEND, 0, m) }
 
 Message = m:ID ('(' args:Args? ')'
-               | space args:Args
-               )?                         { $$ = NODE2(MSG, m, args); }
+               | SPACE args:Args
+               )?                         { $$ = NODE2(MSG, m, args) }
 
-Arg     = - v:Value -
+Arg     = - v:Expr -
 
 Args    = args:Arg                        { args = NODES(args) }
           (',' x:Arg                      { PUSH_NODE(args, x) }
           )*                              { $$ = args }
 
-Value   = n:NUMBER                        { $$ = NODE(VALUE, n); }
+Value   = v:NUMBER                        { $$ = NODE(VALUE, v) }
+        | v:SYMBOL                        { $$ = NODE(VALUE, v) }
+        | v:STRING1                       { $$ = NODE(STRING, v) }
+        | v:STRING2                       { $$ = NODE(STRING, v) }
 
-NUMBER  = < [0-9]+ >                      { $$ = TrFixnum_new(yyvm, atoi(yytext)); }
-ID      = < [a-z]+ >                      { $$ = TrSymbol_new(yyvm, yytext); }
+ID      = < [a-z]+ >                      { $$ = TrSymbol_new(yyvm, yytext) }
+NUMBER  = < [0-9]+ >                      { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
+SYMBOL  = ':' ID
+STRING2 = '"' < [^\"]* > '"'              { $$ = TrString_new2(yyvm, yytext) }
+STRING1 = '\'' < [^\']* > '\''            { $$ = TrString_new2(yyvm, yytext) }
 
 -       = [ \t]*
-space   = [ ]+
+SPACE   = [ ]+
 SEP     = - ('\n' | '\r\n' | '\r' | ';')  { compiler->line++; }
 
 %%
