@@ -15,7 +15,7 @@
 #define NODE3(T,A,B,C)       TrNode_new(compiler->vm, AST_##T, (A), (B), (C), compiler->line)
 #define NODES(I)             TrArray_new2(compiler->vm, 1, (I))
 #define NODES_N(N,I...)      TrArray_new2(compiler->vm, (N), ##I)
-#define PUSH(A,N)            (({ TR_ARRAY_PUSH((A), (N)); }), A)
+#define PUSH_NODE(A,N)       TR_ARRAY_PUSH((A),(N))
 #define SYMCAT(A,B)          tr_intern(strcat(TR_STR_PTR(A), TR_STR_PTR(B)))
 
 /* This provides the compiler about branch hints, so it
@@ -76,6 +76,7 @@ typedef struct {
   TrBlock *block;
   size_t reg;
   OBJ node;
+  OBJ stms;
 } TrCompiler;
 
 /* node */

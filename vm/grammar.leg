@@ -2,17 +2,73 @@
 #include <stdlib.h>    /* atoi() */
 #include "tr.h"
 #include "internal.h"
+
+#ifdef __DEBUG__
+#define YY_DEBUG 1
+#endif
+
+#define YYSTYPE OBJ
+#define yyvm    compiler->vm
+
+static char *charbuf;
+static TrCompiler *compiler;
+
+#define YY_INPUT(buf, result, max_size) { \
+  int yyc; \
+  if (charbuf && *charbuf != '\0') \
+    yyc= *charbuf++; \
+  else \
+    yyc= EOF; \
+  result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1); \
+}
+
 %}
 
-Value   = i:NUMBER    { printf("%d\n", i); }
+Stmt    = - exp:Expr SEP*                 { PUSH_NODE(compiler->stms, exp) }
+        | ( !SEP . )* SEP                 { VM = yyvm; tr_raise("SyntaxError\n"); }
 
-NUMBER  = < [0-9]+ >  { $$ = atoi(yytext); }
+Expr    = Value
+        | Call
+
+Call    = m:Message                       { $$ = NODE2(SEND, 0, m); }
+
+Message = m:ID ('(' args:Args? ')'
+               | space args:Args
+               )?                         { $$ = NODE2(MSG, m, args); }
+
+Arg     = - v:Value -
+
+Args    = args:Arg                        { args = NODES(args) }
+          (',' x:Arg                      { PUSH_NODE(args, x) }
+          )*                              { $$ = args }
+
+Value   = n:NUMBER                        { $$ = NODE(VALUE, n); }
+
+NUMBER  = < [0-9]+ >                      { $$ = TrFixnum_new(yyvm, atoi(yytext)); }
+ID      = < [a-z]+ >                      { $$ = TrSymbol_new(yyvm, yytext); }
+
+-       = [ \t]*
+space   = [ ]+
+SEP     = - ('\n' | '\r\n' | '\r' | ';')  { compiler->line++; }
 
 %%
 
 TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
-  while (yyparse())
-    ;
-  exit(0);
-  return 0;
+  assert(!compiler && "parser not reentrant");
+  charbuf = code;
+  compiler = TrCompiler_new(vm, fn);
+  compiler->line += lineno;
+  compiler->filename = TrString_new2(vm, fn);
+  compiler->stms = NODES_N(0);
+  compiler->node = NODE(ROOT, compiler->stms);
+
+  while (yyparse());
+
+  TrCompiler_compile(compiler);
+  
+  TrBlock *b = compiler->block;
+  charbuf = 0;
+  compiler = 0;
+  
+  return b;
 }

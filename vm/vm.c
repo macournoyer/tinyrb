@@ -285,7 +285,10 @@ OBJ TrVM_load(VM, char *filename) {
 }
 
 void TrVM_raise(VM, OBJ exception) {
-  if (vm->debug) assert(0);
+  if (vm->debug) {
+    printf("%s\n", TR_STR_PTR(exception));
+    assert(0);
+  }
   vm->exception = exception;
   if (vm->cf == -1)
     TrVM_rescue(vm);
@@ -356,7 +359,7 @@ TrVM *TrVM_new() {
   vm->self = TrObject_new(vm);
   vm->cf = -1;
   
-  TrVM_load(vm, "lib/boot.rb");
+  /* TrVM_load(vm, "lib/boot.rb"); */
   
   return vm;
 }
