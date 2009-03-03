@@ -3,9 +3,7 @@
 #include "tr.h"
 #include "internal.h"
 
-#ifdef __DEBUG__
-#define YY_DEBUG 1
-#endif
+/* #define YY_DEBUG 1 */
 
 #define YYSTYPE OBJ
 #define yyvm    compiler->vm
@@ -24,13 +22,20 @@ static TrCompiler *compiler;
 
 %}
 
-Stmt    = - exp:Expr SEP*                 { PUSH_NODE(compiler->stms, exp) }
-        | ( !SEP . )* SEP                 { VM = yyvm; tr_raise("SyntaxError\n") }
+Stmt    = - exp:Expr SEP                  { PUSH_NODE(compiler->stms, exp) }
+        | ( !SEP . )* SEP 
+        { 
+          VM = yyvm;
+          yybuf[yypos] = '\0';
+          tr_raise("SyntaxError at line %d, while parsing: `%s'\n", compiler->line, yybuf)
+        }
 
-Expr    = Value
-        | Call
+Expr    = Call
+        | Value
+        | '(' Expr ')'
 
 Call    = m:Message                       { $$ = NODE2(SEND, 0, m) }
+        | rcv:Value '.' m:Message         { $$ = NODE2(SEND, rcv, m) }
 
 Message = m:ID ('(' args:Args? ')'
                | SPACE args:Args
@@ -47,7 +52,7 @@ Value   = v:NUMBER                        { $$ = NODE(VALUE, v) }
         | v:STRING1                       { $$ = NODE(STRING, v) }
         | v:STRING2                       { $$ = NODE(STRING, v) }
 
-ID      = < [a-z]+ >                      { $$ = TrSymbol_new(yyvm, yytext) }
+ID      = < [a-z_] [a-zA-Z0-9_]* >        { $$ = TrSymbol_new(yyvm, yytext) }
 NUMBER  = < [0-9]+ >                      { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
 SYMBOL  = ':' ID
 STRING2 = '"' < [^\"]* > '"'              { $$ = TrString_new2(yyvm, yytext) }
@@ -55,7 +60,8 @@ STRING1 = '\'' < [^\']* > '\''            { $$ = TrString_new2(yyvm, yytext) }
 
 -       = [ \t]*
 SPACE   = [ ]+
-SEP     = - ('\n' | '\r\n' | '\r' | ';')  { compiler->line++; }
+CR      = '\n' | '\r\n' | '\r'            { compiler->line++; }
+SEP     = - (CR | ';')+
 
 %%
 

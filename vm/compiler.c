@@ -122,7 +122,7 @@ static int TrBlock_local(TrBlock *blk, OBJ name) {
 
 TrCompiler *TrCompiler_new(VM, const char *fn) {
   TrCompiler *c = TR_ALLOC(TrCompiler);
-  c->line = 0;
+  c->line = 1;
   c->vm = vm;
   c->block = TrBlock_new(c);
   c->reg = 0;
