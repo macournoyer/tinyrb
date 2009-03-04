@@ -22,45 +22,53 @@ static TrCompiler *compiler;
 
 %}
 
-Stmt    = - exp:Expr SEP                  { PUSH_NODE(compiler->stms, exp) }
-        | ( !SEP . )* SEP 
-        { 
-          VM = yyvm;
-          yybuf[yypos] = '\0';
-          tr_raise("SyntaxError at line %d, while parsing: `%s'\n", compiler->line, yybuf)
-        }
+Root      = s:Stmt EOF                      { compiler->node = NODE(ROOT, s) }
+          | ( !SEP . )* SEP 
+          { 
+            VM = yyvm;
+            tr_raise("SyntaxError at line %d, while parsing: `%s'\n", compiler->line, yybuf)
+          }
 
-Expr    = Call
-        | Value
-        | '(' Expr ')'
+Stmt      = - stmt:Expr                     { stmt = NODES(stmt) }
+            (SEP - exp:Expr                 { PUSH_NODE(stmt, exp) }
+            )* SEP?                         { $$ = stmt }
 
-Call    = (rcv:Value '.')? msg:Message    { $$ = NODE2(SEND, rcv, msg) }
+Expr      = Call
+          | Value
+          | '(' Expr ')'
 
-Message = m:ID ('(' args:Args? ')'
-               | SPACE args:Args
-               )?                         { $$ = NODE2(MSG, m, args) }
+Receiver  = '.' Call
+          | Value
+          | '(' Receiver ')'
 
-Arg     = - v:Expr -
+Call      = (rcv:Receiver '.')? msg:Message { $$ = NODE2(SEND, rcv, msg) }
 
-Args    = args:Arg                        { args = NODES(args) }
-          (',' x:Arg                      { PUSH_NODE(args, x) }
-          )*                              { $$ = args }
+Message   = m:ID ('(' args:Args? ')'
+                 | SPACE args:Args
+                 )?                         { $$ = NODE2(MSG, m, args) }
 
-Value   = v:NUMBER                        { $$ = NODE(VALUE, v) }
-        | v:SYMBOL                        { $$ = NODE(VALUE, v) }
-        | v:STRING1                       { $$ = NODE(STRING, v) }
-        | v:STRING2                       { $$ = NODE(STRING, v) }
+Arg       = - v:Expr -
 
-ID      = < [a-z_] [a-zA-Z0-9_]* >        { $$ = TrSymbol_new(yyvm, yytext) }
-NUMBER  = < [0-9]+ >                      { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
-SYMBOL  = ':' ID
-STRING2 = '"' < [^\"]* > '"'              { $$ = TrString_new2(yyvm, yytext) }
-STRING1 = '\'' < [^\']* > '\''            { $$ = TrString_new2(yyvm, yytext) }
+Args      = args:Arg                        { args = NODES(args) }
+            (',' x:Arg                      { PUSH_NODE(args, x) }
+            )*                              { $$ = args }
 
--       = [ \t]*
-SPACE   = [ ]+
-CR      = '\n' | '\r\n' | '\r'            { compiler->line++; }
-SEP     = - (CR | ';')+
+Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
+          | v:SYMBOL                        { $$ = NODE(VALUE, v) }
+          | v:STRING1                       { $$ = NODE(STRING, v) }
+          | v:STRING2                       { $$ = NODE(STRING, v) }
+
+ID        = < [a-z_] [a-zA-Z0-9_]* >        { $$ = TrSymbol_new(yyvm, yytext) }
+NUMBER    = < [0-9]+ >                      { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
+SYMBOL    = ':' ID
+STRING2   = '"' < [^\"]* > '"'              { $$ = TrString_new2(yyvm, yytext) }
+STRING1   = '\'' < [^\']* > '\''            { $$ = TrString_new2(yyvm, yytext) }
+
+-         = [ \t]*
+SPACE     = [ ]+
+EOL       = '\n' | '\r\n' | '\r'            { compiler->line++; }
+EOF       = !.
+SEP       = - (EOL | ';')+
 
 %%
 
@@ -70,8 +78,6 @@ TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
   compiler = TrCompiler_new(vm, fn);
   compiler->line += lineno;
   compiler->filename = TrString_new2(vm, fn);
-  compiler->stms = NODES_N(0);
-  compiler->node = NODE(ROOT, compiler->stms);
 
   while (yyparse());
 

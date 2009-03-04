@@ -29,6 +29,8 @@ Compile tinyrb:
   ./tinyrb -h
 
 == What WON'T be in tinyrb
+* for
+* if ... do, while ... do, etc
 * alias keyword (see alias_method)
 * undef keyword (see undefine_method)
 * throw, catch

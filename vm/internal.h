@@ -76,7 +76,6 @@ typedef struct {
   TrBlock *block;
   size_t reg;
   OBJ node;
-  OBJ stms;
 } TrCompiler;
 
 /* node */
