@@ -124,11 +124,11 @@ KHASH_MAP_INIT_STR(str, OBJ);
 KHASH_MAP_INIT_INT(OBJ, OBJ);
 
 typedef enum {
-  TR_T_Object, TR_T_Module, TR_T_Class, TR_T_Method, TR_T_Binding,
-  TR_T_Symbol, TR_T_String, TR_T_Fixnum, TR_T_Range,
-  TR_T_NilClass, TR_T_TrueClass, TR_T_FalseClass,
-  TR_T_Array, TR_T_Hash,
-  TR_T_Node,
+  /*  0 */ TR_T_Object, TR_T_Module, TR_T_Class, TR_T_Method, TR_T_Binding,
+  /*  5 */ TR_T_Symbol, TR_T_String, TR_T_Fixnum, TR_T_Range,
+  /*  9 */ TR_T_NilClass, TR_T_TrueClass, TR_T_FalseClass,
+  /* 12 */ TR_T_Array, TR_T_Hash,
+  /* 14 */ TR_T_Node,
   TR_T_MAX /* keep last */
 } TR_T;
 

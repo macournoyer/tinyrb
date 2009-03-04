@@ -23,7 +23,7 @@ static TrCompiler *compiler;
 %}
 
 Root      = s:Stmt EOF                      { compiler->node = NODE(ROOT, s) }
-          | ( !SEP . )* SEP 
+          | .
           { 
             VM = yyvm;
             tr_raise("SyntaxError at line %d, while parsing: `%s'\n", compiler->line, yybuf)
@@ -33,25 +33,26 @@ Stmt      = - stmt:Expr                     { stmt = NODES(stmt) }
             (SEP - exp:Expr                 { PUSH_NODE(stmt, exp) }
             )* SEP?                         { $$ = stmt }
 
-Expr      = Call
+Expr      = Assign
+          | Call
           | Value
           | '(' Expr ')'
 
-Receiver  = '.' Call
-          | Value
-          | '(' Receiver ')'
+Call      = (rcv:Value '.'
+            )? (rmsg:Message '.'            { rcv = NODE2(SEND, rcv, rmsg) }
+               )* msg:Message               { $$ = NODE2(SEND, rcv, msg) }
 
-Call      = (rcv:Receiver '.')? msg:Message { $$ = NODE2(SEND, rcv, msg) }
-
-Message   = m:ID ('(' args:Args? ')'
-                 | SPACE args:Args
-                 )?                         { $$ = NODE2(MSG, m, args) }
+Message   = name:ID ('(' args:Args? ')'
+                    | SPACE args:Args
+                    )?                      { $$ = NODE2(MSG, name, args) }
 
 Arg       = - v:Expr -
 
 Args      = args:Arg                        { args = NODES(args) }
-            (',' x:Arg                      { PUSH_NODE(args, x) }
+            (',' arg:Arg                    { PUSH_NODE(args, arg) }
             )*                              { $$ = args }
+
+Assign    = name:ID - '=' - val:Expr        { $$ = NODE2(ASSIGN, name, val) }
 
 Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | v:SYMBOL                        { $$ = NODE(VALUE, v) }
