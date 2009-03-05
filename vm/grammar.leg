@@ -41,7 +41,7 @@ Expr      = Assign
           | Value
           | '(' Expr ')'
 
-Comment   = - '#' [^\n]*
+Comment   = - '#' [^\n]*                    # HACK (!EOL)* cause a hang
 
 Call      = ( rcv:Value '.'
             )? ( rmsg:Message '.'           { rcv = NODE2(SEND, rcv, rmsg) }
