@@ -43,15 +43,17 @@ Expr      = Assign
 
 Comment   = - '#' [^\n]*                    # HACK (!EOL)* cause a hang
 
-Call      = ( rcv:Value '.'
+Call      =                                 { rcv = 0 }
+            ( rcv:Value '.'
             )? ( rmsg:Message '.'           { rcv = NODE2(SEND, rcv, rmsg) }
                )* msg:Message               { $$ = NODE2(SEND, rcv, msg) }
 
-OpCall    = ( rcv:Call
+OpCall    =                                 { rcv = 0 }
+            ( rcv:Call
             | rcv:Value
             ) - op:OP - arg:Expr            { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(arg))) }
 
-Message   = name:ID                         { args = 0 } # HACK wth? this is not reseted?
+Message   = name:ID                         { args = 0 }
                     ( '(' args:Args? ')'
                     | SPACE args:Args       
                     )?                      { $$ = NODE2(MSG, name, args) }
@@ -71,7 +73,7 @@ Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
 
 ID        = < [a-z_] [a-zA-Z0-9_]* >        { $$ = TrSymbol_new(yyvm, yytext) }
 OP        = < ('+' | '-' | '*') >           { $$ = TrSymbol_new(yyvm, yytext) }
-NUMBER    = < [0-9]+ >                      { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
+NUMBER    = < '-'? [0-9]+ >                 { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
 SYMBOL    = ':' ID
 STRING2   = '"' < [^\"]* > '"'              { $$ = TrString_new2(yyvm, yytext) }
 STRING1   = '\'' < [^\']* > '\''            { $$ = TrString_new2(yyvm, yytext) }

@@ -358,7 +358,8 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       PUSH_OP_ABx(b, SETCONST, reg, TrBlock_pushk(b, n->args[0]));
       break;
     default:
-      printf("unknown node type: %d\n", n->ntype);
+      printf("Compiler: unknown node type: %d\n", n->ntype);
+      if (vm->debug) assert(0);
   }
 }
 

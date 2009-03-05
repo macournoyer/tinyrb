@@ -15,5 +15,5 @@ puts x
 # => 7
 
 # FIXME
-# puts 1.to_s + 2.to_s
-# # => 12
+puts 1.to_s + 2.to_s
+# => 12
