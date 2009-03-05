@@ -275,12 +275,14 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     case AST_WHILE:
     case AST_UNTIL: {
       size_t jmp_beg = kv_size(b->code);
+      /* condition */
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[0], reg);
       if (n->ntype == AST_WHILE)
         PUSH_OP_ABx(b, JMPUNLESS, reg, 0);
       else
         PUSH_OP_ABx(b, JMPIF, reg, 0);
       size_t jmp_end = kv_size(b->code);
+      /* body */
       TR_ARRAY_EACH(n->args[1], i, v, {
         TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg);
       });

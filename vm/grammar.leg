@@ -39,6 +39,8 @@ Expr      = Assign
           | OpCall
           | Call
           | Value
+          | While
+          | Until
           | '(' Expr ')'
 
 Comment   = - '#' [^\n]*                    # HACK (!EOL)* cause a hang
@@ -66,13 +68,25 @@ Args      = args:Arg                        { args = NODES(args) }
 
 Assign    = name:ID - '=' - val:Expr        { $$ = NODE2(ASSIGN, name, val) }
 
+While     = 'while' - cond:Expr SEP
+              body:Stmt -
+            'end'                           { $$ = NODE2(WHILE, cond, body) }
+
+Until     = 'until' - cond:Expr SEP
+              body:Stmt -
+            'end'                           { $$ = NODE2(UNTIL, cond, body) }
+
 Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | v:SYMBOL                        { $$ = NODE(VALUE, v) }
           | v:STRING1                       { $$ = NODE(STRING, v) }
           | v:STRING2                       { $$ = NODE(STRING, v) }
 
-ID        = < [a-z_] [a-zA-Z0-9_]* >        { $$ = TrSymbol_new(yyvm, yytext) }
-OP        = < ('+' | '-' | '*') >           { $$ = TrSymbol_new(yyvm, yytext) }
+KEYWORD   = 'while' | 'until' | 'end'
+ID        = !KEYWORD
+            < [a-z_] [a-zA-Z0-9_]* >        { $$ = TrSymbol_new(yyvm, yytext) }
+OP        = < ('+' | '-' | '*' | '/' | '%' | '**' |
+               '<' | '>' | '<=' | '>=' | '=='
+              ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
 NUMBER    = < '-'? [0-9]+ >                 { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
 SYMBOL    = ':' ID
 STRING2   = '"' < [^\"]* > '"'              { $$ = TrString_new2(yyvm, yytext) }
