@@ -132,7 +132,7 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 }
 
 void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
-  assert(n && "nil node");
+  if (!n) return;
   if (reg >= b->regc) b->regc++;
   b->line = n->line;
   /* TODO this shit is very repetitive, need to refactor */
