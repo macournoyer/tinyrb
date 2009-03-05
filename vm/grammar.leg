@@ -3,7 +3,7 @@
 #include "tr.h"
 #include "internal.h"
 
-/* #define YY_DEBUG 1 */
+/*#define YY_DEBUG 1*/
 
 #define YYSTYPE OBJ
 #define yyvm    compiler->vm
@@ -35,21 +35,26 @@ Stmt      = - stmt:Expr                     { stmt = NODES(stmt) }
 
 Expr      = Assign
           | Call
+          | OpCall
           | Value
           | '(' Expr ')'
 
-Call      = (rcv:Value '.'
-            )? (rmsg:Message '.'            { rcv = NODE2(SEND, rcv, rmsg) }
+Call      = ( rcv:Value '.'
+            )? ( rmsg:Message '.'           { rcv = NODE2(SEND, rcv, rmsg) }
                )* msg:Message               { $$ = NODE2(SEND, rcv, msg) }
 
-Message   = name:ID ('(' args:Args? ')'
-                    | SPACE args:Args
-                    )?                      { $$ = NODE2(MSG, name, args) }
+OpCall    = ( rcv:Call
+            | rcv:Value
+            ) - op:OP - arg:Expr            { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(arg))) }
 
-Arg       = - v:Expr -
+Message   = name:ID ( '(' args:Args? ')'
+                    | SPACE args:Args       # HACK bug in peg/leg? args is sometimes a random pointer
+                    )?                      { VM = yyvm; $$ = NODE2(MSG, name, TR_IS_A(args,Array) ? args : 0) }
+
+Arg       = - Expr -
 
 Args      = args:Arg                        { args = NODES(args) }
-            (',' arg:Arg                    { PUSH_NODE(args, arg) }
+            ( ',' arg:Arg                   { PUSH_NODE(args, arg) }
             )*                              { $$ = args }
 
 Assign    = name:ID - '=' - val:Expr        { $$ = NODE2(ASSIGN, name, val) }
@@ -60,6 +65,7 @@ Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | v:STRING2                       { $$ = NODE(STRING, v) }
 
 ID        = < [a-z_] [a-zA-Z0-9_]* >        { $$ = TrSymbol_new(yyvm, yytext) }
+OP        = < ('+' | '-' | '*') >           { $$ = TrSymbol_new(yyvm, yytext) }
 NUMBER    = < [0-9]+ >                      { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
 SYMBOL    = ':' ID
 STRING2   = '"' < [^\"]* > '"'              { $$ = TrString_new2(yyvm, yytext) }
