@@ -41,6 +41,8 @@ Expr      = Assign
           | Value
           | While
           | Until
+          | If
+          | Unless
           | '(' Expr ')'
 
 Comment   = - '#' [^\n]*                    # HACK (!EOL)* cause a hang
@@ -76,19 +78,33 @@ Until     = 'until' - cond:Expr SEP
               body:Stmt -
             'end'                           { $$ = NODE2(UNTIL, cond, body) }
 
+If        = 'if' - cond:Expr SEP
+              body:Stmt -
+            'end'                           { $$ = NODE2(IF, cond, body) }
+
+Unless    = 'unless' - cond:Expr SEP
+              body:Stmt -
+            'end'                           { $$ = NODE2(UNLESS, cond, body) }
+
 Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | v:SYMBOL                        { $$ = NODE(VALUE, v) }
           | v:STRING1                       { $$ = NODE(STRING, v) }
           | v:STRING2                       { $$ = NODE(STRING, v) }
+          | 'nil'                           { $$ = NODE(NIL, 0) }
+          | 'true'                          { $$ = NODE(BOOL, 1) }
+          | 'false'                         { $$ = NODE(BOOL, 0) }
 
-KEYWORD   = 'while' | 'until' | 'end'
+KEYWORD   = < ( 'while' | 'until' | 'end' |
+                'if' | 'unless' | 'do' |
+                'true' | 'false' | 'nil'
+              ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
 ID        = !KEYWORD
             < [a-z_] [a-zA-Z0-9_]* >        { $$ = TrSymbol_new(yyvm, yytext) }
-OP        = < ('+' | '-' | '*' | '/' | '%' | '**' |
-               '<' | '>' | '<=' | '>=' | '=='
+OP        = < ( '+' | '-' | '*' | '/' | '%' | '**' |
+                '<' | '>' | '<=' | '>=' | '=='
               ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
 NUMBER    = < '-'? [0-9]+ >                 { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
-SYMBOL    = ':' ID
+SYMBOL    = ':' (ID | KEYWORD)
 STRING2   = '"' < [^\"]* > '"'              { $$ = TrString_new2(yyvm, yytext) }
 STRING1   = '\'' < [^\']* > '\''            { $$ = TrString_new2(yyvm, yytext) }
 
