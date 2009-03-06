@@ -35,16 +35,19 @@ Stmts     = (Comment SEP)?
             | SEP - Comment
             )* SEP?                         { $$ = head }
 
-Stmt      = Assign
-          | While
+Stmt      = While
           | Until
           | If
           | Unless
           | Def
+          | Class
+          | Module
           | Expr
           | '(' Stmt ')'
 
-Expr      = OpCall
+Expr      = Assign
+          | AsgnCall
+          | OpCall
           | SpecCall
           | Call
           | Value
@@ -65,6 +68,10 @@ SpecCall  = rcv:Receiver '[' args:Args ']'
             - ASSIGN - val:Stmt             { PUSH_NODE(args, val); $$ = NODE2(SEND, rcv, NODE2(MSG, TrSymbol_new(yyvm, "[]="), args)) }
           | rcv:Receiver '[' args:Args ']'  { $$ = NODE2(SEND, rcv, NODE2(MSG, TrSymbol_new(yyvm, "[]"), args)) }
 
+# TODO
+AsgnCall  = rcv:Receiver '.' msg:ID -
+              asg:ASSIGN - val:Stmt         { VM = yyvm; $$ = NODE2(SEND, rcv, NODE2(MSG, SYMCAT(msg, asg), NODES(val))) }
+
 OpCall    = (rcv:SpecCall | rcv:Receiver)
             - op:OP - arg:Expr              { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(arg))) }
 
@@ -80,6 +87,7 @@ Args      = args:Arg                        { args = NODES(args) }
             )*                              { $$ = args }
 
 Assign    = name:ID - ASSIGN - val:Stmt     { $$ = NODE2(ASSIGN, name, val) }
+          | name:CONST - ASSIGN - val:Stmt  { $$ = NODE2(SETCONST, name, val) }
 
 While     = 'while' SPACE cond:Expr SEP
               body:Stmts -
@@ -116,10 +124,20 @@ Params    = head:Param                      { head = NODES(head) }
 Param     = - name:ID -                     { $$ = NODE(PARAM, name) }
           | - '*' name:ID -                 { $$ = NODE2(PARAM, name, 1) }
 
+Class     = 'class' SPACE name:CONST        { super = 0 }
+            (- '<' - super:CONST)? SEP
+              body:Stmts -
+            'end'                           { $$ = NODE3(CLASS, name, super, body) }
+
+Module    = 'module' SPACE name:CONST
+              body:Stmts -
+            'end'                           { $$ = NODE3(MODULE, name, 0, body) }
+
 Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | v:SYMBOL                        { $$ = NODE(VALUE, v) }
           | v:STRING1                       { $$ = NODE(STRING, v) }
           | v:STRING2                       { $$ = NODE(STRING, v) }
+          | v:CONST                         { $$ = NODE(CONST, v) }
           | 'nil'                           { $$ = NODE(NIL, 0) }
           | 'true'                          { $$ = NODE(BOOL, 1) }
           | 'false'                         { $$ = NODE(BOOL, 0) }
@@ -135,13 +153,14 @@ KEYWORD   = < ( 'while' | 'until' | 'do' | 'end' |
               ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
 ID        = kw:KEYWORD &('.' | '(' | '[')   { $$ = kw } # hm, there's probably a better way
           | !KEYWORD
-            < [a-z_] [a-zA-Z0-9_]* >        { $$ = TrSymbol_new(yyvm, yytext) }
-#CONST     = < [A-Z] [a-zA-Z0-9_]* >         { $$ = TrSymbol_new(yyvm, yytext) }
+            < [a-z_] [a-zA-Z0-9_]*
+              ( '=' | '!'| '?' )? >         { $$ = TrSymbol_new(yyvm, yytext) }
+CONST     = < [A-Z] [a-zA-Z0-9_]* >         { $$ = TrSymbol_new(yyvm, yytext) }
 OP        = < ( '+' | '-' | '*' | '/' | '%' | '**' |
                 '==' | '===' | '<<' | '>>' |
                 '<' | '>' | '<=' | '>='
               ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
-ASSIGN    = '=' &(!'=')
+ASSIGN    = < '=' > &(!'=')                 { $$ = TrSymbol_new(yyvm, yytext) }
 NUMBER    = < '-'? [0-9]+ >                 { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
 SYMBOL    = ':' (ID | KEYWORD)
 STRING1   = '\'' < [^\']* > '\''            { $$ = TrString_new2(yyvm, yytext) }
