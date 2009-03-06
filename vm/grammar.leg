@@ -88,6 +88,9 @@ Args      = args:Arg                        { args = NODES(args) }
 
 Assign    = name:ID - ASSIGN - val:Stmt     { $$ = NODE2(ASSIGN, name, val) }
           | name:CONST - ASSIGN - val:Stmt  { $$ = NODE2(SETCONST, name, val) }
+          | name:IVAR - ASSIGN - val:Stmt   { $$ = NODE2(SETIVAR, name, val) }
+          | name:CVAR - ASSIGN - val:Stmt   { $$ = NODE2(SETCVAR, name, val) }
+          | name:GLOBAL - ASSIGN - val:Stmt { $$ = NODE2(SETGLOBAL, name, val) }
 
 While     = 'while' SPACE cond:Expr SEP
               body:Stmts -
@@ -129,7 +132,7 @@ Class     = 'class' SPACE name:CONST        { super = 0 }
               body:Stmts -
             'end'                           { $$ = NODE3(CLASS, name, super, body) }
 
-Module    = 'module' SPACE name:CONST
+Module    = 'module' SPACE name:CONST SEP
               body:Stmts -
             'end'                           { $$ = NODE3(MODULE, name, 0, body) }
 
@@ -142,6 +145,9 @@ Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | 'true'                          { $$ = NODE(BOOL, 1) }
           | 'false'                         { $$ = NODE(BOOL, 0) }
           | 'self'                          { $$ = NODE(SELF, 0) }
+          | name:IVAR                       { $$ = NODE(GETIVAR, name) }
+          | name:CVAR                       { $$ = NODE(GETCVAR, name) }
+          | name:GLOBAL                     { $$ = NODE(GETGLOBAL, name) }
           | '[]'                            { $$ = NODE(ARRAY, NODES_N(0)) }
           | '[' items:Args ']'              { $$ = NODE(ARRAY, items) }
           | '(' Expr ')'
@@ -149,7 +155,7 @@ Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
 KEYWORD   = < ( 'while' | 'until' | 'do' | 'end' |
                 'if' | 'unless' | 'else' |
                 'true' | 'false' | 'nil' | 'self' |
-                'class' | 'def'
+                'class' | 'module' | 'def'
               ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
 ID        = kw:KEYWORD &('.' | '(' | '[')   { $$ = kw } # hm, there's probably a better way
           | !KEYWORD
@@ -161,6 +167,9 @@ OP        = < ( '+' | '-' | '*' | '/' | '%' | '**' |
                 '<' | '>' | '<=' | '>='
               ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
 ASSIGN    = < '=' > &(!'=')                 { $$ = TrSymbol_new(yyvm, yytext) }
+IVAR      = < '@' ID >                      { $$ = TrSymbol_new(yyvm, yytext) }
+CVAR      = < '@@' ID >                     { $$ = TrSymbol_new(yyvm, yytext) }
+GLOBAL    = < '$' ID >                      { $$ = TrSymbol_new(yyvm, yytext) }
 NUMBER    = < '-'? [0-9]+ >                 { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
 SYMBOL    = ':' (ID | KEYWORD)
 STRING1   = '\'' < [^\']* > '\''            { $$ = TrString_new2(yyvm, yytext) }
