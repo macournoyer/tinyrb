@@ -22,28 +22,32 @@ static TrCompiler *compiler;
 
 %}
 
-Root      = s:Stmt EOF                      { compiler->node = NODE(ROOT, s) }
+Root      = s:Stmts EOF                     { compiler->node = NODE(ROOT, s) }
           | .
           { 
             VM = yyvm;
             tr_raise("SyntaxError at line %d, while parsing: `%s'\n", compiler->line, yybuf)
           }
 
-Stmt      = (Comment SEP)?
-            - stmt:Expr Comment?            { stmt = NODES(stmt) }
-            ( SEP - exp:Expr Comment?       { PUSH_NODE(stmt, exp) }
+Stmts     = (Comment SEP)?
+            - head:Stmt Comment?            { head = NODES(head) }
+            ( SEP - tail:Stmt Comment?      { PUSH_NODE(head, tail) }
             | SEP - Comment
-            )* SEP?                         { $$ = stmt }
+            )* SEP?                         { $$ = head }
 
-Expr      = Assign
-          | OpCall
-          | Call
-          | Value
+Stmt      = Assign
           | While
           | Until
           | If
           | Unless
-          | '(' Expr ')'
+          | Def
+          | Expr
+          | '(' Stmt ')'
+
+Expr      = OpCall
+          | SpecCall
+          | Call
+          | Value
 
 Comment   = - '#' [^\n]*                    # HACK (!EOL)* cause a hang
 
@@ -52,10 +56,17 @@ Call      =                                 { rcv = 0 }
             )? ( rmsg:Message '.'           { rcv = NODE2(SEND, rcv, rmsg) }
                )* msg:Message               { $$ = NODE2(SEND, rcv, msg) }
 
-OpCall    =                                 { rcv = 0 }
-            ( rcv:Call
+Receiver  = (                               { rcv = 0 }
+              rcv:Call
             | rcv:Value
-            ) - op:OP - arg:Expr            { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(arg))) }
+            )                               { $$ = rcv }
+
+SpecCall  = rcv:Receiver '[' args:Args ']'  
+            - ASSIGN - val:Stmt             { PUSH_NODE(args, val); $$ = NODE2(SEND, rcv, NODE2(MSG, TrSymbol_new(yyvm, "[]="), args)) }
+          | rcv:Receiver '[' args:Args ']'  { $$ = NODE2(SEND, rcv, NODE2(MSG, TrSymbol_new(yyvm, "[]"), args)) }
+
+OpCall    = (rcv:SpecCall | rcv:Receiver)
+            - op:OP - arg:Expr              { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(arg))) }
 
 Message   = name:ID                         { args = 0 }
                     ( '(' args:Args? ')'
@@ -68,23 +79,42 @@ Args      = args:Arg                        { args = NODES(args) }
             ( ',' arg:Arg                   { PUSH_NODE(args, arg) }
             )*                              { $$ = args }
 
-Assign    = name:ID - '=' - val:Expr        { $$ = NODE2(ASSIGN, name, val) }
+Assign    = name:ID - ASSIGN - val:Stmt     { $$ = NODE2(ASSIGN, name, val) }
 
-While     = 'while' - cond:Expr SEP
-              body:Stmt -
+While     = 'while' SPACE cond:Expr SEP
+              body:Stmts -
             'end'                           { $$ = NODE2(WHILE, cond, body) }
 
-Until     = 'until' - cond:Expr SEP
-              body:Stmt -
+Until     = 'until' SPACE cond:Expr SEP
+              body:Stmts -
             'end'                           { $$ = NODE2(UNTIL, cond, body) }
 
-If        = 'if' - cond:Expr SEP
-              body:Stmt -
-            'end'                           { $$ = NODE2(IF, cond, body) }
+If        = 'if' SPACE cond:Expr SEP            { else_body = 0 }
+              body:Stmts -
+            else_body:Else?
+            'end'                           { $$ = NODE3(IF, cond, body, else_body) }
+          | body:Expr - 'if' - cond:Expr    { $$ = NODE2(IF, cond, NODES(body)) }
 
-Unless    = 'unless' - cond:Expr SEP
-              body:Stmt -
-            'end'                           { $$ = NODE2(UNLESS, cond, body) }
+Unless    = 'unless' SPACE cond:Expr SEP    { else_body = 0 }
+              body:Stmts -
+            else_body:Else?
+            'end'                           { $$ = NODE3(UNLESS, cond, body, else_body) }
+          | body:Expr -
+              'unless' - cond:Expr          { $$ = NODE2(UNLESS, cond, NODES(body)) }
+
+Else      = 'else' SEP - body:Stmts -       { $$ = body }
+
+Def       = 'def' SPACE name:ID             { params = 0 }
+            (- '(' params:Params? ')')? SEP
+              body:Stmts -
+            'end'                           { $$ = NODE3(DEF, name, params ? params : NODES_N(0), body) }
+
+Params    = head:Param                      { head = NODES(head) }
+            ( ',' tail:Param                { PUSH_NODE(head, tail) }
+            )*                              { $$ = head }
+
+Param     = - name:ID -                     { $$ = NODE(PARAM, name) }
+          | - '*' name:ID -                 { $$ = NODE2(PARAM, name, 1) }
 
 Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | v:SYMBOL                        { $$ = NODE(VALUE, v) }
@@ -93,20 +123,29 @@ Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | 'nil'                           { $$ = NODE(NIL, 0) }
           | 'true'                          { $$ = NODE(BOOL, 1) }
           | 'false'                         { $$ = NODE(BOOL, 0) }
+          | 'self'                          { $$ = NODE(SELF, 0) }
+          | '[]'                            { $$ = NODE(ARRAY, NODES_N(0)) }
+          | '[' items:Args ']'              { $$ = NODE(ARRAY, items) }
+          | '(' Expr ')'
 
-KEYWORD   = < ( 'while' | 'until' | 'end' |
-                'if' | 'unless' | 'do' |
-                'true' | 'false' | 'nil'
+KEYWORD   = < ( 'while' | 'until' | 'do' | 'end' |
+                'if' | 'unless' | 'else' |
+                'true' | 'false' | 'nil' | 'self' |
+                'class' | 'def'
               ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
-ID        = !KEYWORD
+ID        = kw:KEYWORD &('.' | '(' | '[')   { $$ = kw } # hm, there's probably a better way
+          | !KEYWORD
             < [a-z_] [a-zA-Z0-9_]* >        { $$ = TrSymbol_new(yyvm, yytext) }
+#CONST     = < [A-Z] [a-zA-Z0-9_]* >         { $$ = TrSymbol_new(yyvm, yytext) }
 OP        = < ( '+' | '-' | '*' | '/' | '%' | '**' |
-                '<' | '>' | '<=' | '>=' | '=='
+                '==' | '===' | '<<' | '>>' |
+                '<' | '>' | '<=' | '>='
               ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
+ASSIGN    = '=' &(!'=')
 NUMBER    = < '-'? [0-9]+ >                 { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
 SYMBOL    = ':' (ID | KEYWORD)
-STRING2   = '"' < [^\"]* > '"'              { $$ = TrString_new2(yyvm, yytext) }
 STRING1   = '\'' < [^\']* > '\''            { $$ = TrString_new2(yyvm, yytext) }
+STRING2   = '"' < [^\"]* > '"'              { $$ = TrString_new2(yyvm, yytext) }
 
 -         = [ \t]*
 SPACE     = [ ]+

@@ -16,11 +16,11 @@ unless nil
 end
 # => yay
 
-# puts :true if true
-# # => true
-# 
-# puts :nope unless true
-# # =>
+puts :true if true
+# => true
+
+puts :nope unless true
+# =>
 
 if false
   puts :nope
