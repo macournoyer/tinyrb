@@ -1,5 +1,5 @@
 %{
-#include <stdlib.h>    /* atoi() */
+#include <stdlib.h>
 #include "tr.h"
 #include "internal.h"
 
@@ -9,6 +9,8 @@
 #define yyvm    compiler->vm
 
 static char *charbuf;
+static OBJ sbuf;
+static size_t nbuf;
 static TrCompiler *compiler;
 
 #define YY_INPUT(buf, result, max_size) { \
@@ -19,6 +21,12 @@ static TrCompiler *compiler;
     yyc= EOF; \
   result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1); \
 }
+
+#define STRING_START sbuf = TrString_new3(yyvm, 4096); nbuf = 0
+#define STRING_PUSH(P,L) \
+  VM = yyvm; \
+  TR_MEMCPY_N(TR_STR_PTR(sbuf) + nbuf, (P), char, (L)); \
+  nbuf += (L)
 
 %}
 
@@ -46,7 +54,6 @@ Stmt      = While
           | Class
           | Module
           | Expr
-          | '(' Stmt ')'
 
 Expr      = Assign
           | AsgnCall
@@ -197,9 +204,9 @@ ID        = !'self'                         # self is special, can never be a me
 CONST     = < [A-Z] NAME? >                 { $$ = TrSymbol_new(yyvm, yytext) }
 OP        = < ( '&&' | '||' |
                 '**' | '^'  | '&'  | '|'  | '~' |
-                '+'  | '-'  | '*'  | '/'  | '%' |
+                '+'  | '-'  | '*'  | '/'  | '%' | '<=>' |
                 '<<' | '>>' | '==' | '=~' | '===' |
-                '<'  | '>'  | '<=' | '>=' | '<=>'
+                '<'  | '>'  | '<=' | '>='
               ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
 ASSIGN    = < '=' > &(!'=')                 { $$ = TrSymbol_new(yyvm, yytext) }
 IVAR      = < '@' NAME >                    { $$ = TrSymbol_new(yyvm, yytext) }
@@ -207,8 +214,24 @@ CVAR      = < '@@' NAME >                   { $$ = TrSymbol_new(yyvm, yytext) }
 GLOBAL    = < '$' NAME >                    { $$ = TrSymbol_new(yyvm, yytext) }
 NUMBER    = < '-'? [0-9]+ >                 { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
 SYMBOL    = ':' < (NAME | KEYWORD) >        { $$ = TrSymbol_new(yyvm, yytext) }
-STRING1   = '\'' < [^\']* > '\''            { $$ = TrString_new2(yyvm, yytext) }
-STRING2   = '"' < [^\"]* > '"'              { $$ = TrString_new2(yyvm, yytext) }
+
+STRING1   = '\''                            { STRING_START }
+            (
+              '\\\''                        { STRING_PUSH("'", 1) }
+            | < [^\'] >                     { STRING_PUSH(yytext, yyleng) }
+            )* '\''                         { $$ = sbuf }
+
+STRING2   = '"'                             { STRING_START }
+            (
+              '\\n'                         { STRING_PUSH("\n", 1) }
+            | '\\b'                         { STRING_PUSH("\b", 1) }
+            | '\\f'                         { STRING_PUSH("\f", 1) }
+            | '\\r'                         { STRING_PUSH("\r", 1) }
+            | '\\t'                         { STRING_PUSH("\t", 1) }
+            | '\\\"'                        { STRING_PUSH("\"", 1) }
+            | '\\\\'                        { STRING_PUSH("\\", 1) }
+            | < [^\"] >                     { STRING_PUSH(yytext, yyleng) }
+            )* '"'                          { $$ = sbuf }
 
 -         = [ \t]*
 SPACE     = [ ]+
