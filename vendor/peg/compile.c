@@ -359,7 +359,13 @@ static char *preamble= "\
 # define yyprintf(args)\n\
 #endif\n\
 #ifndef YYSTYPE\n\
-#define YYSTYPE	int\n\
+#define YYSTYPE int\n\
+#endif\n\
+#ifndef YYMALLOC\n\
+#define YYMALLOC malloc\n\
+#endif\n\
+#ifndef YYREALLOC\n\
+#define YYREALLOC realloc\n\
 #endif\n\
 \n\
 #ifndef YY_PART\n\
@@ -390,7 +396,7 @@ YY_LOCAL(int) yyrefill(void)\n\
   while (yybuflen - yypos < 512)\n\
     {\n\
       yybuflen *= 2;\n\
-      yybuf= realloc(yybuf, yybuflen);\n\
+      yybuf= YYREALLOC(yybuf, yybuflen);\n\
     }\n\
   YY_INPUT((yybuf + yypos), yyn, (yybuflen - yypos));\n\
   if (!yyn) return 0;\n\
@@ -455,7 +461,7 @@ YY_LOCAL(void) yyDo(yyaction action, int begin, int end)\n\
   while (yythunkpos >= yythunkslen)\n\
     {\n\
       yythunkslen *= 2;\n\
-      yythunks= realloc(yythunks, sizeof(yythunk) * yythunkslen);\n\
+      yythunks= YYREALLOC(yythunks, sizeof(yythunk) * yythunkslen);\n\
     }\n\
   yythunks[yythunkpos].begin=  begin;\n\
   yythunks[yythunkpos].end=    end;\n\
@@ -473,7 +479,7 @@ YY_LOCAL(int) yyText(int begin, int end)\n\
       while (yytextlen < (yyleng - 1))\n\
 	{\n\
 	  yytextlen *= 2;\n\
-	  yytext= realloc(yytext, yytextlen);\n\
+	  yytext= YYREALLOC(yytext, yytextlen);\n\
 	}\n\
       memcpy(yytext, yybuf + begin, yyleng);\n\
     }\n\
@@ -542,13 +548,13 @@ YY_PARSE(int) YYPARSEFROM(yyrule yystart)\n\
   if (!yybuflen)\n\
     {\n\
       yybuflen= 1024;\n\
-      yybuf= malloc(yybuflen);\n\
+      yybuf= YYMALLOC(yybuflen);\n\
       yytextlen= 1024;\n\
-      yytext= malloc(yytextlen);\n\
+      yytext= YYMALLOC(yytextlen);\n\
       yythunkslen= 32;\n\
-      yythunks= malloc(sizeof(yythunk) * yythunkslen);\n\
+      yythunks= YYMALLOC(sizeof(yythunk) * yythunkslen);\n\
       yyvalslen= 32;\n\
-      yyvals= malloc(sizeof(YYSTYPE) * yyvalslen);\n\
+      yyvals= YYMALLOC(sizeof(YYSTYPE) * yyvalslen);\n\
       yybegin= yyend= yypos= yylimit= yythunkpos= 0;\n\
     }\n\
   yybegin= yyend= yypos;\n\

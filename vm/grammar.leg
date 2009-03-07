@@ -5,8 +5,10 @@
 
 /*#define YY_DEBUG 1*/
 
-#define YYSTYPE OBJ
-#define yyvm    compiler->vm
+#define YYSTYPE   OBJ
+#define YYMALLOC  TR_MALLOC
+#define YYREALLOC TR_REALLOC
+#define yyvm      compiler->vm
 
 static char *charbuf;
 static OBJ sbuf;
@@ -42,6 +44,7 @@ Stmts     = (Comment SEP)*
             ( SEP - tail:Stmt Comment?      { PUSH_NODE(head, tail) }
             | SEP - Comment
             )* SEP?                         { $$ = head }
+          | (Comment SEP)+                  { $$ = NODES_N(0) }
 
 OptStmts  = Stmts
           | - SEP?                          { $$ = NODES_N(0) }
@@ -94,7 +97,7 @@ OpCall    = (rcv:SpecCall | rcv:Receiver)
 Message   = name:ID                         { args = 0 }
               ( '(' args:Args? ')'
               | SPACE args:Args
-              )?                            { $$ = NODE2(MSG, name, args); }
+              )?                            { $$ = NODE2(MSG, name, args) }
 
 Arg       = - Expr -
 
