@@ -40,7 +40,7 @@ class Array
     end
   end
   
-  def test_each # toplevel block
+  def test_each
     test_each_with_index do |x, i|
       yield x
     end

@@ -35,3 +35,15 @@ else
   puts :yay
 end
 # => yay
+
+x = if false
+      1
+    end
+puts x
+# => 
+
+x = if true
+      1
+    end
+puts x
+# => 1
