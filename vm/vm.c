@@ -244,8 +244,8 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
     
     /* jumps */
     OP(JMP):        ip += sBx; DISPATCH;
-    OP(JMPIF):      if (TR_TEST(R[A])) ip += sBx; DISPATCH;
-    OP(JMPUNLESS):  if (!TR_TEST(R[A])) ip += sBx; DISPATCH;
+    OP(JMPIF):      if ( TR_TEST(R[A])) { R[A] = TR_NIL; ip += sBx; } DISPATCH;
+    OP(JMPUNLESS):  if (!TR_TEST(R[A])) { R[A] = TR_NIL; ip += sBx; } DISPATCH;
     
     /* optimizations */
     #define INLINE_FUNC(FNC) if (likely(SITE[C].class == TR_COBJECT(R[A])->class)) { FNC; ip += B; } else { SITE[C].miss++; }
