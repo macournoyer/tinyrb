@@ -15,11 +15,12 @@ module Enumerable
   #   false
   # end
   
-  def to_a
-    a = []
-    each do |item|
-      a << item
-    end
-    a
-  end
+  # TODO need upval
+  # def to_a
+  #   a = []
+  #   each do |item|
+  #     a << item
+  #   end
+  #   a
+  # end
 end
