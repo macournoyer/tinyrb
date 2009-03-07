@@ -1,12 +1,12 @@
 @Next
 [x] Range
+[x] Allow {...} for blocks
+[ ] Implement metaclass
+[ ] def <object>.some_method
 [ ] Array splat
 [ ] Implement IO
 [ ] Implement File
-[ ] Implement metaclass
-[ ] def <object>.some_method
 [ ] Implement Dir
-[ ] Allow {...} for block
 [ ] Implement Proc
 [ ] require
 [ ] begin...rescue

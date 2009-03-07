@@ -9,6 +9,10 @@ end
 # => awesome!
 # => awesome!
 
+make_awesome { puts "wordup" }
+# => wordup
+# => wordup
+
 def yielder(arg)
   yield arg
 end
@@ -16,6 +20,9 @@ end
 yielder("I feel like having a cupcake") do |txt|
   puts txt
 end
+# => I feel like having a cupcake
+
+yielder("I feel like having a cupcake") { |txt| puts txt }
 # => I feel like having a cupcake
 
 def reyielder(arg)

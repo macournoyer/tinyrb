@@ -37,7 +37,7 @@ Root      = s:Stmts EOF                     { compiler->node = NODE(ROOT, s) }
             tr_raise("SyntaxError at line %d, while parsing: `%s'\n", compiler->line, yybuf)
           }
 
-Stmts     = (Comment SEP)?
+Stmts     = (Comment SEP)*
             - head:Stmt Comment?            { head = NODES(head) }
             ( SEP - tail:Stmt Comment?      { PUSH_NODE(head, tail) }
             | SEP - Comment
@@ -107,7 +107,10 @@ Block     = 'do' SEP
             'end'                           { $$ = NODE(BLOCK, body) }
           | 'do' - '|' params:Params '|' SEP
               - body:OptStmts -
-            'end'                           { $$ = NODE2(BLOCK, body, params); }
+            'end'                           { $$ = NODE2(BLOCK, body, params) }
+          | '{' - body:OptStmts - '}'       { $$ = NODE(BLOCK, body) }
+          | '{' - '|' params:Params '|'
+            - body:OptStmts - '}'           { $$ = NODE2(BLOCK, body, params) }
 
 Assign    = name:ID - ASSIGN - val:Stmt     { $$ = NODE2(ASSIGN, name, val) }
           | name:CONST - ASSIGN - val:Stmt  { $$ = NODE2(SETCONST, name, val) }
