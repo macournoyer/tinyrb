@@ -6,14 +6,9 @@
 *.la
 *.rbc
 
-vm/scanner.rl.c
 vm/grammar.c
-vm/grammar.h
-vm/grammar.out
-vm/scanner.c
 
 tinyrb
 
-vendor/lemon/lemon
 vendor/peg
 vendor/gc
