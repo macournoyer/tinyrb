@@ -299,6 +299,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       PUSH_OP_A(b, SELF, reg);
       break;
     case AST_RETURN:
+      if (n->args[0]) TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[0], reg);
       PUSH_OP_A(b, RETURN, reg);
       break;
     case AST_YIELD: {

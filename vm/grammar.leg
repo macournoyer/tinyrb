@@ -65,6 +65,7 @@ Expr      = Assign
           | Call
           | Range
           | Yield
+          | Return
           | Value
 
 Comment   = - '#' [^\n]*                    # HACK (!EOL)* cause a hang wth?
@@ -172,6 +173,12 @@ Yield     = 'yield' SPACE args:Args         { $$ = NODE(YIELD, args) }
           | 'yield' '(' args:Args ')'       { $$ = NODE(YIELD, args) }
           | 'yield'                         { $$ = NODE(YIELD, NODES_N(0)) }
 
+Return    = 'return' SPACE arg:Arg - !','   { $$ = NODE(RETURN, arg) }
+          | 'return' '(' arg:Arg ')' - !',' { $$ = NODE(RETURN, arg) }
+          | 'return' SPACE args:Args        { $$ = NODE(RETURN, NODE(ARRAY, args)) }
+          | 'return' '(' args:Args ')'      { $$ = NODE(RETURN, NODE(ARRAY, args)) }
+          | 'return'                        { $$ = NODE(RETURN, 0) }
+
 Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | v:SYMBOL                        { $$ = NODE(VALUE, v) }
           | v:STRING1                       { $$ = NODE(STRING, v) }
@@ -198,7 +205,8 @@ HashItems = head:Expr - '=>' - val:Expr     { head = NODES_N(2, head, val) }
 KEYWORD   = 'while' | 'until' | 'do' | 'end' |
             'if' | 'unless' | 'else' |
             'true' | 'false' | 'nil' | 'self' |
-            'class' | 'module' | 'def' | 'yield'
+            'class' | 'module' | 'def' |
+            'yield' | 'return'
 
 NAME      = [a-zA-Z0-9_]+
 ID        = !'self'                         # self is special, can never be a method name
