@@ -1,10 +1,10 @@
-= TinyRb
+= tinyrb
 
 A tiny subset of Ruby with a Lua'esc VM.
 
 Everything in TinyRb should run in the big Ruby.
 (except bugs and things that don't comply to the principle of least surprise.)
-But not everything in the big Ruby should run in TinyRb.
+But not everything in the big Ruby should run in tinyrb.
 
 This is a work in progress and not usable for "real things" yet.
 See TODO for a couple of those things that need to be done.
@@ -13,22 +13,12 @@ http://github.com/macournoyer/tinyrb
 #tinyrb on freenode
 
 == Install
-Install Ragel v6.3 or greater:
-
-  wget http://www.complang.org/ragel/ragel-6.3.tar.gz
-  tar xzf ragel-6.3.tar.gz
-  cd ragel-6.3
-  ./configure
-  make
-  sudo make install
-
-Compile tinyrb:
 
   make
   make test # optional
   ./tinyrb -h
 
-== What WON'T be in tinyrb
+== What WON'T be in tinyrb (tiny patches accepted)
 * for
 * if ... do, while ... do, etc
 * alias keyword (see alias_method)
@@ -41,9 +31,8 @@ Compile tinyrb:
 * Character code literal (?c)
 * protected, private, public (yes everything is public, mind you)
 * ObjectSpace
-* Regexp literal (not sure about this one yet)
 * $SAFE (but Sandbox mode at the VM level)
-* ... other to come for sure.
+* ... others to come for sure.
 
 == Credits
 Inspired by:
