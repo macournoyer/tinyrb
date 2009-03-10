@@ -31,6 +31,7 @@ enum TrInstCode {
   TR_OP_FIXNUM_SUB,
   TR_OP_FIXNUM_LT,
   TR_OP_DEF,        /* A Bx     R[0] = define method k[Bx] on self w/ blocks[A] */
+  TR_OP_METADEF,    /* A Bx     R[0] = define method k[Bx] on R[0] w/ blocks[A] */
   TR_OP_GETCONST,   /* A Bx     R[A] = Consts[k[Bx]] */
   TR_OP_SETCONST,   /* A Bx     Consts[k[Bx]] = R[A] */
   TR_OP_CLASS,      /* A Bx     R[0] = define class k[Bx] on self w/ blocks[A] and superclass R[0] */
@@ -71,6 +72,7 @@ enum TrInstCode {
   "fixnum_sub", \
   "fixnum_lt", \
   "def", \
+  "metadef", \
   "getconst", \
   "setconst", \
   "class", \
@@ -112,6 +114,7 @@ enum TrInstCode {
   &&op_FIXNUM_SUB, \
   &&op_FIXNUM_LT, \
   &&op_DEF, \
+  &&op_METADEF, \
   &&op_GETCONST, \
   &&op_SETCONST, \
   &&op_CLASS, \

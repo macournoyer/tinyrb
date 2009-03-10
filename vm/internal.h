@@ -46,6 +46,7 @@ typedef enum {
   AST_RETURN,
   AST_YIELD,
   AST_DEF,
+  AST_METHOD,
   AST_PARAM,
   AST_CLASS,
   AST_MODULE,

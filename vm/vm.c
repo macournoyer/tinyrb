@@ -137,11 +137,15 @@ static OBJ TrVM_interpret_method_with_splat(VM, OBJ self, int argc, OBJ argv[]) 
   return TrVM_step(vm, FRAME, b, b->argc, argv);
 }
 
-static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b) {
+static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b, int meta, OBJ receiver) {
   TrFunc *func = (TrFunc *) (b->arg_splat
     ? TrVM_interpret_method_with_splat
     : TrVM_interpret_method);
-  TrModule_add_method(vm, f->class, name, TrMethod_new(vm, func, (OBJ)b, -1));
+  OBJ method = TrMethod_new(vm, func, (OBJ)b, -1);
+  if (meta)
+    TrObject_add_singleton_method(vm, receiver, name, method);
+  else
+    TrModule_add_method(vm, f->class, name, method);
   return TR_NIL;
 }
 
@@ -238,7 +242,8 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
       DISPATCH;
     
     /* definition */
-    OP(DEF):    R[0] = TrVM_defmethod(vm, f, k[Bx], blocks[A]); DISPATCH;
+    OP(DEF):    R[0] = TrVM_defmethod(vm, f, k[Bx], blocks[A], 0, 0); DISPATCH;
+    OP(METADEF):R[0] = TrVM_defmethod(vm, f, k[Bx], blocks[A], 1, R[0]); DISPATCH;
     OP(CLASS):  R[0] = TrVM_defclass(vm, f, k[Bx], blocks[A], 0, R[0]); DISPATCH;
     OP(MODULE): R[0] = TrVM_defclass(vm, f, k[Bx], blocks[A], 1, 0); DISPATCH;
     

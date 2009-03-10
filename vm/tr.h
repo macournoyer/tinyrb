@@ -289,6 +289,7 @@ OBJ TrObject_new(VM);
 OBJ TrObject_method(VM, OBJ self, OBJ name);
 OBJ TrObject_const_set(VM, OBJ self, OBJ name, OBJ value);
 OBJ TrObject_const_get(VM, OBJ self, OBJ name);
+OBJ TrObject_add_singleton_method(VM, OBJ self, OBJ name, OBJ method);
 void TrObject_preinit(VM);
 void TrObject_init(VM);
 

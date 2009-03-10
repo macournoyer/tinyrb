@@ -145,10 +145,14 @@ Unless    = 'unless' SPACE cond:Expr SEP    { else_body = 0 }
 
 Else      = 'else' SEP - body:Stmts -       { $$ = body }
 
-Def       = 'def' SPACE name:ID             { params = 0 }
+Method    = rcv:ID '.' name:ID              { $$ = NODE2(METHOD, NODE2(SEND, 0, NODE(MSG, rcv)), name) }
+          | rcv:Value '.' name:ID           { $$ = NODE2(METHOD, rcv, name) }
+          | name:ID                         { $$ = NODE2(METHOD, 0, name) }
+
+Def       = 'def' SPACE method:Method       { params = 0 }
             (- '(' params:Params? ')')? SEP
               body:OptStmts -
-            'end'                           { $$ = NODE3(DEF, name, params ? params : NODES_N(0), body) }
+            'end'                           { $$ = NODE3(DEF, method, params ? params : NODES_N(0), body) }
 
 Params    = head:Param                      { head = NODES(head) }
             ( ',' tail:Param                { PUSH_NODE(head, tail) }

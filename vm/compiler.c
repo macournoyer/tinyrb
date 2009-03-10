@@ -313,6 +313,8 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       PUSH_OP_AB(b, YIELD, reg, argc);
     } break;
     case AST_DEF: {
+      TrNode *method = (TrNode *)n->args[0];
+      assert(method->ntype == AST_METHOD);
       TrBlock *blk = TrBlock_new(c);
       size_t blki = kv_size(b->blocks);
       kv_push(TrBlock *, b->blocks, blk);
@@ -330,7 +332,13 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         TrCompiler_compile_node(vm, c, blk, (TrNode *)v, 0);
       });
       PUSH_OP_A(blk, RETURN, 0);
-      PUSH_OP_ABx(b, DEF, blki, TrBlock_pushk(b, n->args[0]));
+      if (method->args[0]) {
+        /* metaclass def */
+        TrCompiler_compile_node(vm, c, b, (TrNode*)method->args[0], 0);
+        PUSH_OP_ABx(b, METADEF, blki, TrBlock_pushk(b, method->args[1]));
+      } else {
+        PUSH_OP_ABx(b, DEF, blki, TrBlock_pushk(b, method->args[1]));
+      }
     } break;
     case AST_CLASS:
     case AST_MODULE: {
