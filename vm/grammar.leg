@@ -217,9 +217,9 @@ ID        = !'self'                         # self is special, can never be a me
               ( '=' | '!'| '?' )? >         { $$ = TrSymbol_new(yyvm, yytext) }
 CONST     = < [A-Z] NAME? >                 { $$ = TrSymbol_new(yyvm, yytext) }
 OP        = < ( '&&' | '||' |
-                '**' | '^'  | '&'  | '|'  | '~' |
-                '+'  | '-'  | '*'  | '/'  | '%' | '<=>' |
-                '<<' | '>>' | '==' | '=~' | '===' |
+                '**' | '^'  | '&'  | '|'  | '~'  |
+                '+'  | '-'  | '*'  | '/'  | '%'  | '<=>' |
+                '<<' | '>>' | '==' | '=~' | '!=' | '===' |
                 '<'  | '>'  | '<=' | '>='
               ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
 ASSIGN    = < '=' > &(!'=')                 { $$ = TrSymbol_new(yyvm, yytext) }

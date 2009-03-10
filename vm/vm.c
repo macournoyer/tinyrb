@@ -332,7 +332,7 @@ TrVM *TrVM_new() {
   TrSymbol_init(vm);
   TrModule_init(vm);
   TrClass_init(vm);
-  TrObject_init(vm);
+  TrObject_preinit(vm);
   TrClass *symbolc = TR_CCLASS(TR_CLASS(Symbol));
   TrClass *modulec = TR_CCLASS(TR_CLASS(Module));
   TrClass *classc = TR_CCLASS(TR_CLASS(Class));
@@ -347,6 +347,7 @@ TrVM *TrVM_new() {
     TR_COBJECT(sym)->class = (OBJ)symbolc;
   });
   
+  TrObject_init(vm);
   TrBinding_init(vm);
   TrPrimitive_init(vm);
   TrKernel_init(vm);
@@ -359,7 +360,7 @@ TrVM *TrVM_new() {
   vm->self = TrObject_new(vm);
   vm->cf = -1;
   
-  TrVM_load(vm, "lib/boot.rb");
+  /* TrVM_load(vm, "lib/boot.rb"); */
   
   return vm;
 }

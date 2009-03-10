@@ -87,7 +87,6 @@
 #define TR_OBJECT_HEADER \
   TR_T type; \
   OBJ class; \
-  OBJ metaclass; \
   khash_t(OBJ) *ivars
 #define TR_INIT_OBJ(T) ({ \
   Tr##T *o = TR_ALLOC(Tr##T); \
@@ -107,6 +106,7 @@
 #define tr_assert(X,M,A...)  ((X) ? (X) : TrVM_raise(vm, tr_sprintf(vm, (M), ##A)))
 #define TR_RESCUE(B)         if (setjmp(FRAME->rescue_jmp)) { TrVM_rescue(vm); B }
 #define tr_def(C,N,F,A)      TrModule_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
+#define tr_metadef(O,N,F,A)  TrObject_add_singleton_method(vm, (O), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_defclass(N)       TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N)))
 #define tr_defmodule(N)      TrObject_const_set(vm, vm->self, tr_intern(N), TrModule_new(vm, tr_intern(N)))
 #define tr_send(R,MSG,A...)  ({ \
@@ -210,7 +210,7 @@ typedef struct {
   OBJ name;
   OBJ super;
   khash_t(OBJ) *methods;
-  kvec_t(OBJ) modules;
+  int meta:1;
 } TrClass;
 typedef TrClass TrModule;
 
@@ -289,6 +289,7 @@ OBJ TrObject_new(VM);
 OBJ TrObject_method(VM, OBJ self, OBJ name);
 OBJ TrObject_const_set(VM, OBJ self, OBJ name, OBJ value);
 OBJ TrObject_const_get(VM, OBJ self, OBJ name);
+void TrObject_preinit(VM);
 void TrObject_init(VM);
 
 /* module */
@@ -303,7 +304,7 @@ void TrKernel_init(VM);
 
 /* class */
 OBJ TrClass_new(VM, OBJ name, OBJ super);
-OBJ TrClass_instance_method(VM, OBJ self, OBJ name);
+OBJ TrMetaClass_new(VM, OBJ super);
 OBJ TrClass_allocate(VM, OBJ self);
 void TrClass_init(VM);
 

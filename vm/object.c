@@ -6,9 +6,7 @@ OBJ TrObject_new(VM) {
 }
 
 OBJ TrObject_method(VM, OBJ self, OBJ name) {
-  TrObject *o = TR_COBJECT(self);
-  /* TODO lookup in metaclass */
-  return TrClass_instance_method(vm, o->class, name);
+  return TrModule_instance_method(vm, TR_COBJECT(self)->class, name);
 }
 
 /* TODO respect namespace */
@@ -26,8 +24,22 @@ OBJ TrObject_const_set(VM, OBJ self, OBJ name, OBJ value) {
   return value;
 }
 
+OBJ TrObject_add_singleton_method(VM, OBJ self, OBJ name, OBJ method) {
+  TrObject *o = TR_COBJECT(self);
+  if (!TR_CCLASS(o->class)->meta)
+    o->class = TrMetaClass_new(vm, o->class);
+  assert(TR_CCLASS(o->class)->meta && "first class must be the metaclass");
+  TrModule_add_method(vm, o->class, name, method);
+  return method;
+}
+
 static OBJ TrObject_class(VM, OBJ self) {
-  return TR_COBJECT(self)->class;
+  OBJ class = TR_COBJECT(self)->class;
+  /* find the first non-metaclass */
+  while (class && (!TR_IS_A(class, Class) || TR_CCLASS(class)->meta))
+    class = TR_CCLASS(class)->super;
+  assert(class && "classless object");
+  return class;
 }
 
 static OBJ TrObject_object_id(VM, OBJ self) {
@@ -45,12 +57,17 @@ static OBJ TrObject_inspect(VM, OBJ self) {
   return tr_sprintf(vm, "#<%s:%p>", name, (void*)self);
 }
 
+void TrObject_preinit(VM) {
+  TR_INIT_CLASS(Object, /* ignored */ Object);
+}
+
 void TrObject_init(VM) {
-  OBJ c = TR_INIT_CLASS(Object, /* ignored */ Object);
+  OBJ c = TR_CLASS(Object);
   tr_def(c, "class", TrObject_class, 0);
   tr_def(c, "method", TrObject_method, 1);
   tr_def(c, "object_id", TrObject_object_id, 0);
   tr_def(c, "instance_eval", TrObject_instance_eval, 1);
   tr_def(c, "to_s", TrObject_inspect, 0);
   tr_def(c, "inspect", TrObject_inspect, 0);
+  tr_metadef(c, "new", TrObject_new, 0);
 }

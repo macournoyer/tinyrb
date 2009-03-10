@@ -4,7 +4,18 @@
 #define TR_INIT_MODULE(M) \
   (M)->name = name; \
   (M)->methods = kh_init(OBJ); \
-  kv_init((M)->modules)
+  (M)->meta = 0
+
+/* included module proxy */
+
+OBJ TrIModule_new(VM, OBJ module, OBJ super) {
+  TrModule *m = TR_CMODULE(module);
+  TrModule *im = TR_INIT_OBJ(Module);
+  im->name = m->name;
+  im->methods = m->methods;
+  im->super = super;
+  return (OBJ)im;
+}
 
 /* module */
 
@@ -15,25 +26,18 @@ OBJ TrModule_new(VM, OBJ name) {
 }
 
 OBJ TrModule_instance_method(VM, OBJ self, OBJ name) {
-  TrModule *m = TR_CMODULE(self);
-  /* lookup in self */
-  khiter_t k = kh_get(OBJ, m->methods, name);
-  if (k != kh_end(m->methods)) return kh_value(m->methods, k);
-  /* lookup in included modules */
-  size_t i;
-  for (i = 0; i < kv_size(m->modules); ++i) {
-    OBJ ret = TrModule_instance_method(vm, kv_A(m->modules, i), name);
-    if (ret) return ret;
+  TrClass *class = TR_CCLASS(self);
+  while (class) {
+    OBJ method = TR_KH_GET(class->methods, name);
+    if (method) return method;
+    class = (TrClass *)class->super;
   }
   return TR_NIL;
 }
 
 OBJ TrModule_add_method(VM, OBJ self, OBJ name, OBJ method) {
   TrClass *m = TR_CMODULE(self);
-  int ret;
-  khiter_t k = kh_put(OBJ, m->methods, name, &ret);
-  if (!ret) kh_del(OBJ, m->methods, k);
-  kh_value(m->methods, k) = method;
+  TR_KH_SET(m->methods, name, method);
   TR_CMETHOD(method)->name = name;
   return method;
 }
@@ -43,8 +47,8 @@ OBJ TrModule_alias_method(VM, OBJ self, OBJ new_name, OBJ old_name) {
 }
 
 OBJ TrModule_include(VM, OBJ self, OBJ mod) {
-  TrClass *m = TR_CMODULE(self);
-  kv_push(OBJ, m->modules, mod);
+  TrClass *class = TR_CCLASS(self);
+  class->super = TrIModule_new(vm, mod, class->super);
   return mod;
 }
 
@@ -76,23 +80,28 @@ OBJ TrClass_allocate(VM, OBJ self) {
   return (OBJ)o;
 }
 
-OBJ TrClass_instance_method(VM, OBJ self, OBJ name) {
-  OBJ m = TrModule_instance_method(vm, self, name);
-  if (m) return m;
-  TrClass *c = TR_CCLASS(self);
-  if (c->super) return TrClass_instance_method(vm, c->super, name);
-  return TR_NIL;
-}
-
 OBJ TrClass_superclass(VM, OBJ self) {
-  return TR_CCLASS(self)->super;
+  OBJ super = TR_CCLASS(self)->super;
+  while (super && !TR_IS_A(super, Class))
+    super = TR_CCLASS(super)->super;
+  return super;
 }
 
 void TrClass_init(VM) {
   OBJ c = TR_INIT_CLASS(Class, Module);
   tr_def(c, "superclass", TrClass_superclass, 0);
   tr_def(c, "allocate", TrClass_allocate, 0);
-  tr_def(c, "instance_method", TrClass_instance_method, 1);
+}
+
+/* metaclass */
+
+OBJ TrMetaClass_new(VM, OBJ super) {
+  TrClass *c = TR_CCLASS(super);
+  OBJ name = tr_sprintf(vm, "Class:%s", TR_STR_PTR(c->name));
+  name = tr_intern(TR_STR_PTR(name)); /* symbolize */
+  TrClass *mc = (TrClass *)TrClass_new(vm, name, super);
+  mc->meta = 1;
+  return (OBJ)mc;
 }
 
 /* method */

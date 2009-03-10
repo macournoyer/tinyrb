@@ -16,6 +16,7 @@ OBJ TrFixnum_mul(VM, OBJ self, OBJ other) { return MATH(self, *, other); }
 OBJ TrFixnum_div(VM, OBJ self, OBJ other) { return MATH(self, /, other); }
 
 OBJ TrFixnum_eq(VM, OBJ self, OBJ other) { return CMP(self, ==, other); }
+OBJ TrFixnum_ne(VM, OBJ self, OBJ other) { return CMP(self, !=, other); }
 OBJ TrFixnum_lt(VM, OBJ self, OBJ other) { return CMP(self, <, other); }
 OBJ TrFixnum_gt(VM, OBJ self, OBJ other) { return CMP(self, >, other); }
 OBJ TrFixnum_le(VM, OBJ self, OBJ other) { return CMP(self, <=, other); }
@@ -32,6 +33,7 @@ void TrFixnum_init(VM) {
   tr_def(c, "*", TrFixnum_mul, 1);
   tr_def(c, "/", TrFixnum_div, 1);
   tr_def(c, "==", TrFixnum_eq, 1);
+  tr_def(c, "!=", TrFixnum_eq, 1);
   tr_def(c, "<", TrFixnum_lt, 1);
   tr_def(c, "<=", TrFixnum_le, 1);
   tr_def(c, ">", TrFixnum_gt, 1);

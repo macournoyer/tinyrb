@@ -101,6 +101,10 @@ OBJ TrString_substring(VM, OBJ self, OBJ start, OBJ len) {
   return TrString_new(vm, TR_STR_PTR(self)+s, l);
 }
 
+OBJ TrString_to_sym(VM, OBJ self) {
+  return tr_intern(TR_STR_PTR(self));
+}
+
 OBJ tr_sprintf(VM, const char *fmt, ...) {
   va_list arg;
   va_start(arg, fmt);
@@ -119,6 +123,7 @@ OBJ tr_sprintf(VM, const char *fmt, ...) {
 void TrString_init(VM) {
   OBJ c = TR_INIT_CLASS(String, Object);
   tr_def(c, "to_s", TrString_to_s, 0);
+  tr_def(c, "to_sym", TrString_to_sym, 0);
   tr_def(c, "size", TrString_size, 0);
   tr_def(c, "replace", TrString_replace, 1);
   tr_def(c, "substring", TrString_substring, 2);

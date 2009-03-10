@@ -1,7 +1,7 @@
 @Next
 [x] Range
 [x] Allow {...} for blocks
-[ ] Implement metaclass
+[x] Implement metaclass
 [ ] def <object>.some_method
 [ ] Array splat
 [ ] Implement IO
@@ -13,7 +13,7 @@
 [ ] def...rescue
 [ ] Fix operator precedence, add () and unary -
 [ ] super(...)
-[ ] return w/ args
+[x] return w/ args
 *** See TODO in code too!
 
 @Later
