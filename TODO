@@ -2,8 +2,9 @@
 [x] Range
 [x] Allow {...} for blocks
 [x] Implement metaclass
-[ ] def <object>.some_method
+[x] def <object>.some_method
 [ ] Array splat
+[ ] upval in block
 [ ] Implement IO
 [ ] Implement File
 [ ] Implement Dir
