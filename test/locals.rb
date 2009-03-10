@@ -2,7 +2,7 @@ x = :ohaie
 puts x
 # => ohaie
 
-y = x
+y=x
 puts y
 # => ohaie
 

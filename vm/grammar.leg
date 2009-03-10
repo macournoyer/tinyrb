@@ -218,7 +218,7 @@ ID        = !'self'                         # self is special, can never be a me
           | < KEYWORD NAME >                { $$ = TrSymbol_new(yyvm, yytext) }
           | !KEYWORD
             < [a-z_] NAME?
-              ( '=' | '!'| '?' )? >         { $$ = TrSymbol_new(yyvm, yytext) }
+              ( '=' &'(' | '!'| '?' )? >    { $$ = TrSymbol_new(yyvm, yytext) }
 CONST     = < [A-Z] NAME? >                 { $$ = TrSymbol_new(yyvm, yytext) }
 OP        = < ( '&&' | '||' |
                 '**' | '^'  | '&'  | '|'  | '~'  |
