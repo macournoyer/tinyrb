@@ -70,6 +70,8 @@ void TrModule_init(VM) {
 OBJ TrClass_new(VM, OBJ name, OBJ super) {
   TrClass *c = TR_INIT_OBJ(Class);
   TR_INIT_MODULE(c);
+  /* if VM is booting, those might not be set */
+  if (super && TR_CCLASS(super)->class) c->class = TrMetaClass_new(vm, TR_CCLASS(super)->class);
   c->super = super;
   return (OBJ)c;
 }
@@ -99,7 +101,8 @@ OBJ TrMetaClass_new(VM, OBJ super) {
   TrClass *c = TR_CCLASS(super);
   OBJ name = tr_sprintf(vm, "Class:%s", TR_STR_PTR(c->name));
   name = tr_intern(TR_STR_PTR(name)); /* symbolize */
-  TrClass *mc = (TrClass *)TrClass_new(vm, name, super);
+  TrClass *mc = (TrClass *)TrClass_new(vm, name, 0);
+  mc->super = super;
   mc->meta = 1;
   return (OBJ)mc;
 }

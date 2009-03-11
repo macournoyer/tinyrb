@@ -18,11 +18,11 @@
 *** See TODO in code too!
 
 @Later
-[ ] Implement & operator
 [ ] FFI or dl
-[ ] Compile to file
 [ ] Embed bytecode of /lib stuff inside executable
 [ ] puts nil # => nil in MRI
+[ ] Do not create control frame on C function calls
+[ ] Store Fixnum as immediate value
 [x] Inline some methods (+,<,>,==) as VM instructions, e.g.: FIXNUM_ADD, STRING_CONCAT
 [ ] Cache constant lookup
 [ ] Reimplement Array, Hash using Tuple like Rubinius
@@ -31,6 +31,8 @@
 [ ] Implement Float, Bignum
 [ ] Run RubySpecs
 [ ] Sandbox
+[ ] Implement & operator
+[ ] Compile to file
 [ ] Get it to build w/ -ansi gcc option (might need to get rid of khash.h)
 
 @Someday

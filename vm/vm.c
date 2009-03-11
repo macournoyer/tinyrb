@@ -332,7 +332,8 @@ TrVM *TrVM_new() {
   vm->consts = kh_init(OBJ);
   vm->debug = 0;
   
-  /* bootstrap core classes */
+  /* bootstrap core classes,
+     order is important here, so careful, mkay? */
   TrMethod_init(vm);
   TrSymbol_init(vm);
   TrModule_init(vm);
@@ -343,15 +344,22 @@ TrVM *TrVM_new() {
   TrClass *classc = TR_CCLASS(TR_CLASS(Class));
   TrClass *methodc = TR_CCLASS(TR_CLASS(Method));
   TrClass *objectc = TR_CCLASS(TR_CLASS(Object));
+  /* set proper superclass has Object is defined last */
   symbolc->super = modulec->super = methodc->super = (OBJ)objectc;
   classc->super = (OBJ)modulec;
-  symbolc->class = modulec->class = classc->class = methodc->class = objectc->class = (OBJ)classc;
+  /* inject core classes metaclass */
+  symbolc->class = TrMetaClass_new(vm, objectc->class);
+  modulec->class = TrMetaClass_new(vm, objectc->class);
+  classc->class = TrMetaClass_new(vm, objectc->class);
+  methodc->class = TrMetaClass_new(vm, objectc->class);
+  objectc->class = TrMetaClass_new(vm, objectc->class);
   
   /* Some symbols are created before Object, so make sure all have proper class. */
   TR_KH_EACH(vm->symbols, i, sym, {
     TR_COBJECT(sym)->class = (OBJ)symbolc;
   });
   
+  /* bootstrap rest of core classes, order is no longer important here */
   TrObject_init(vm);
   TrBinding_init(vm);
   TrPrimitive_init(vm);
@@ -365,7 +373,7 @@ TrVM *TrVM_new() {
   vm->self = TrObject_new(vm);
   vm->cf = -1;
   
-  /* TrVM_load(vm, "lib/boot.rb"); */
+  TrVM_load(vm, "lib/boot.rb");
   
   return vm;
 }
