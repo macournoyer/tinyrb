@@ -5,10 +5,10 @@ class Eval
   end
 end
 
-puts Eval.allocate.instance_eval("self.class.name")
+puts Eval.new.instance_eval("self.class.name")
 # => Eval
 
 # Test binding
 @who = "lucas"
-puts Eval.allocate.smash(binding)
+puts Eval.new.smash(binding)
 # => lucas

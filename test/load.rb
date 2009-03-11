@@ -1,4 +1,4 @@
 load "test/fixtures/pony.rb"
 
-puts Pony.allocate.eat!
+puts Pony.new.eat!
 # => nom nom

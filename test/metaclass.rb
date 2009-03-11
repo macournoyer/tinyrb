@@ -1,7 +1,4 @@
-# new is method of Object's metaclass
 obj = Object.new
-puts obj.class.name
-# => Object
 
 def obj.to_s
   "metawesome"

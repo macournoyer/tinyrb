@@ -69,5 +69,4 @@ void TrObject_init(VM) {
   tr_def(c, "instance_eval", TrObject_instance_eval, 1);
   tr_def(c, "to_s", TrObject_inspect, 0);
   tr_def(c, "inspect", TrObject_inspect, 0);
-  tr_metadef(c, "new", TrObject_new, 0);
 }

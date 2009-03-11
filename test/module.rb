@@ -12,7 +12,7 @@ class You
   include Awesome
 end
 
-y = You.allocate
+y = You.new
 y.yeah
 # => you're hot
 

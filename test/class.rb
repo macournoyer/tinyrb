@@ -15,8 +15,8 @@ end
 puts Pony
 # => Pony
 
-Pony.allocate.cname = "Bob"
-p = Pony.allocate
+Pony.new.cname = "Bob"
+p = Pony.new
 p.name = "Rick"
 p.talk
 # => Rick
@@ -47,7 +47,7 @@ end
 
 # Subclassing
 class Unicorn < Pony; end
-Unicorn.allocate.talk
+Unicorn.new.talk
 # => 
 # => 
 # => Unicorn
