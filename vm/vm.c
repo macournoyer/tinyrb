@@ -78,6 +78,7 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
 
 static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int argc, OBJ *args, TrBlock *b, int splat) {
   /* prepare call frame */
+  /* TODO do not create a call frame if calling a pure C function */
   TrFrame_push(vm, receiver, TR_COBJECT(receiver)->class, b);
   register TrFrame *f = FRAME;
   f->method = TR_CMETHOD(method);
@@ -201,9 +202,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
   register OBJ *regs = TR_ALLOC_N(OBJ, b->regc);
   /* transfer locals */
   OBJ *locals = f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals)+argc);
-  size_t i;
-  /* TODO replace w/ memcpy */
-  for (i = 0; i < argc; ++i) locals[i] = argv[i];
+  TR_MEMCPY_N(locals, argv, OBJ, argc);
   
 #ifdef TR_THREADED_DISPATCH
   static void *labels[] = { TR_OP_LABELS };
