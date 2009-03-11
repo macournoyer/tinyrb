@@ -220,9 +220,12 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         /* args */
         size_t argc = 0;
         if (msg->args[1]) {
-          argc = TR_ARRAY_SIZE(msg->args[1]);
+          argc = TR_ARRAY_SIZE(msg->args[1]) << 1;
           TR_ARRAY_EACH(msg->args[1], i, v, {
-            TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg+i+2);
+            TrNode *arg = (TrNode *)v;
+            assert(arg->ntype == AST_ARG);
+            TrCompiler_compile_node(vm, c, b, (TrNode *)arg->args[0], reg+i+2);
+            if (arg->args[1]) argc |= 1; /* splat */
           });
         }
         /* block */

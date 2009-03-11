@@ -20,7 +20,9 @@ enum TrInstCode {
   TR_OP_SELF,       /* A        put self in R[A] */
   TR_OP_LOOKUP,     /* A Bx     R[A+1] = lookup method K[Bx] on R[A] and store */
   TR_OP_CACHE,      /* A B C    if sites[C] matches R[A].type, jmp +B and R[A+1] = sites[C].method */
-  TR_OP_CALL,       /* A B C    call method R[A+1] on R[A] with B args starting at R[A+2], w/ block[C-1] if C */
+  TR_OP_CALL,       /* A B C    call method R[A+1] on R[A] with B>>1 args starting at R[A+2],
+                                if B & 1, splat last arg,
+                                if C > 0 pass block[C-1] */
   TR_OP_JMP,        /*   sBx    jump sBx instructions */
   TR_OP_JMPIF,      /* A sBx    jump sBx instructions if R[A] */
   TR_OP_JMPUNLESS,  /* A sBx    jump sBx instructions unless R[A] */

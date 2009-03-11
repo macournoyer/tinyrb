@@ -81,7 +81,7 @@ AsgnCall   =                                { rcv = 0 }
             ( rcv:Value '.'
             )? ( rmsg:Message '.'           { rcv = NODE2(SEND, rcv, rmsg) }
                )* msg:ID - asg:ASSIGN
-                  - val:Stmt                { VM = yyvm; $$ = NODE2(SEND, rcv, NODE2(MSG, SYMCAT(msg, asg), NODES(val))) }
+                  - val:Stmt                { VM = yyvm; $$ = NODE2(SEND, rcv, NODE2(MSG, SYMCAT(msg, asg), NODES(NODE(ARG, val)))) }
 
 Receiver  = (                               { rcv = 0 }
               rcv:Call
@@ -89,22 +89,22 @@ Receiver  = (                               { rcv = 0 }
             )                               { $$ = rcv }
 
 SpecCall  = rcv:Receiver '[' args:Args ']'  
-            - ASSIGN - val:Stmt             { PUSH_NODE(args, val); $$ = NODE2(SEND, rcv, NODE2(MSG, TrSymbol_new(yyvm, "[]="), args)) }
+            - ASSIGN - val:Stmt             { PUSH_NODE(args, NODE(ARG, val)); $$ = NODE2(SEND, rcv, NODE2(MSG, TrSymbol_new(yyvm, "[]="), args)) }
           | rcv:Receiver '[' args:Args ']'  { $$ = NODE2(SEND, rcv, NODE2(MSG, TrSymbol_new(yyvm, "[]"), args)) }
 
 OpCall    = (rcv:SpecCall | rcv:Receiver)
-            - op:OP - arg:Expr              { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(arg))) }
+            - op:OP - arg:Expr              { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(NODE(ARG, arg)))) }
 
 Message   = name:ID                         { args = 0 }
               ( '(' args:Args? ')'
               | SPACE args:Args
               )?                            { $$ = NODE2(MSG, name, args) }
 
-Arg       = - Expr -
-
-Args      = args:Arg                        { args = NODES(args) }
-            ( ',' arg:Arg                   { PUSH_NODE(args, arg) }
-            )*                              { $$ = args }
+Args      = - head:Expr -                   { head = NODES(NODE(ARG, head)) }
+            ( ',' - tail:Expr -             { PUSH_NODE(head, NODE(ARG, tail)) }
+            )* ( ',' - '*' splat:Expr -     { PUSH_NODE(head, NODE2(ARG, splat, 1)) }
+               )?                           { $$ = head }
+          | - '*' splat:Expr -              { $$ = NODES(NODE2(ARG, splat, 1)) }
 
 Block     = 'do' SEP
               - body:OptStmts -
@@ -173,14 +173,14 @@ Module    = 'module' SPACE name:CONST SEP
 Range     = s:Receiver - '..' - e:Expr      { $$ = NODE3(RANGE, s, e, 0) }
           | s:Receiver - '...' - e:Expr     { $$ = NODE3(RANGE, s, e, 1) }
 
-Yield     = 'yield' SPACE args:Args         { $$ = NODE(YIELD, args) }
-          | 'yield' '(' args:Args ')'       { $$ = NODE(YIELD, args) }
+Yield     = 'yield' SPACE args:AryItems     { $$ = NODE(YIELD, args) }
+          | 'yield' '(' args:AryItems ')'   { $$ = NODE(YIELD, args) }
           | 'yield'                         { $$ = NODE(YIELD, NODES_N(0)) }
 
-Return    = 'return' SPACE arg:Arg - !','   { $$ = NODE(RETURN, arg) }
-          | 'return' '(' arg:Arg ')' - !',' { $$ = NODE(RETURN, arg) }
-          | 'return' SPACE args:Args        { $$ = NODE(RETURN, NODE(ARRAY, args)) }
-          | 'return' '(' args:Args ')'      { $$ = NODE(RETURN, NODE(ARRAY, args)) }
+Return    = 'return' SPACE arg:Expr - !','  { $$ = NODE(RETURN, arg) }
+          | 'return' '(' arg:Expr ')' - !','{ $$ = NODE(RETURN, arg) }
+          | 'return' SPACE args:AryItems    { $$ = NODE(RETURN, NODE(ARRAY, args)) }
+          | 'return' '(' args:AryItems ')'  { $$ = NODE(RETURN, NODE(ARRAY, args)) }
           | 'return'                        { $$ = NODE(RETURN, 0) }
 
 Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
@@ -196,10 +196,14 @@ Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | name:CVAR                       { $$ = NODE(GETCVAR, name) }
           | name:GLOBAL                     { $$ = NODE(GETGLOBAL, name) } # TODO
           | '[' - ']'                       { $$ = NODE(ARRAY, NODES_N(0)) }
-          | '[' - items:Args - ']'          { $$ = NODE(ARRAY, items) }
+          | '[' - items:AryItems - ']'      { $$ = NODE(ARRAY, items) }
           | '{' - '}'                       { $$ = NODE(HASH, NODES_N(0)) }
           | '{' - items:HashItems - '}'     { $$ = NODE(HASH, items) }
           | '(' - Expr - ')'
+
+AryItems  = - head:Expr -                   { head = NODES(head) }
+            ( ',' - tail:Expr -             { PUSH_NODE(head, tail) }
+            )*                              { $$ = head }
 
 HashItems = head:Expr - '=>' - val:Expr     { head = NODES_N(2, head, val) }
             ( - ',' - key:Expr -            { PUSH_NODE(head, key) }

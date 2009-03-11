@@ -34,6 +34,7 @@ typedef enum {
   AST_VALUE,
   AST_STRING,
   AST_ASSIGN,
+  AST_ARG,
   AST_SEND,
   AST_MSG,
   AST_IF,

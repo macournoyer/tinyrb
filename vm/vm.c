@@ -76,13 +76,26 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
   return method;
 }
 
-static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int argc, OBJ *args, TrBlock *b) {
+static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int argc, OBJ *args, TrBlock *b, int splat) {
+  /* prepare call frame */
   TrFrame_push(vm, receiver, TR_COBJECT(receiver)->class, b);
   register TrFrame *f = FRAME;
   f->method = TR_CMETHOD(method);
   register TrFunc *func = f->method->func;
   if (b) b->frame = callingf;
   OBJ ret = TR_NIL;
+  
+  /* splat last arg is needed */
+  if (splat) {
+    OBJ splated = args[argc-1];
+    int splatedn = TR_ARRAY_SIZE(splated);
+    OBJ *new_args = TR_ALLOC_N(OBJ, argc);
+    TR_MEMCPY_N(new_args, args, OBJ, argc-1);
+    TR_MEMCPY_N(new_args + argc-1, &TR_ARRAY_AT(splated, 0), OBJ, splatedn);
+    argc += splatedn-1;
+    args = new_args;
+  }
+  
   if (f->method->arity == -1) {
     ret = func(vm, receiver, argc, args);
   } else {
@@ -189,6 +202,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
   /* transfer locals */
   OBJ *locals = f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals)+argc);
   size_t i;
+  /* TODO replace w/ memcpy */
   for (i = 0; i < argc; ++i) locals[i] = argv[i];
   
 #ifdef TR_THREADED_DISPATCH
@@ -228,7 +242,11 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
     
     /* method calling */
     OP(LOOKUP):     R[A+1] = TrVM_lookup(vm, b, R[A], k[Bx], ip); DISPATCH;
-    OP(CALL):       R[A] = TrVM_call(vm, f, R[A], R[A+1], B, &R[A+2], C>0 ? blocks[C-1] : 0); DISPATCH;
+    OP(CALL):       R[A] = TrVM_call(vm, f, R[A], R[A+1],
+                                     B >> 1, &R[A+2], /* args */
+                                     C > 0 ? blocks[C-1] : 0, /* block */
+                                     B & 1 /* splat */
+                                    ); DISPATCH;
     OP(CACHE):
       /* TODO how to expire cache? */
       assert(&SITE[C] && "Method cached but no CallSite found");
