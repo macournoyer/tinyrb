@@ -201,7 +201,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
   TrBlock **blocks = b->blocks.a;
   register OBJ *regs = TR_ALLOC_N(OBJ, b->regc);
   /* transfer locals */
-  OBJ *locals = f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals)+argc);
+  OBJ *locals = f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals));
   TR_MEMCPY_N(locals, argv, OBJ, argc);
   
 #ifdef TR_THREADED_DISPATCH

@@ -7,7 +7,7 @@ module Enumerable
     end
   end
   
-  # TODO need return(args...)
+  # TODO need upval
   # def include?(item)
   #   each do |i|
   #     return true if i == item
