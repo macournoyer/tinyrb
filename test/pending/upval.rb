@@ -1,11 +1,7 @@
-def add(x)
-  proc do |y|
-    x + y
-  end
+def print_block
+  puts yield
 end
 
-puts add(2).call(3)
-# => 5
-
-puts add(3).call(5)
-# => 8
+x = "yeaaah!"
+print_block { x }
+# => yeaaah!

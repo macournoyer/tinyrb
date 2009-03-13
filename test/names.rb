@@ -19,3 +19,10 @@ end
 self.name = 1
 puts @name
 # => 1
+
+def <<(x)
+  puts x
+end
+
+self << "yooo"
+# => yooo
