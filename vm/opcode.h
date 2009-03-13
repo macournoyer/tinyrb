@@ -27,8 +27,10 @@ enum TrInstCode {
   TR_OP_JMPIF,      /* A sBx    jump sBx instructions if R[A] */
   TR_OP_JMPUNLESS,  /* A sBx    jump sBx instructions unless R[A] */
   TR_OP_RETURN,     /* A        return R[A] */
-  TR_OP_SETLOCAL,   /* A B      locals[A] = R[B] */
+  TR_OP_SETLOCAL,   /* A B      locals[B] = R[A] */
   TR_OP_GETLOCAL,   /* A B      R[A] = locals[B] */
+  TR_OP_SETUPVAL,   /* A B      upvals[B] = R[A] */
+  TR_OP_GETUPVAL,   /* A B      R[A] = locals[B] */
   TR_OP_FIXNUM_ADD,
   TR_OP_FIXNUM_SUB,
   TR_OP_FIXNUM_LT,
@@ -49,8 +51,6 @@ enum TrInstCode {
   TR_OP_SETGLOBAL,  /* A Bx     globals[k[Bx]] = R[A] */
   TR_OP_NEWRANGE,   /* A B C    R[A] = Range.new(start:R[A], end:R[B], exclusive:C) */
   TR_OP_SUPER,      /* TODO */
-  TR_OP_GETDYN,     /* TODO */
-  TR_OP_SETDYN      /* TODO */
 };
 
 #define TR_OP_NAMES \
@@ -70,6 +70,8 @@ enum TrInstCode {
   "return", \
   "setlocal", \
   "getlocal", \
+  "setupval", \
+  "getupval", \
   "fixnum_add", \
   "fixnum_sub", \
   "fixnum_lt", \
@@ -89,9 +91,7 @@ enum TrInstCode {
   "getglobal", \
   "setglobal", \
   "newrange", \
-  "super", \
-  "getdyn", \
-  "setdyn"
+  "super"
 
 #ifdef TR_THREADED_DISPATCH
 /* has to be in some order as in enum TrInstCode */
@@ -112,6 +112,8 @@ enum TrInstCode {
   &&op_RETURN, \
   &&op_SETLOCAL, \
   &&op_GETLOCAL, \
+  &&op_SETUPVAL, \
+  &&op_GETUPVAL, \
   &&op_FIXNUM_ADD, \
   &&op_FIXNUM_SUB, \
   &&op_FIXNUM_LT, \

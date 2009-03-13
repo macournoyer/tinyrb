@@ -151,11 +151,13 @@ typedef struct TrBlock {
   kvec_t(OBJ) k; /* TODO rename to values ? */
   kvec_t(char *) strings;
   kvec_t(OBJ) locals;
+  kvec_t(OBJ) upvals;
   kvec_t(TrInst) code;
   kvec_t(struct TrBlock *) blocks; /* TODO should not be pointers */
   size_t regc;
   size_t argc;
   size_t arg_splat;
+  int inherit_scope:1;
   OBJ filename;
   size_t line;
   /* dynamic */
@@ -176,6 +178,7 @@ typedef struct TrFrame {
   TrBlock *block;
   TrMethod *method;  /* current called method */
   OBJ *locals;
+  OBJ *upvals;
   OBJ self;
   OBJ class;
   OBJ filename;

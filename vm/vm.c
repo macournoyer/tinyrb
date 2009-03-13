@@ -228,8 +228,10 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[]) {
     OP(YIELD):      R[A] = TrVM_yield(vm, f, f->block, B, &R[A+1]); DISPATCH;
     
     /* variable and consts */
-    OP(SETLOCAL):   locals[A] = R[B]; DISPATCH;
+    OP(SETLOCAL):   locals[B] = R[A]; DISPATCH;
     OP(GETLOCAL):   R[A] = locals[B]; DISPATCH;
+    OP(SETUPVAL):   /* TODO */ DISPATCH;
+    OP(GETUPVAL):   /* TODO */ DISPATCH;
     OP(SETIVAR):    TR_SETIVAR(f->self, k[Bx], R[A]); DISPATCH;
     OP(GETIVAR):    R[A] = TR_GETIVAR(f->self, k[Bx]); DISPATCH;
     OP(SETCVAR):    TR_SETIVAR(f->class, k[Bx], R[A]); DISPATCH;
