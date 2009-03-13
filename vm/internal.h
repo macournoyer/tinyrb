@@ -39,6 +39,8 @@ typedef enum {
   AST_MSG,
   AST_IF,
   AST_UNLESS,
+  AST_AND,
+  AST_OR,
   AST_WHILE,
   AST_UNTIL,
   AST_BOOL,

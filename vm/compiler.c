@@ -7,10 +7,12 @@
 #define PUSH_OP_ABC(BLK,OP,A,B,C) ({ \
   TrInst *op = (kv_pushp(TrInst, (BLK)->code)); \
   op->i = TR_OP_##OP; op->a = (A); op->b = (B); op->c = (C); \
+  kv_size(BLK->code)-1;\
 })
 #define PUSH_OP_A(BLK,OP,A)     PUSH_OP_ABC((BLK), OP,(A),0,0)
 #define PUSH_OP_AB(BLK,OP,A,B)  PUSH_OP_ABC((BLK), OP,(A),(B),0)
 #define PUSH_OP_ABx(BLK,OP,A,B) PUSH_OP_ABC((BLK), OP,(A),(B)>>8,(B)-((B)>>8<<8))
+#define INST(BLK,I)             (&kv_A((BLK)->code,I))
 #define SET_Bx(I,B)             (I)->b=(B)>>8; (I)->c=(B)-((B)>>8<<8)
 #define INSPECT(K)              (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", TR_FIX2INT(K)), buf))
 #define VBx(OP)                 (unsigned short)(((OP.b<<8)+OP.c))
@@ -67,7 +69,7 @@ static void TrBlock_dump2(VM, TrBlock *b, int level) {
       case TR_OP_LOADK:    printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->k, VBx(op)))); break;
       case TR_OP_STRING:   printf(" ; R[%d] = \"%s\"", op.a, kv_A(b->strings, VBx(op))); break;
       case TR_OP_LOOKUP:   printf(" ; R[%d] = R[%d].method(:%s)", op.a+1, op.a, INSPECT(kv_A(b->k, VBx(op)))); break;
-      case TR_OP_CALL:     printf(" ; R[%d] = R[%d].R[%d](%d)", op.a, op.a, op.a+1, op.b); break;
+      case TR_OP_CALL:     printf(" ; R[%d] = R[%d].R[%d](%d)", op.a, op.a, op.a+1, op.b>>1); break;
       case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", INSPECT(kv_A(b->locals, op.a)), op.b); break;
       case TR_OP_GETLOCAL: printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->locals, op.b))); break;
       case TR_OP_JMP:      printf(" ; %d", sVBx(op)); break;
@@ -254,26 +256,30 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     } break;
     case AST_IF:
     case AST_UNLESS: {
+      /* condition */
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[0], reg);
+      int jmp;
       if (n->ntype == AST_IF)
-        PUSH_OP_ABx(b, JMPUNLESS, reg, 0);
+        jmp = PUSH_OP_A(b, JMPUNLESS, reg);
       else
-        PUSH_OP_ABx(b, JMPIF, reg, 0);
-      size_t jmpi = kv_size(b->code);
+        jmp = PUSH_OP_A(b, JMPIF, reg);
       /* body */
       TR_ARRAY_EACH(n->args[1], i, v, {
         TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg);
       });
-      SET_Bx(b->code.a + jmpi - 1, kv_size(b->code) - jmpi + (n->args[2] ? 1 : 0));
+      SET_Bx(INST(b, jmp), kv_size(b->code) - jmp);
       /* else body */
+      jmp = PUSH_OP_A(b, JMP, reg);
       if (n->args[2]) {
-        PUSH_OP_ABx(b, JMP, reg, 0);
-        jmpi = kv_size(b->code);
         TR_ARRAY_EACH(n->args[2], i, v, {
           TrCompiler_compile_node(vm, c, b, (TrNode *)v, reg);
         });
-        SET_Bx(b->code.a + jmpi - 1, kv_size(b->code) - jmpi);
+      } else {
+        /* if condition fail and not else block
+           nil is returned */
+        PUSH_OP_A(b, NIL, reg);
       }
+      SET_Bx(INST(b, jmp), kv_size(b->code) - jmp - 1);
     } break;
     case AST_WHILE:
     case AST_UNTIL: {
@@ -291,6 +297,19 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       });
       SET_Bx(b->code.a + jmp_end - 1, kv_size(b->code) - jmp_end + 1);
       PUSH_OP_ABx(b, JMP, 0, 0-(kv_size(b->code) - jmp_beg));
+    } break;
+    case AST_AND:
+    case AST_OR: {
+      /* receiver */
+      TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[0], reg);
+      int jmp;
+      if (n->ntype == AST_AND)
+        jmp = PUSH_OP_A(b, JMPUNLESS, reg);
+      else
+        jmp = PUSH_OP_A(b, JMPIF, reg);
+      /* arg */
+      TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
+      SET_Bx(INST(b, jmp), kv_size(b->code) - jmp - 1);
     } break;
     case AST_BOOL:
       PUSH_OP_AB(b, BOOL, reg, n->args[0]);

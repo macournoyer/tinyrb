@@ -119,6 +119,7 @@
 #define tr_send2(R,STR,A...) tr_send((R), tr_intern(STR), ##A)
 
 typedef unsigned long OBJ;
+typedef unsigned char u8;
 
 KHASH_MAP_INIT_STR(str, OBJ);
 KHASH_MAP_INIT_INT(OBJ, OBJ);
@@ -136,7 +137,7 @@ struct TrVM;
 struct TrFrame;
 
 typedef struct {
-  unsigned char i, a, b, c;
+  u8 i, a, b, c;
 } TrInst;
 
 typedef struct {

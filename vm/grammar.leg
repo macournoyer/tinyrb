@@ -39,12 +39,12 @@ Root      = s:Stmts EOF                     { compiler->node = NODE(ROOT, s) }
             tr_raise("SyntaxError at line %d, while parsing: `%s'\n", compiler->line, yybuf)
           }
 
-Stmts     = (Comment SEP)*
+Stmts     = SEP*
             - head:Stmt Comment?            { head = NODES(head) }
             ( SEP - tail:Stmt Comment?      { PUSH_NODE(head, tail) }
             | SEP - Comment
             )* SEP?                         { $$ = head }
-          | (Comment SEP)+                  { $$ = NODES_N(0) }
+          | SEP+                            { $$ = NODES_N(0) }
 
 OptStmts  = Stmts
           | - SEP?                          { $$ = NODES_N(0) }
@@ -92,8 +92,13 @@ SpecCall  = rcv:Receiver '[' args:Args ']'
             - ASSIGN - val:Stmt             { PUSH_NODE(args, NODE(ARG, val)); $$ = NODE2(SEND, rcv, NODE2(MSG, TrSymbol_new(yyvm, "[]="), args)) }
           | rcv:Receiver '[' args:Args ']'  { $$ = NODE2(SEND, rcv, NODE2(MSG, TrSymbol_new(yyvm, "[]"), args)) }
 
-OpCall    = (rcv:SpecCall | rcv:Receiver)
-            - op:OP - arg:Expr              { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(NODE(ARG, arg)))) }
+OpCall    = ( rcv:SpecCall | rcv:Receiver )
+            -
+            (
+              '&&' - arg:Expr               { $$ = NODE2(AND, rcv, arg) }
+            | '||' - arg:Expr               { $$ = NODE2(OR, rcv, arg) }
+            | op:OP - arg:Expr              { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(NODE(ARG, arg)))) }
+            ) 
 
 Message   = name:ID                         { args = 0 }
               ( '(' args:Args? ')'
@@ -224,8 +229,7 @@ ID        = !'self'                         # self is special, can never be a me
             < [a-z_] NAME?
               ( '=' &'(' | '!'| '?' )? >    { $$ = TrSymbol_new(yyvm, yytext) }
 CONST     = < [A-Z] NAME? >                 { $$ = TrSymbol_new(yyvm, yytext) }
-OP        = < ( '&&' | '||' |
-                '**' | '^'  | '&'  | '|'  | '~'  |
+OP        = < ( '**' | '^'  | '&'  | '|'  | '~'  |
                 '+'  | '-'  | '*'  | '/'  | '%'  | '<=>' |
                 '<<' | '>>' | '==' | '=~' | '!=' | '===' |
                 '<'  | '>'  | '<=' | '>='
@@ -259,7 +263,7 @@ STRING2   = '"'                             { STRING_START }
 SPACE     = [ ]+
 EOL       = ( '\n' | '\r\n' | '\r' )        { compiler->line++ }
 EOF       = !.
-SEP       = ( - (EOL | ';') )+
+SEP       = ( - Comment? (EOL | ';') )+
 
 %%
 

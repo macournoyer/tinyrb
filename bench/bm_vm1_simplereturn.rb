@@ -1,5 +1,5 @@
 def m
-  1
+  return 1
 end
 i=0
 while i<30000000 # while loop 1

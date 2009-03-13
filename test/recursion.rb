@@ -8,4 +8,3 @@ end
 
 puts fib(10)
 # => 55
-

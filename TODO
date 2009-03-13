@@ -4,16 +4,19 @@
 [x] Implement metaclass
 [x] def <object>.some_method
 [x] Array splat
-[ ] Implement &&, ||, nil?, ... of primitives
+[ ] && and || as instructions (TEST, TESTSET like lua?)
+[ ] unary - and !
 [ ] upval in block
+[ ] Regexp
+[ ] String interpolation
 [ ] Implement IO
 [ ] Implement File
 [ ] Implement Dir
 [ ] Implement Proc
 [ ] require
-[ ] begin...rescue
-[ ] def...rescue
-[ ] Fix operator precedence, add () and unary -
+[ ] begin...rescue...ensure
+[ ] def...rescue...ensure
+[ ] Fix operator precedence
 [ ] super(...)
 [x] return w/ args
 *** See TODO in code too!
