@@ -4,6 +4,10 @@ puts 1
 puts -1
 # => -1
 
+a = 2
+puts -a
+# => -2
+
 puts 10.class.name
 # => Fixnum
 

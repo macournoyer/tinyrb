@@ -60,7 +60,8 @@ Stmt      = While
 
 Expr      = Assign
           | AsgnCall
-          | OpCall
+          | UnaryOp
+          | BinOp
           | SpecCall
           | Call
           | Range
@@ -92,13 +93,16 @@ SpecCall  = rcv:Receiver '[' args:Args ']'
             - ASSIGN - val:Stmt             { PUSH_NODE(args, NODE(ARG, val)); $$ = NODE2(SEND, rcv, NODE2(MSG, TrSymbol_new(yyvm, "[]="), args)) }
           | rcv:Receiver '[' args:Args ']'  { $$ = NODE2(SEND, rcv, NODE2(MSG, TrSymbol_new(yyvm, "[]"), args)) }
 
-OpCall    = ( rcv:SpecCall | rcv:Receiver )
+BinOp     = ( rcv:SpecCall | rcv:Receiver )
             -
             (
               '&&' - arg:Expr               { $$ = NODE2(AND, rcv, arg) }
             | '||' - arg:Expr               { $$ = NODE2(OR, rcv, arg) }
-            | op:OP - arg:Expr              { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(NODE(ARG, arg)))) }
+            | op:BINOP - arg:Expr           { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(NODE(ARG, arg)))) }
             ) 
+
+UnaryOp   = '-' rcv:Expr                    { $$ = NODE2(SEND, rcv, NODE(MSG, TrSymbol_new(yyvm, "-@"))) }
+          | '!' rcv:Expr                    { $$ = NODE2(SEND, rcv, NODE(MSG, TrSymbol_new(yyvm, "!"))) }
 
 Message   = name:ID                         { args = 0 }
               ( '(' args:Args? ')'
@@ -150,9 +154,9 @@ Unless    = 'unless' SPACE cond:Expr SEP    { else_body = 0 }
 
 Else      = 'else' SEP - body:Stmts -       { $$ = body }
 
-Method    = rcv:ID '.' name:ID              { $$ = NODE2(METHOD, NODE2(SEND, 0, NODE(MSG, rcv)), name) }
-          | rcv:Value '.' name:ID           { $$ = NODE2(METHOD, rcv, name) }
-          | name:ID                         { $$ = NODE2(METHOD, 0, name) }
+Method    = rcv:ID '.' name:METHOD          { $$ = NODE2(METHOD, NODE2(SEND, 0, NODE(MSG, rcv)), name) }
+          | rcv:Value '.' name:METHOD       { $$ = NODE2(METHOD, rcv, name) }
+          | name:METHOD                     { $$ = NODE2(METHOD, 0, name) }
 
 Def       = 'def' SPACE method:Method       { params = 0 }
             (- '(' params:Params? ')')? SEP
@@ -229,16 +233,18 @@ ID        = !'self'                         # self is special, can never be a me
             < [a-z_] NAME?
               ( '=' &'(' | '!'| '?' )? >    { $$ = TrSymbol_new(yyvm, yytext) }
 CONST     = < [A-Z] NAME? >                 { $$ = TrSymbol_new(yyvm, yytext) }
-OP        = < ( '**' | '^'  | '&'  | '|'  | '~'  |
+BINOP     = < ( '**' | '^'  | '&'  | '|'  | '~'  |
                 '+'  | '-'  | '*'  | '/'  | '%'  | '<=>' |
                 '<<' | '>>' | '==' | '=~' | '!=' | '===' |
                 '<'  | '>'  | '<=' | '>='
               ) >                           { $$ = TrSymbol_new(yyvm, yytext) }
+UNOP      = < ( '-@' | '!' ) >              { $$ = TrSymbol_new(yyvm, yytext) }
+METHOD    = ID | UNOP | BINOP
 ASSIGN    = < '=' > &(!'=')                 { $$ = TrSymbol_new(yyvm, yytext) }
 IVAR      = < '@' NAME >                    { $$ = TrSymbol_new(yyvm, yytext) }
 CVAR      = < '@@' NAME >                   { $$ = TrSymbol_new(yyvm, yytext) }
 GLOBAL    = < '$' NAME >                    { $$ = TrSymbol_new(yyvm, yytext) }
-NUMBER    = < '-'? [0-9]+ >                 { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
+NUMBER    = < [0-9]+ >                      { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
 SYMBOL    = ':' < (NAME | KEYWORD) >        { $$ = TrSymbol_new(yyvm, yytext) }
 
 STRING1   = '\''                            { STRING_START }

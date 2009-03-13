@@ -1,6 +1,7 @@
 # This file is loaded when VM is done bootstraping
 
 # TODO make those path absolute
+load "lib/primitives.rb"
 load "lib/object.rb"
 load "lib/class.rb"
 load "lib/enumerable.rb"
