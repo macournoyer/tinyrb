@@ -26,6 +26,7 @@
 [ ] FFI or dl
 [ ] Embed bytecode of /lib stuff inside executable
 [ ] puts nil # => nil in MRI
+[ ] Remote GET/SETLOCAL instruction (include in registers, see Lua)
 [ ] Do not create control frame on C function calls
 [ ] Store Fixnum as immediate value
 [x] Inline some methods (+,<,>,==) as VM instructions, e.g.: FIXNUM_ADD, STRING_CONCAT
