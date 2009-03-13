@@ -70,7 +70,7 @@ static void TrBlock_dump2(VM, TrBlock *b, int level) {
       case TR_OP_STRING:   printf(" ; R[%d] = \"%s\"", op.a, kv_A(b->strings, VBx(op))); break;
       case TR_OP_LOOKUP:   printf(" ; R[%d] = R[%d].method(:%s)", op.a+1, op.a, INSPECT(kv_A(b->k, VBx(op)))); break;
       case TR_OP_CALL:     printf(" ; R[%d] = R[%d].R[%d](%d)", op.a, op.a, op.a+1, op.b>>1); break;
-      case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", INSPECT(kv_A(b->locals, op.a)), op.b); break;
+      case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", INSPECT(kv_A(b->locals, op.b)), op.a); break;
       case TR_OP_GETLOCAL: printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->locals, op.b))); break;
       case TR_OP_JMP:      printf(" ; %d", sVBx(op)); break;
       case TR_OP_DEF:      printf(" ; %s => %p", INSPECT(kv_A(b->k, VBx(op))), kv_A(b->blocks, op.a)); break;
@@ -183,7 +183,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     case AST_ASSIGN: {
       int i = TrBlock_local(b, n->args[0]);
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
-      PUSH_OP_AB(b, SETLOCAL, i, reg);
+      PUSH_OP_AB(b, SETLOCAL, reg, i);
     } break;
     case AST_SETIVAR:
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
