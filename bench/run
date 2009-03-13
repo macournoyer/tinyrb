@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+require "benchmark"
+
+IMPL = {
+  "mri"    => ["ruby"],
+  "yarv"   => ["ruby19"],
+  "jruby"  => ["~/projects/jruby/bin/jruby", "-server --fast"],
+  "rbx"    => ["~/projects/rubinius/bin/rbx"],
+  "tinyrb" => ["./tinyrb"],
+}
+
+puts "environment".center(55, "=")
+IMPL.each do |name, (cmd, args)|
+  puts name
+  puts "  command: #{cmd} #{args}"
+  puts "  version: " + `#{cmd} -v`.chomp
+end
+
+Dir["bench/*.rb"].each do |file|
+  puts file.center(55, "=")
+  Benchmark.bmbm do |results|
+    IMPL.each do |name, (cmd, args)|
+      results.report(name.rjust(10)) { system("#{cmd} #{file} #{args} > /dev/null 2>&1") || print("  ERROR!") }
+    end
+  end
+end
