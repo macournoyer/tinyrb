@@ -6,44 +6,46 @@
 [x] Array splat
 [x] && and || as instructions
 [x] unary - and !
+[ ] default arg value
+[ ] namespace constants in Module (A::B)
 [ ] upval in block
 [ ] Regexp
-[ ] String interpolation
-[ ] Implement IO
-[ ] Implement File
-[ ] Implement Dir
-[ ] Implement Proc
-[ ] require
+[ ] Proc
 [ ] begin...rescue...ensure
 [ ] def...rescue...ensure
 [ ] Fix operator precedence
 [ ] super(...)
 [x] return w/ args
-[ ] ||= &&= +=, etc.
 *** See TODO in code too!
 
 @Later
-[ ] FFI or dl
+[ ] String interpolation
+[ ] FFI
+[ ] IO
+[ ] File
+[ ] Dir
+[ ] require
+[ ] Replace GC w/ smaller, simple & embeddable one (tricolor or refcount)
 [ ] Embed bytecode of /lib stuff inside executable
-[ ] puts nil # => nil in MRI
-[ ] Remote GET/SETLOCAL instruction (include in registers, see Lua)
+[ ] ||= &&= +=, etc.
+[ ] Remove GET/SETLOCAL instruction (include locals in registers, like Lua)
 [ ] Do not create control frame on C function calls
 [ ] Store Fixnum as immediate value
-[x] Inline some methods (+,<,>,==) as VM instructions, e.g.: FIXNUM_ADD, STRING_CONCAT
 [ ] Cache constant lookup
-[ ] Reimplement Array, Hash using Tuple like Rubinius
 [ ] Peephole optimization (Remove useless register allocations)
-[ ] Implement case...when
-[ ] Implement Float, Bignum
+[ ] Inline more methods as VM instructions
+[ ] case...when
+[ ] Float, Bignum
+[ ] Reimplement Array, Hash using Tuple like Rubinius or fix Hash to use #hash
+[ ] puts nil # => nil in MRI
 [ ] Run RubySpecs
-[ ] Sandbox
 [ ] Implement & operator
-[ ] Compile to file
 [ ] Get it to build w/ -ansi gcc option (might need to get rid of khash.h)
 
 @Someday
+[ ] Compile to file
+[ ] Sandbox
 [ ] Rubygem support w/ http://github.com/fabien/minigems
-[ ] Replace GC w/ smaller, simpler & embeddable one (Io's maybe?)
 [ ] REPL
 [ ] Unicode
 [ ] lightweight threads, coroutines (using libconcurrency?)
