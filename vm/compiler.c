@@ -31,7 +31,7 @@ OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c, size_t line) {
 }
 
 /* code block */
-static TrBlock *TrBlock_new(TrCompiler *compiler) {
+static TrBlock *TrBlock_new(TrCompiler *compiler, TrBlock *parent) {
   TrBlock *b = TR_ALLOC(TrBlock);
   kv_init(b->k);
   kv_init(b->code);
@@ -42,6 +42,7 @@ static TrBlock *TrBlock_new(TrCompiler *compiler) {
   b->argc = 0;
   b->filename = compiler->filename;
   b->line = 1;
+  b->parent = parent;
   return b;
 }
 
@@ -57,6 +58,8 @@ static void TrBlock_dump2(VM, TrBlock *b, int level) {
   printf("\n");
   for (i = 0; i < kv_size(b->locals); ++i)
     printf(".local  %-8s ; %lu\n", INSPECT(kv_A(b->locals, i)), i);
+  for (i = 0; i < kv_size(b->upvals); ++i)
+    printf(".upval  %-8s ; %lu\n", INSPECT(kv_A(b->upvals, i)), i);
   for (i = 0; i < kv_size(b->k); ++i) {
     printf(".value  %-8s ; %lu\n", INSPECT(kv_A(b->k, i)), i);
   }
@@ -120,13 +123,27 @@ static int TrBlock_local(TrBlock *blk, OBJ name) {
   return kv_size(blk->locals)-1;
 }
 
+static int TrBlock_hasupval(TrBlock *blk, OBJ name) {
+  size_t i;
+  for (i = 0; i < kv_size(blk->upvals); ++i)
+    if (kv_A(blk->upvals, i) == name) return i;
+  return -1;
+}
+
+static int TrBlock_upval(TrBlock *blk, OBJ name) {
+  size_t i = TrBlock_hasupval(blk, name);
+  if (i != -1) return i;
+  kv_push(OBJ, blk->upvals, name);
+  return kv_size(blk->upvals)-1;
+}
+
 /* compiler */
 
 TrCompiler *TrCompiler_new(VM, const char *fn) {
   TrCompiler *c = TR_ALLOC(TrCompiler);
   c->line = 1;
   c->vm = vm;
-  c->block = TrBlock_new(c);
+  c->block = TrBlock_new(c, 0);
   c->reg = 0;
   c->node = TR_NIL;
   c->filename = TrString_new2(vm, fn);
@@ -209,10 +226,18 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     case AST_SEND: { /* can be a method send or a local var access */
       TrNode *msg = (TrNode *)n->args[1];
       assert(msg->ntype == AST_MSG);
-      int i = TrBlock_haslocal(b, msg->args[0]);
-      if (i != -1) { /* var */
+      int i;
+      /* local */
+      if ((i = TrBlock_haslocal(b, msg->args[0])) != -1) {
         PUSH_OP_AB(b, GETLOCAL, reg, i);
-      } else { /* method */
+        
+      /* upval */
+      } else if (b->parent && (i = TrBlock_haslocal(b->parent, msg->args[0])) != -1) {
+        i = TrBlock_upval(b, msg->args[0]);
+        PUSH_OP_AB(b, GETUPVAL, reg, i);
+        
+      /* method call */
+      } else {
         /* receiver */
         if (n->args[0])
           TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[0], reg);
@@ -233,7 +258,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         /* block */
         size_t blki = 0;
         if (n->args[2]) {
-          TrBlock *blk = TrBlock_new(c);
+          TrBlock *blk = TrBlock_new(c, b);
           TrNode *blkn = (TrNode *)n->args[2];
           blki = kv_size(b->blocks) + 1;
           blk->argc = 0;
@@ -337,7 +362,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     case AST_DEF: {
       TrNode *method = (TrNode *)n->args[0];
       assert(method->ntype == AST_METHOD);
-      TrBlock *blk = TrBlock_new(c);
+      TrBlock *blk = TrBlock_new(c, 0);
       size_t blki = kv_size(b->blocks);
       kv_push(TrBlock *, b->blocks, blk);
       if (n->args[1]) {
@@ -364,7 +389,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     } break;
     case AST_CLASS:
     case AST_MODULE: {
-      TrBlock *blk = TrBlock_new(c);
+      TrBlock *blk = TrBlock_new(c, 0);
       size_t blki = kv_size(b->blocks);
       kv_push(TrBlock *, b->blocks, blk);
       /* compile body of class */

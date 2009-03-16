@@ -160,6 +160,7 @@ typedef struct TrBlock {
   int inherit_scope:1;
   OBJ filename;
   size_t line;
+  struct TrBlock *parent;
   /* dynamic */
   kvec_t(TrCallSite) sites;
   struct TrFrame *frame;
