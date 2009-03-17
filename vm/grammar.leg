@@ -217,7 +217,7 @@ AryItems  = - head:Expr -                   { head = NODES(head) }
 HashItems = head:Expr - '=>' - val:Expr     { head = NODES_N(2, head, val) }
             ( - ',' - key:Expr -            { PUSH_NODE(head, key) }
                 '=>' - val:Expr             { PUSH_NODE(head, val) }
-            )                               { $$ = head }
+            )*                              { $$ = head }
 
 KEYWORD   = 'while' | 'until' | 'do' | 'end' |
             'if' | 'unless' | 'else' |

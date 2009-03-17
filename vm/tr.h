@@ -166,6 +166,16 @@ typedef struct TrBlock {
   struct TrFrame *frame;
 } TrBlock;
 
+typedef struct TrUpval {
+  OBJ *value;
+  OBJ closed; /* value when closed */
+} TrUpval;
+
+typedef struct TrClosure {
+  TrBlock *block;
+  TrUpval *upvals;
+} TrClosure;
+
 typedef OBJ (TrFunc)(VM, OBJ receiver, ...);
 typedef struct {
   TR_OBJECT_HEADER;
@@ -176,7 +186,7 @@ typedef struct {
 } TrMethod;
 
 typedef struct TrFrame {
-  TrBlock *block;
+  TrClosure *closure;
   TrMethod *method;  /* current called method */
   OBJ *locals;
   OBJ *upvals;
@@ -255,7 +265,7 @@ OBJ TrVM_eval(VM, char *code, char *filename);
 OBJ TrVM_load(VM, char *filename);
 void TrVM_raise(VM, OBJ exception);
 void TrVM_rescue(VM);
-OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[], TrBlock *block);
+OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[]);
 void TrVM_destroy(TrVM *vm);
 
 /* string */

@@ -231,8 +231,8 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       if ((i = TrBlock_haslocal(b, msg->args[0])) != -1) {
         PUSH_OP_AB(b, GETLOCAL, reg, i);
         
-      /* upval */
-      } else if (b->parent && (i = TrBlock_haslocal(b->parent, msg->args[0])) != -1) {
+      /* upval to local */
+      } else if (b->parent && TrBlock_haslocal(b->parent, msg->args[0]) != -1) {
         i = TrBlock_upval(b, msg->args[0]);
         PUSH_OP_AB(b, GETUPVAL, reg, i);
         
@@ -257,8 +257,9 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         }
         /* block */
         size_t blki = 0;
+        TrBlock *blk = 0;
         if (n->args[2]) {
-          TrBlock *blk = TrBlock_new(c, b);
+          blk = TrBlock_new(c, b);
           TrNode *blkn = (TrNode *)n->args[2];
           blki = kv_size(b->blocks) + 1;
           blk->argc = 0;
@@ -277,6 +278,13 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         PUSH_OP_A(b, BOING, 0);
         PUSH_OP_ABx(b, LOOKUP, reg, i);
         PUSH_OP_ABC(b, CALL, reg, argc, blki);
+        
+        /* if passed block has upvalues generate one pseudo-instructions for each. */
+        if (blk && kv_size(blk->upvals)) {
+          /* TODO upval might reference an upval too */
+          for(i = 0; i < kv_size(blk->upvals); ++i)
+            PUSH_OP_AB(b, GETLOCAL, 0, TrBlock_haslocal(b, kv_A(blk->upvals, i)));
+        }
       }
     } break;
     case AST_IF:
