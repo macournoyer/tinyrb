@@ -299,6 +299,9 @@ void TrHash_init(VM);
 OBJ TrRange_new(VM, OBJ start, OBJ end, int exclusive);
 void TrRange_init(VM);
 
+/* proc */
+TrClosure *TrClosure_new(VM, TrBlock *b);
+
 /* object */
 OBJ TrObject_new(VM);
 OBJ TrObject_method(VM, OBJ self, OBJ name);

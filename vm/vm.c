@@ -256,11 +256,9 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
              getlocal  0  0  0 ; this is not executed
              return    0
          */
-        cl = TR_ALLOC(TrClosure);
-        cl->block = blocks[C-1];
-        cl->upvals = TR_ALLOC_N(TrUpval, kv_size(cl->block->upvals));
-        size_t i;
-        for (i = 0; i < kv_size(cl->block->upvals); ++i) {
+        cl = TrClosure_new(vm, blocks[C-1]);
+        size_t i, nupval = kv_size(cl->block->upvals);
+        for (i = 0; i < nupval; ++i) {
           ++ip;
           if (ip->i == TR_OP_GETLOCAL) {
             cl->upvals[i].value = &locals[ip->b];
