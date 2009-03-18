@@ -234,7 +234,8 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
     /* variable and consts */
     OP(SETLOCAL):   locals[B] = R[A]; DISPATCH;
     OP(GETLOCAL):   R[A] = locals[B]; DISPATCH;
-    OP(GETUPVAL):   assert(upvals); R[A] = *upvals[B].value; DISPATCH;
+    OP(SETUPVAL):   assert(upvals && upvals[B].value); *(upvals[B].value) = R[A]; DISPATCH;
+    OP(GETUPVAL):   assert(upvals); R[A] = *(upvals[B].value); DISPATCH;
     OP(SETIVAR):    TR_SETIVAR(f->self, k[Bx], R[A]); DISPATCH;
     OP(GETIVAR):    R[A] = TR_GETIVAR(f->self, k[Bx]); DISPATCH;
     OP(SETCVAR):    TR_SETIVAR(f->class, k[Bx], R[A]); DISPATCH;

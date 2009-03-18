@@ -75,6 +75,7 @@ static void TrBlock_dump2(VM, TrBlock *b, int level) {
       case TR_OP_CALL:     printf(" ; R[%d] = R[%d].R[%d](%d)", op.a, op.a, op.a+1, op.b>>1); break;
       case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", INSPECT(kv_A(b->locals, op.b)), op.a); break;
       case TR_OP_GETLOCAL: printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->locals, op.b))); break;
+      case TR_OP_SETUPVAL: printf(" ; %s = R[%d]", INSPECT(kv_A(b->upvals, op.b)), op.a); break;
       case TR_OP_GETUPVAL: printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->upvals, op.b))); break;
       case TR_OP_JMP:      printf(" ; %d", sVBx(op)); break;
       case TR_OP_DEF:      printf(" ; %s => %p", INSPECT(kv_A(b->k, VBx(op))), kv_A(b->blocks, op.a)); break;
@@ -132,7 +133,8 @@ static int TrBlock_find_upval(TrBlock *blk, OBJ name) {
 }
 
 static int TrBlock_find_upval_in_scope(TrBlock *blk, OBJ name) {
-  int i;
+  if (!blk->parent) return -1;
+  int i = -1;
   while (blk && (i = TrBlock_find_local(blk, name)) == -1)
     blk = blk->parent;
   return i;
@@ -212,9 +214,15 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       PUSH_OP_ABC(b, NEWRANGE, reg, reg+1, n->args[2]);
     } break;
     case AST_ASSIGN: {
-      int i = TrBlock_push_local(b, n->args[0]);
+      OBJ name = n->args[0];
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
-      PUSH_OP_AB(b, SETLOCAL, reg, i);
+      if (TrBlock_find_upval_in_scope(b, name) != -1) {
+        /* upval */
+        PUSH_OP_AB(b, SETUPVAL, reg, TrBlock_push_upval(b, name));
+      } else {
+        /* local */
+        PUSH_OP_AB(b, SETLOCAL, reg, TrBlock_push_local(b, name));
+      }
     } break;
     case AST_SETIVAR:
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
@@ -241,15 +249,16 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     /* can also be a variable access */
     {
       TrNode *msg = (TrNode *)n->args[1];
+      OBJ name = msg->args[0];
       assert(msg->ntype == AST_MSG);
       int i;
       /* local */
-      if ((i = TrBlock_find_local(b, msg->args[0])) != -1) {
+      if ((i = TrBlock_find_local(b, name)) != -1) {
         PUSH_OP_AB(b, GETLOCAL, reg, i);
         
       /* upval */
-      } else if (TrBlock_find_upval_in_scope(b, msg->args[0]) != -1) {
-        i = TrBlock_push_upval(b, msg->args[0]);
+      } else if (TrBlock_find_upval_in_scope(b, name) != -1) {
+        i = TrBlock_push_upval(b, name);
         PUSH_OP_AB(b, GETUPVAL, reg, i);
         
       /* method call */
@@ -259,7 +268,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
           TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[0], reg);
         else
           PUSH_OP_A(b, SELF, reg);
-        i = TrBlock_push_value(b, msg->args[0]);
+        i = TrBlock_push_value(b, name);
         /* args */
         size_t argc = 0;
         if (msg->args[1]) {

@@ -16,3 +16,9 @@ y = yielder do
 end
 puts y
 # => yeaaah!
+
+yielder do
+  x = "waaaa?"
+end
+puts x
+# => waaaa?
