@@ -91,7 +91,7 @@ void TrBlock_dump(VM, TrBlock *b) {
   TrBlock_dump2(vm, b, 0);
 }
 
-static int TrBlock_pushk(TrBlock *blk, OBJ k) {
+static int TrBlock_push_value(TrBlock *blk, OBJ k) {
   size_t i;
   for (i = 0; i < kv_size(blk->k); ++i)
     if (kv_A(blk->k, i) == k) return i;
@@ -110,45 +110,45 @@ static int TrBlock_push_string(TrBlock *blk, char *str) {
   return kv_size(blk->strings)-1;
 }
 
-static int TrBlock_haslocal(TrBlock *blk, OBJ name) {
+static int TrBlock_find_local(TrBlock *blk, OBJ name) {
   size_t i;
   for (i = 0; i < kv_size(blk->locals); ++i)
     if (kv_A(blk->locals, i) == name) return i;
   return -1;
 }
 
-static int TrBlock_local(TrBlock *blk, OBJ name) {
-  size_t i = TrBlock_haslocal(blk, name);
+static int TrBlock_push_local(TrBlock *blk, OBJ name) {
+  size_t i = TrBlock_find_local(blk, name);
   if (i != -1) return i;
   kv_push(OBJ, blk->locals, name);
   return kv_size(blk->locals)-1;
 }
 
-static int TrBlock_hasupval(TrBlock *blk, OBJ name) {
+static int TrBlock_find_upval(TrBlock *blk, OBJ name) {
   size_t i;
   for (i = 0; i < kv_size(blk->upvals); ++i)
     if (kv_A(blk->upvals, i) == name) return i;
   return -1;
 }
 
-static int TrBlock_upval(TrBlock *blk, OBJ name) {
-  size_t i = TrBlock_hasupval(blk, name);
+static int TrBlock_find_upval_in_scope(TrBlock *blk, OBJ name) {
+  int i;
+  while (blk && (i = TrBlock_find_local(blk, name)) == -1)
+    blk = blk->parent;
+  return i;
+}
+
+static int TrBlock_push_upval(TrBlock *blk, OBJ name) {
+  size_t i = TrBlock_find_upval(blk, name);
   if (i != -1) return i;
   
   TrBlock *b = blk;
   while (b->parent) {
-    if (TrBlock_hasupval(b, name) == -1) kv_push(OBJ, b->upvals, name);
+    if (TrBlock_find_upval(b, name) == -1) kv_push(OBJ, b->upvals, name);
     b = b->parent;
   }
   
   return kv_size(blk->upvals)-1;
-}
-
-static int TrBlock_hasupval_in_scope(TrBlock *blk, OBJ name) {
-  int i;
-  while (blk && (i = TrBlock_haslocal(blk, name)) == -1)
-    blk = blk->parent;
-  return i;
 }
 
 /* compiler */
@@ -177,7 +177,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       });
       break;
     case AST_VALUE: {
-      int i = TrBlock_pushk(b, n->args[0]);
+      int i = TrBlock_push_value(b, n->args[0]);
       PUSH_OP_ABx(b, LOADK, reg, i);
     } break;
     case AST_STRING: {
@@ -212,42 +212,44 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       PUSH_OP_ABC(b, NEWRANGE, reg, reg+1, n->args[2]);
     } break;
     case AST_ASSIGN: {
-      int i = TrBlock_local(b, n->args[0]);
+      int i = TrBlock_push_local(b, n->args[0]);
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
       PUSH_OP_AB(b, SETLOCAL, reg, i);
     } break;
     case AST_SETIVAR:
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
-      PUSH_OP_ABx(b, SETIVAR, reg, TrBlock_pushk(b, n->args[0]));
+      PUSH_OP_ABx(b, SETIVAR, reg, TrBlock_push_value(b, n->args[0]));
       break;
     case AST_GETIVAR:
-      PUSH_OP_ABx(b, GETIVAR, reg, TrBlock_pushk(b, n->args[0]));
+      PUSH_OP_ABx(b, GETIVAR, reg, TrBlock_push_value(b, n->args[0]));
       break;
     case AST_SETCVAR:
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
-      PUSH_OP_ABx(b, SETCVAR, reg, TrBlock_pushk(b, n->args[0]));
+      PUSH_OP_ABx(b, SETCVAR, reg, TrBlock_push_value(b, n->args[0]));
       break;
     case AST_GETCVAR:
-      PUSH_OP_ABx(b, GETCVAR, reg, TrBlock_pushk(b, n->args[0]));
+      PUSH_OP_ABx(b, GETCVAR, reg, TrBlock_push_value(b, n->args[0]));
       break;
     case AST_SETGLOBAL:
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
-      PUSH_OP_ABx(b, SETGLOBAL, reg, TrBlock_pushk(b, n->args[0]));
+      PUSH_OP_ABx(b, SETGLOBAL, reg, TrBlock_push_value(b, n->args[0]));
       break;
     case AST_GETGLOBAL:
-      PUSH_OP_ABx(b, GETGLOBAL, reg, TrBlock_pushk(b, n->args[0]));
+      PUSH_OP_ABx(b, GETGLOBAL, reg, TrBlock_push_value(b, n->args[0]));
       break;
-    case AST_SEND: { /* can be a method send or a local var access */
+    case AST_SEND:
+    /* can also be a variable access */
+    {
       TrNode *msg = (TrNode *)n->args[1];
       assert(msg->ntype == AST_MSG);
       int i;
       /* local */
-      if ((i = TrBlock_haslocal(b, msg->args[0])) != -1) {
+      if ((i = TrBlock_find_local(b, msg->args[0])) != -1) {
         PUSH_OP_AB(b, GETLOCAL, reg, i);
         
       /* upval */
-      } else if (TrBlock_hasupval_in_scope(b, msg->args[0]) != -1) {
-        i = TrBlock_upval(b, msg->args[0]);
+      } else if (TrBlock_find_upval_in_scope(b, msg->args[0]) != -1) {
+        i = TrBlock_push_upval(b, msg->args[0]);
         PUSH_OP_AB(b, GETUPVAL, reg, i);
         
       /* method call */
@@ -257,7 +259,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
           TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[0], reg);
         else
           PUSH_OP_A(b, SELF, reg);
-        i = TrBlock_pushk(b, msg->args[0]);
+        i = TrBlock_push_value(b, msg->args[0]);
         /* args */
         size_t argc = 0;
         if (msg->args[1]) {
@@ -282,7 +284,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
             /* add parameters as locals in block context */
             TR_ARRAY_EACH(blkn->args[1], i, v, {
               TrNode *param = (TrNode *)v;
-              TrBlock_local(blk, param->args[0]);
+              TrBlock_push_local(blk, param->args[0]);
             });
           }
           kv_push(TrBlock *, b->blocks, blk);
@@ -297,11 +299,11 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         if (blk && kv_size(blk->upvals)) {
           for(i = 0; i < kv_size(blk->upvals); ++i) {
             OBJ upval_name = kv_A(blk->upvals, i);
-            size_t vali = TrBlock_haslocal(b, upval_name);
+            size_t vali = TrBlock_find_local(b, upval_name);
             if (vali != -1)
               PUSH_OP_AB(b, GETLOCAL, 0, vali);
             else
-              PUSH_OP_AB(b, GETUPVAL, 0, TrBlock_hasupval(b, upval_name));
+              PUSH_OP_AB(b, GETUPVAL, 0, TrBlock_find_upval(b, upval_name));
           }
         }
       }
@@ -397,7 +399,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         /* add parameters as locals in method context */
         TR_ARRAY_EACH(n->args[1], i, v, {
           TrNode *param = (TrNode *)v;
-          TrBlock_local(blk, param->args[0]);
+          TrBlock_push_local(blk, param->args[0]);
           if (param->args[1]) blk->arg_splat = 1;
         });
       }
@@ -409,9 +411,9 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       if (method->args[0]) {
         /* metaclass def */
         TrCompiler_compile_node(vm, c, b, (TrNode*)method->args[0], 0);
-        PUSH_OP_ABx(b, METADEF, blki, TrBlock_pushk(b, method->args[1]));
+        PUSH_OP_ABx(b, METADEF, blki, TrBlock_push_value(b, method->args[1]));
       } else {
-        PUSH_OP_ABx(b, DEF, blki, TrBlock_pushk(b, method->args[1]));
+        PUSH_OP_ABx(b, DEF, blki, TrBlock_push_value(b, method->args[1]));
       }
     } break;
     case AST_CLASS:
@@ -427,20 +429,20 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       if (n->ntype == AST_CLASS) {
         /* superclass */
         if (n->args[1])
-          PUSH_OP_ABx(b, GETCONST, 0, TrBlock_pushk(b, n->args[1]));
+          PUSH_OP_ABx(b, GETCONST, 0, TrBlock_push_value(b, n->args[1]));
         else
           PUSH_OP_A(b, NIL, 0);
-        PUSH_OP_ABx(b, CLASS, blki, TrBlock_pushk(b, n->args[0]));
+        PUSH_OP_ABx(b, CLASS, blki, TrBlock_push_value(b, n->args[0]));
       } else {
-        PUSH_OP_ABx(b, MODULE, blki, TrBlock_pushk(b, n->args[0]));
+        PUSH_OP_ABx(b, MODULE, blki, TrBlock_push_value(b, n->args[0]));
       }
     } break;
     case AST_CONST:
-      PUSH_OP_ABx(b, GETCONST, reg, TrBlock_pushk(b, n->args[0]));
+      PUSH_OP_ABx(b, GETCONST, reg, TrBlock_push_value(b, n->args[0]));
       break;
     case AST_SETCONST:
       TrCompiler_compile_node(vm, c, b, (TrNode *)n->args[1], reg);
-      PUSH_OP_ABx(b, SETCONST, reg, TrBlock_pushk(b, n->args[0]));
+      PUSH_OP_ABx(b, SETCONST, reg, TrBlock_push_value(b, n->args[0]));
       break;
     default:
       printf("Compiler: unknown node type: %d\n", n->ntype);
