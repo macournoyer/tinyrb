@@ -136,7 +136,7 @@ static int TrBlock_upval(TrBlock *blk, OBJ name) {
   if (i != -1) return i;
   
   TrBlock *b = blk;
-  while (b) {
+  while (b->parent) {
     if (TrBlock_hasupval(b, name) == -1) kv_push(OBJ, b->upvals, name);
     b = b->parent;
   }
