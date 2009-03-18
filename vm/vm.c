@@ -247,6 +247,17 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
     
     /* method calling */
     OP(LOOKUP):     R[A+1] = TrVM_lookup(vm, b, R[A], k[Bx], ip); DISPATCH;
+    OP(CACHE):
+      /* TODO how to expire cache? */
+      assert(&SITE[C] && "Method cached but no CallSite found");
+      if (likely(SITE[C].class == TR_COBJECT(R[A])->class)) {
+        R[A+1] = SITE[C].method;
+        ip += B;
+      } else {
+        /* TODO invalidate CallSite if too much miss. */
+        SITE[C].miss++;
+      }
+      DISPATCH;
     OP(CALL): {
       TrClosure *cl = 0;
       if (C > 0) {
@@ -268,23 +279,14 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
           }
         }
       }
-      R[A] = TrVM_call(vm, f, R[A], R[A+1],
+      R[A] = TrVM_call(vm, f,
+                       R[A], /* receiver */
+                       R[A+1], /* method */
                        B >> 1, &R[A+2], /* args */
                        B & 1, /* splat */
                        cl /* closure */
                       ); DISPATCH;
     }
-    OP(CACHE):
-      /* TODO how to expire cache? */
-      assert(&SITE[C] && "Method cached but no CallSite found");
-      if (likely(SITE[C].class == TR_COBJECT(R[A])->class)) {
-        R[A+1] = SITE[C].method;
-        ip += B;
-      } else {
-        /* TODO invalidate CallSite if too much miss. */
-        SITE[C].miss++;
-      }
-      DISPATCH;
     
     /* definition */
     OP(DEF):    R[0] = TrVM_defmethod(vm, f, k[Bx], blocks[A], 0, 0); DISPATCH;
