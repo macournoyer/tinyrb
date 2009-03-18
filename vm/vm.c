@@ -83,7 +83,7 @@ static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int
   register TrFrame *f = FRAME;
   f->method = TR_CMETHOD(method);
   register TrFunc *func = f->method->func;
-  if (cl) cl->block->frame = callingf;
+  if (cl) cl->frame = callingf;
   OBJ ret = TR_NIL;
   
   /* splat last arg is needed */
@@ -166,7 +166,7 @@ static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b, int meta, OBJ re
 static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
   TrClosure *cl = f->closure;
   if (!cl) tr_raise("LocalJumpError: no block given");
-  return TrVM_step(vm, cl->block->frame, cl->block, argc, argv, cl);
+  return TrVM_step(vm, cl->frame, cl->block, argc, argv, cl);
 }
 
 /* dispatch macros */

@@ -163,7 +163,6 @@ typedef struct TrBlock {
   struct TrBlock *parent;
   /* dynamic */
   kvec_t(TrCallSite) sites;
-  struct TrFrame *frame;
 } TrBlock;
 
 typedef struct TrUpval {
@@ -174,6 +173,7 @@ typedef struct TrUpval {
 typedef struct TrClosure {
   TrBlock *block;
   TrUpval *upvals;
+  struct TrFrame *frame;
 } TrClosure;
 
 typedef OBJ (TrFunc)(VM, OBJ receiver, ...);
