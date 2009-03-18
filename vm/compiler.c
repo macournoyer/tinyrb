@@ -75,6 +75,7 @@ static void TrBlock_dump2(VM, TrBlock *b, int level) {
       case TR_OP_CALL:     printf(" ; R[%d] = R[%d].R[%d](%d)", op.a, op.a, op.a+1, op.b>>1); break;
       case TR_OP_SETLOCAL: printf(" ; %s = R[%d]", INSPECT(kv_A(b->locals, op.b)), op.a); break;
       case TR_OP_GETLOCAL: printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->locals, op.b))); break;
+      case TR_OP_GETUPVAL: printf(" ; R[%d] = %s", op.a, INSPECT(kv_A(b->upvals, op.b))); break;
       case TR_OP_JMP:      printf(" ; %d", sVBx(op)); break;
       case TR_OP_DEF:      printf(" ; %s => %p", INSPECT(kv_A(b->k, VBx(op))), kv_A(b->blocks, op.a)); break;
     }
@@ -133,8 +134,21 @@ static int TrBlock_hasupval(TrBlock *blk, OBJ name) {
 static int TrBlock_upval(TrBlock *blk, OBJ name) {
   size_t i = TrBlock_hasupval(blk, name);
   if (i != -1) return i;
-  kv_push(OBJ, blk->upvals, name);
+  
+  TrBlock *b = blk;
+  while (b) {
+    if (TrBlock_hasupval(b, name) == -1) kv_push(OBJ, b->upvals, name);
+    b = b->parent;
+  }
+  
   return kv_size(blk->upvals)-1;
+}
+
+static int TrBlock_hasupval_in_scope(TrBlock *blk, OBJ name) {
+  int i;
+  while (blk && (i = TrBlock_haslocal(blk, name)) == -1)
+    blk = blk->parent;
+  return i;
 }
 
 /* compiler */
@@ -231,8 +245,8 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       if ((i = TrBlock_haslocal(b, msg->args[0])) != -1) {
         PUSH_OP_AB(b, GETLOCAL, reg, i);
         
-      /* upval to local */
-      } else if (b->parent && TrBlock_haslocal(b->parent, msg->args[0]) != -1) {
+      /* upval */
+      } else if (TrBlock_hasupval_in_scope(b, msg->args[0]) != -1) {
         i = TrBlock_upval(b, msg->args[0]);
         PUSH_OP_AB(b, GETUPVAL, reg, i);
         
@@ -279,11 +293,16 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         PUSH_OP_ABx(b, LOOKUP, reg, i);
         PUSH_OP_ABC(b, CALL, reg, argc, blki);
         
-        /* if passed block has upvalues generate one pseudo-instructions for each. */
+        /* if passed block has upvalues generate one pseudo-instructions for each (A reg is ignored). */
         if (blk && kv_size(blk->upvals)) {
-          /* TODO upval might reference an upval too */
-          for(i = 0; i < kv_size(blk->upvals); ++i)
-            PUSH_OP_AB(b, GETLOCAL, 0, TrBlock_haslocal(b, kv_A(blk->upvals, i)));
+          for(i = 0; i < kv_size(blk->upvals); ++i) {
+            OBJ upval_name = kv_A(blk->upvals, i);
+            size_t vali = TrBlock_haslocal(b, upval_name);
+            if (vali != -1)
+              PUSH_OP_AB(b, GETLOCAL, 0, vali);
+            else
+              PUSH_OP_AB(b, GETUPVAL, 0, TrBlock_hasupval(b, upval_name));
+          }
         }
       }
     } break;

@@ -172,7 +172,7 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 /* dispatch macros */
 #define NEXT_OP        (++ip, e=*ip)
 #ifdef TR_THREADED_DISPATCH
-#define OPCODES        goto *labels[e.i]
+#define OPCODES        goto *labels[e.i];
 #define END_OPCODES    
 #define OP(name)       op_##name
 #define DISPATCH       NEXT_OP; goto *labels[e.i]
@@ -249,12 +249,25 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
     OP(CALL): {
       TrClosure *cl = 0;
       if (C > 0) {
+        /* Get upvalues using the pseudo-instructions following the CALL instruction.
+           Eg.: there's one upval to a local (x) to be passed:
+             call      0  0  0
+             getlocal  0  0  0 ; this is not executed
+             return    0
+         */
         cl = TR_ALLOC(TrClosure);
         cl->block = blocks[C-1];
         cl->upvals = TR_ALLOC_N(TrUpval, kv_size(cl->block->upvals));
         size_t i;
-        for (i = 0; i < kv_size(cl->block->upvals); ++ip, ++i)
-          cl->upvals[i].value = &locals[ip->b];
+        for (i = 0; i < kv_size(cl->block->upvals); ++i) {
+          ++ip;
+          if (ip->i == TR_OP_GETLOCAL) {
+            cl->upvals[i].value = &locals[ip->b];
+          } else {
+            assert(ip->i == TR_OP_GETUPVAL);
+            cl->upvals[i].value = upvals[ip->b].value;
+          }
+        }
       }
       R[A] = TrVM_call(vm, f, R[A], R[A+1],
                        B >> 1, &R[A+2], /* args */

@@ -3,10 +3,16 @@ def yielder
 end
 
 x = "yeaaah!"
-puts yielder { x }
+y = yielder do
+  x
+end
+puts y
 # => yeaaah!
 
-# TODO
-# HACK nested {} cause infinite recursion in parser
-# puts yielder do; yielder do; x end end
-# # => yeaaah!
+y = yielder do
+  yielder do
+    x
+  end
+end
+puts y
+# => yeaaah!

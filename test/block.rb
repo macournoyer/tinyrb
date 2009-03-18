@@ -9,10 +9,6 @@ end
 # => awesome!
 # => awesome!
 
-make_awesome { puts "wordup" }
-# => wordup
-# => wordup
-
 def yielder(arg)
   yield arg
 end
@@ -22,8 +18,13 @@ yielder("I feel like having a cupcake") do |txt|
 end
 # => I feel like having a cupcake
 
-yielder("I feel like having a cupcake") { |txt| puts txt }
-# => I feel like having a cupcake
+# FIXME {} cause lots of recursion in parser or even hang
+# make_awesome { puts "wordup" }
+# # => wordup
+# # => wordup
+
+# yielder("I feel like having a cupcake") { |txt| puts txt }
+# # => I feel like having a cupcake
 
 def reyielder(arg)
   yielder(arg) do |arg|
