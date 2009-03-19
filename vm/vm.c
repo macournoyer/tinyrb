@@ -187,7 +187,7 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #define A    (e.a)
 #define B    (e.b)
 #define C    (e.c)
-#define R    regs
+#define R    stack
 #define Bx   (unsigned short)(((B<<8)+C))
 #define sBx  (short)(((B<<8)+C))
 #define SITE (b->sites.a)
@@ -200,11 +200,10 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
   OBJ *k = b->k.a;
   char **strings = b->strings.a;
   TrBlock **blocks = b->blocks.a;
-  register OBJ *regs = TR_ALLOC_N(OBJ, b->regc);
+  register OBJ *stack = f->stack = TR_ALLOC_N(OBJ, b->regc + kv_size(b->locals));
   /* transfer locals */
   assert(argc <= kv_size(b->locals) && "can't fit args in locals");
-  OBJ *locals = f->locals = TR_ALLOC_N(OBJ, kv_size(b->locals));
-  TR_MEMCPY_N(locals, argv, OBJ, argc);
+  TR_MEMCPY_N(stack, argv, OBJ, argc);
   TrUpval *upvals = 0;
   if (closure) upvals = closure->upvals;
   
@@ -232,8 +231,6 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
     OP(YIELD):      R[A] = TrVM_yield(vm, f, B, &R[A+1]); DISPATCH;
     
     /* variable and consts */
-    OP(SETLOCAL):   locals[B] = R[A]; DISPATCH;
-    OP(GETLOCAL):   R[A] = locals[B]; DISPATCH;
     OP(SETUPVAL):   assert(upvals && upvals[B].value); *(upvals[B].value) = R[A]; DISPATCH;
     OP(GETUPVAL):   assert(upvals); R[A] = *(upvals[B].value); DISPATCH;
     OP(SETIVAR):    TR_SETIVAR(f->self, k[Bx], R[A]); DISPATCH;
@@ -263,16 +260,16 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
       if (C > 0) {
         /* Get upvalues using the pseudo-instructions following the CALL instruction.
            Eg.: there's one upval to a local (x) to be passed:
-             call      0  0  0
-             getlocal  0  0  0 ; this is not executed
-             return    0
+             call    0  0  0
+             move    0  0  0 ; this is not executed
+             return  0
          */
         cl = TrClosure_new(vm, blocks[C-1]);
         size_t i, nupval = kv_size(cl->block->upvals);
         for (i = 0; i < nupval; ++i) {
           ++ip;
-          if (ip->i == TR_OP_GETLOCAL) {
-            cl->upvals[i].value = &locals[ip->b];
+          if (ip->i == TR_OP_MOVE) {
+            cl->upvals[i].value = &R[ip->b];
           } else {
             assert(ip->i == TR_OP_GETUPVAL);
             cl->upvals[i].value = upvals[ip->b].value;
@@ -420,7 +417,7 @@ TrVM *TrVM_new() {
   vm->self = TrObject_new(vm);
   vm->cf = -1;
   
-  /* TrVM_load(vm, "lib/boot.rb"); */
+  TrVM_load(vm, "lib/boot.rb");
   
   return vm;
 }

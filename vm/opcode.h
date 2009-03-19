@@ -27,8 +27,6 @@ enum TrInstCode {
   TR_OP_JMPIF,      /* A sBx    jump sBx instructions if R[A] */
   TR_OP_JMPUNLESS,  /* A sBx    jump sBx instructions unless R[A] */
   TR_OP_RETURN,     /* A        return R[A] */
-  TR_OP_SETLOCAL,   /* A B      locals[B] = R[A] */
-  TR_OP_GETLOCAL,   /* A B      R[A] = locals[B] */
   TR_OP_SETUPVAL,   /* A B      upvals[B] = R[A] */
   TR_OP_GETUPVAL,   /* A B      R[A] = upvals[B] */
   TR_OP_FIXNUM_ADD,
@@ -68,8 +66,6 @@ enum TrInstCode {
   "jmpif", \
   "jmpunless", \
   "return", \
-  "setlocal", \
-  "getlocal", \
   "setupval", \
   "getupval", \
   "fixnum_add", \
@@ -110,8 +106,6 @@ enum TrInstCode {
   &&op_JMPIF, \
   &&op_JMPUNLESS, \
   &&op_RETURN, \
-  &&op_SETLOCAL, \
-  &&op_GETLOCAL, \
   &&op_SETUPVAL, \
   &&op_GETUPVAL, \
   &&op_FIXNUM_ADD, \

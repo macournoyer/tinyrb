@@ -188,7 +188,7 @@ typedef struct {
 typedef struct TrFrame {
   TrClosure *closure;
   TrMethod *method;  /* current called method */
-  OBJ *locals;
+  OBJ *stack;
   OBJ *upvals;
   OBJ self;
   OBJ class;

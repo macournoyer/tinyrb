@@ -322,7 +322,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
             OBJ upval_name = kv_A(blk->upvals, i);
             size_t vali = TrBlock_find_local(b, upval_name);
             if (vali != -1)
-              PUSH_OP_AB(b, GETLOCAL, 0, vali);
+              PUSH_OP_AB(b, MOVE, 0, vali);
             else
               PUSH_OP_AB(b, GETUPVAL, 0, TrBlock_find_upval(b, upval_name));
           }
