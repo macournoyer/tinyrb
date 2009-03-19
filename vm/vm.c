@@ -420,7 +420,7 @@ TrVM *TrVM_new() {
   vm->self = TrObject_new(vm);
   vm->cf = -1;
   
-  TrVM_load(vm, "lib/boot.rb");
+  /* TrVM_load(vm, "lib/boot.rb"); */
   
   return vm;
 }
