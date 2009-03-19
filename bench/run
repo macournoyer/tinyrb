@@ -4,7 +4,7 @@ require "benchmark"
 IMPL = {
   "mri"    => ["ruby"],
   "yarv"   => ["ruby19"],
-  "jruby"  => ["~/projects/jruby/bin/jruby", "-server --fast"],
+  "jruby"  => ["PATH=$JDKS_ROOT/1.6.0/Home/bin:$PATH ~/projects/jruby/bin/jruby", "-server --fast"],
   "rbx"    => ["~/projects/rubinius/bin/rbx"],
   "tinyrb" => ["./tinyrb"],
 }
