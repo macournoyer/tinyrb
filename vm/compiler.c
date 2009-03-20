@@ -173,9 +173,9 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 #define ASSERT_NO_LOCAL_IN(MSG) \
   if (start_reg != reg) tr_raise("Can't assign local inside " #MSG)
 
-#define COMPILE_NODES(BLK,NODES,I,REG) \
+#define COMPILE_NODES(BLK,NODES,I,REG,REGOFF) \
   TR_ARRAY_EACH(NODES, I, v, { \
-    reg += COMPILE_NODE(BLK, v, REG); \
+    REG += COMPILE_NODE(BLK, v, REG+REGOFF); \
   })
 
 void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
@@ -187,7 +187,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
   switch (n->ntype) {
     case AST_ROOT:
     case AST_BLOCK:
-      COMPILE_NODES(b, n->args[0], i, reg);
+      COMPILE_NODES(b, n->args[0], i, reg, 0);
       break;
     case AST_VALUE: {
       int i = TrBlock_push_value(b, n->args[0]);
@@ -202,7 +202,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       if (n->args[0]) {
         size = TR_ARRAY_SIZE(n->args[0]);
         /* compile args */
-        COMPILE_NODES(b, n->args[0], i, reg+i+1);
+        COMPILE_NODES(b, n->args[0], i, reg, i+1);
         ASSERT_NO_LOCAL_IN(Array);
       }
       PUSH_OP_AB(b, NEWARRAY, reg, size);
@@ -212,14 +212,14 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       if (n->args[0]) {
         size = TR_ARRAY_SIZE(n->args[0]);
         /* compile args */
-        COMPILE_NODES(b, n->args[0], i, reg+i+1);
+        COMPILE_NODES(b, n->args[0], i, reg, i+1);
         ASSERT_NO_LOCAL_IN(Hash);
       }
       PUSH_OP_AB(b, NEWHASH, reg, size/2);
     } break;
     case AST_RANGE: {
       COMPILE_NODE(b, n->args[0], reg);
-      COMPILE_NODE(b, n->args[0], reg+1);
+      COMPILE_NODE(b, n->args[1], reg+1);
       ASSERT_NO_LOCAL_IN(Range);
       PUSH_OP_ABC(b, NEWRANGE, reg, reg+1, n->args[2]);
     } break;
@@ -339,12 +339,12 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       else
         jmp = PUSH_OP_A(b, JMPIF, reg);
       /* body */
-      COMPILE_NODES(b, n->args[1], i, reg);
+      COMPILE_NODES(b, n->args[1], i, reg, 0);
       SET_Bx(INST(b, jmp), kv_size(b->code) - jmp);
       /* else body */
       jmp = PUSH_OP_A(b, JMP, reg);
       if (n->args[2]) {
-        COMPILE_NODES(b, n->args[2], i, reg);
+        COMPILE_NODES(b, n->args[2], i, reg, 0);
       } else {
         /* if condition fail and not else block
            nil is returned */
@@ -363,7 +363,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         PUSH_OP_ABx(b, JMPIF, reg, 0);
       size_t jmp_end = kv_size(b->code);
       /* body */
-      COMPILE_NODES(b, n->args[1], i, reg);
+      COMPILE_NODES(b, n->args[1], i, reg, 0);
       SET_Bx(b->code.a + jmp_end - 1, kv_size(b->code) - jmp_end + 1);
       PUSH_OP_ABx(b, JMP, 0, 0-(kv_size(b->code) - jmp_beg));
     } break;
@@ -398,7 +398,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       size_t argc = 0;
       if (n->args[0]) {
         argc = TR_ARRAY_SIZE(n->args[0]);
-        COMPILE_NODES(b, n->args[0], i, reg+i+1);
+        COMPILE_NODES(b, n->args[0], i, reg, i+1);
         ASSERT_NO_LOCAL_IN(yield);
       }
       PUSH_OP_AB(b, YIELD, reg, argc);
@@ -408,7 +408,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       assert(method->ntype == AST_METHOD);
       TrBlock *blk = TrBlock_new(c, 0);
       size_t blki = kv_size(b->blocks);
-      int blk_reg = 0;
+      
       kv_push(TrBlock *, b->blocks, blk);
       if (n->args[1]) {
         /* add parameters as locals in method context */
@@ -418,14 +418,14 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
           TrBlock_push_local(blk, param->args[0]);
           if (param->args[1]) blk->arg_splat = 1;
         });
-        blk_reg = kv_size(blk->locals);
       }
+      int blk_reg = kv_size(blk->locals);
       /* compile body of method */
-      COMPILE_NODES(blk, n->args[2], i, blk_reg);
+      COMPILE_NODES(blk, n->args[2], i, blk_reg, 0);
       PUSH_OP_A(blk, RETURN, blk_reg);
       if (method->args[0]) {
         /* metaclass def */
-        COMPILE_NODE(blk, method->args[0], 0);
+        COMPILE_NODE(b, method->args[0], 0);
         PUSH_OP_ABx(b, METADEF, blki, TrBlock_push_value(b, method->args[1]));
       } else {
         PUSH_OP_ABx(b, DEF, blki, TrBlock_push_value(b, method->args[1]));
@@ -436,9 +436,10 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       TrBlock *blk = TrBlock_new(c, 0);
       size_t blki = kv_size(b->blocks);
       kv_push(TrBlock *, b->blocks, blk);
+      reg = 0;
       /* compile body of class */
-      COMPILE_NODES(blk, n->args[2], i, 0);
-      PUSH_OP_A(blk, RETURN, 0);
+      COMPILE_NODES(blk, n->args[2], i, reg, 0);
+      PUSH_OP_A(blk, RETURN, reg);
       if (n->ntype == AST_CLASS) {
         /* superclass */
         if (n->args[1])
