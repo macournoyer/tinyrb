@@ -187,6 +187,8 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #define A    (e.a)
 #define B    (e.b)
 #define C    (e.c)
+#define nA   ((ip+1)->a)
+#define nB   ((ip+1)->b)
 #define R    stack
 #define Bx   (unsigned short)(((B<<8)+C))
 #define sBx  (short)(((B<<8)+C))
@@ -200,9 +202,10 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
   OBJ *k = b->k.a;
   char **strings = b->strings.a;
   TrBlock **blocks = b->blocks.a;
-  register OBJ *stack = f->stack = TR_ALLOC_N(OBJ, b->regc + kv_size(b->locals));
+  size_t nlocals = kv_size(b->locals);
+  register OBJ *stack = f->stack = TR_ALLOC_N(OBJ, b->regc + nlocals);
   /* transfer locals */
-  assert(argc <= kv_size(b->locals) && "can't fit args in locals");
+  assert(argc <= nlocals && "can't fit args in locals");
   TR_MEMCPY_N(stack, argv, OBJ, argc);
   TrUpval *upvals = 0;
   if (closure) upvals = closure->upvals;
@@ -286,10 +289,10 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
     }
     
     /* definition */
-    OP(DEF):    R[0] = TrVM_defmethod(vm, f, k[Bx], blocks[A], 0, 0); DISPATCH;
-    OP(METADEF):R[0] = TrVM_defmethod(vm, f, k[Bx], blocks[A], 1, R[0]); DISPATCH;
-    OP(CLASS):  R[0] = TrVM_defclass(vm, f, k[Bx], blocks[A], 0, R[0]); DISPATCH;
-    OP(MODULE): R[0] = TrVM_defclass(vm, f, k[Bx], blocks[A], 1, 0); DISPATCH;
+    OP(DEF):        TrVM_defmethod(vm, f, k[Bx], blocks[A], 0, 0); DISPATCH;
+    OP(METADEF):    TrVM_defmethod(vm, f, k[Bx], blocks[A], 1, R[nA]); ip++; DISPATCH;
+    OP(CLASS):      TrVM_defclass(vm, f, k[Bx], blocks[A], 0, R[nA]); ip++; DISPATCH;
+    OP(MODULE):     TrVM_defclass(vm, f, k[Bx], blocks[A], 1, 0); DISPATCH;
     
     /* jumps */
     OP(JMP):        ip += sBx; DISPATCH;

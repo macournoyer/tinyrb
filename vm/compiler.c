@@ -425,8 +425,9 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       PUSH_OP_A(blk, RETURN, blk_reg);
       if (method->args[0]) {
         /* metaclass def */
-        COMPILE_NODE(b, method->args[0], 0);
+        COMPILE_NODE(b, method->args[0], reg);
         PUSH_OP_ABx(b, METADEF, blki, TrBlock_push_value(b, method->args[1]));
+        PUSH_OP_A(b, BOING, reg);
       } else {
         PUSH_OP_ABx(b, DEF, blki, TrBlock_push_value(b, method->args[1]));
       }
@@ -443,10 +444,11 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       if (n->ntype == AST_CLASS) {
         /* superclass */
         if (n->args[1])
-          PUSH_OP_ABx(b, GETCONST, 0, TrBlock_push_value(b, n->args[1]));
+          PUSH_OP_ABx(b, GETCONST, reg, TrBlock_push_value(b, n->args[1]));
         else
-          PUSH_OP_A(b, NIL, 0);
+          PUSH_OP_A(b, NIL, reg);
         PUSH_OP_ABx(b, CLASS, blki, TrBlock_push_value(b, n->args[0]));
+        PUSH_OP_A(b, BOING, reg);
       } else {
         PUSH_OP_ABx(b, MODULE, blki, TrBlock_push_value(b, n->args[0]));
       }
