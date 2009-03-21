@@ -109,7 +109,9 @@ OBJ tr_sprintf(VM, const char *fmt, ...) {
   va_list arg;
   va_start(arg, fmt);
   int len = vsnprintf(NULL, 0, fmt, arg);
-  char *ptr = TR_ALLOC_N(char, len);
+  /* HACK causes Bus error in Bohem GC */
+  /* char *ptr = TR_ALLOC_N(char, len); */
+  char ptr[4096]; assert(len < 4096);
   va_end(arg);
   va_start(arg, fmt);
   vsprintf(ptr, fmt, arg);

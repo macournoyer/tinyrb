@@ -30,7 +30,7 @@ static OBJ TrKernel_eval(VM, OBJ self, int argc, OBJ argv[]) {
   size_t lineno = argc > 3 ? TR_FIX2INT(argv[3]) : 0;
   TrBlock *blk = TrBlock_compile(vm, TR_STR_PTR(string), filename, lineno);
   if (vm->debug) TrBlock_dump(vm, blk);
-  return TrVM_run(vm, blk, f->self, f->class, kv_size(blk->locals), f->locals);
+  return TrVM_run(vm, blk, f->self, f->class, kv_size(blk->locals), f->stack);
 }
 
 static OBJ TrKernel_load(VM, OBJ self, OBJ filename) {

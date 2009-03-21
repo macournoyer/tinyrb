@@ -165,9 +165,9 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 }
 
 #define COMPILE_NODE(BLK,NODE,REG) ({\
-  int nlocal = kv_size(b->locals); \
+  int nlocal = kv_size(BLK->locals); \
   TrCompiler_compile_node(vm, c, BLK, (TrNode *)NODE, REG); \
-  kv_size(b->locals) - nlocal; \
+  kv_size(BLK->locals) - nlocal; \
 })
 
 #define ASSERT_NO_LOCAL_IN(MSG) \
