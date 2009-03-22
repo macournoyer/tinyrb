@@ -20,6 +20,7 @@ http://github.com/macournoyer/tinyrb
 
 == What WON'T be in tinyrb (tiny patches accepted)
 * for
+* redo, retry
 * if ... do, while ... do, etc
 * alias keyword (see alias_method)
 * undef keyword (see undefine_method)
@@ -36,9 +37,9 @@ http://github.com/macournoyer/tinyrb
 
 == Credits
 Inspired by:
- lua,     http://www.lua.org
- tinypy,  http://tinypy.org
- potion,  http://github.com/why/potion
+* lua,     http://www.lua.org
+* tinypy,  http://tinypy.org
+* potion,  http://github.com/why/potion
 
 kvec.h and khash.h (c) 2008, by Attractive Chaos <attractivechaos@aol.co.uk>
 GC Copyright 1988, 1989 Hans-J. Boehm, Alan J. Demers

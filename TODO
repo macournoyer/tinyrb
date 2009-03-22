@@ -8,7 +8,7 @@
 [x] unary - and !
 [ ] default arg value
 [ ] namespace constants in Module (A::B)
-[ ] upval in block
+[x] upval in block
 [ ] Regexp
 [ ] Proc
 [ ] begin...rescue...ensure
@@ -28,7 +28,7 @@
 [ ] Replace GC w/ smaller, simple & embeddable one (tricolor or refcount)
 [ ] Embed bytecode of /lib stuff inside executable
 [ ] ||= &&= +=, etc.
-[ ] Remove GET/SETLOCAL instruction (include locals in registers, like Lua)
+[x] Remove GET/SETLOCAL instruction (include locals in registers, like Lua)
 [ ] Do not create control frame on C function calls
 [ ] Store Fixnum as immediate value
 [ ] Cache constant lookup

@@ -7,7 +7,7 @@ module Enumerable
     end
   end
   
-  # TODO need upval
+  # TODO need non-local return
   # def include?(item)
   #   each do |i|
   #     return true if i == item
@@ -15,12 +15,11 @@ module Enumerable
   #   false
   # end
   
-  # TODO need upval
-  # def to_a
-  #   a = []
-  #   each do |item|
-  #     a << item
-  #   end
-  #   a
-  # end
+  def to_a
+    a = []
+    each do |item|
+      a << item
+    end
+    a
+  end
 end
