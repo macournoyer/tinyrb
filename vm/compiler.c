@@ -309,8 +309,9 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
             });
           }
           kv_push(TrBlock *, b->blocks, blk);
-          COMPILE_NODE(blk, blkn, 0);
-          PUSH_OP_A(blk, RETURN, 0);
+          int blk_reg = kv_size(blk->locals);
+          COMPILE_NODE(blk, blkn, blk_reg);
+          PUSH_OP_A(blk, RETURN, blk_reg);
         }
         PUSH_OP_A(b, BOING, 0);
         PUSH_OP_ABx(b, LOOKUP, reg, i);
