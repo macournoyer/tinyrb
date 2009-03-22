@@ -171,7 +171,7 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 })
 
 #define ASSERT_NO_LOCAL_IN(MSG) \
-  if (start_reg != reg) tr_raise("Can't assign local inside " #MSG)
+  if (start_reg != reg) tr_raise("Can't create local variable inside " #MSG)
 
 #define COMPILE_NODES(BLK,NODES,I,REG,REGOFF) \
   TR_ARRAY_EACH(NODES, I, v, { \
