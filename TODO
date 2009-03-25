@@ -6,16 +6,20 @@
 [x] Array splat
 [x] && and || as instructions
 [x] unary - and !
-[ ] default arg value
-[ ] namespace constants in Module (A::B)
 [x] upval in block
-[ ] Regexp
-[ ] Proc
+[ ] default arg value
+[ ] raise ExceptionType, ...
 [ ] begin...rescue...ensure
 [ ] def...rescue...ensure
 [ ] Fix operator precedence
 [ ] super(...)
 [x] return w/ args
+[ ] break
+[ ] next
+[ ] non local return/break
+[ ] Regexp
+[ ] Proc
+[ ] namespace constants in Module (A::B)
 *** See TODO in code too!
 
 @Later

@@ -6,9 +6,9 @@ nomnom
 
 def return_me(this)
   return this
-  puts "ouch"
+  raise "should not get here"
 end
-puts return_me 1
+puts return_me(1)
 # => 1
 
 def steak(x, y)
