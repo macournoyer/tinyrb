@@ -85,6 +85,17 @@ typedef struct {
 /* node */
 OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c, size_t line);
 
+/* block */
+TrBlock *TrBlock_new(TrCompiler *compiler, TrBlock *parent);
+void TrBlock_dump(VM, TrBlock *b);
+int TrBlock_push_value(TrBlock *blk, OBJ k);
+int TrBlock_push_string(TrBlock *blk, char *str);
+int TrBlock_find_local(TrBlock *blk, OBJ name);
+int TrBlock_push_local(TrBlock *blk, OBJ name);
+int TrBlock_find_upval(TrBlock *blk, OBJ name);
+int TrBlock_find_upval_in_scope(TrBlock *blk, OBJ name);
+int TrBlock_push_upval(TrBlock *blk, OBJ name);
+
 /* compiler */
 TrCompiler *TrCompiler_new(VM, const char *fn);
 void TrCompiler_compile(TrCompiler *c);

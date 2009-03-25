@@ -260,6 +260,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
       DISPATCH;
     OP(CALL): {
       TrClosure *cl = 0;
+      TrInst *cip = ip;
       if (C > 0) {
         /* Get upvalues using the pseudo-instructions following the CALL instruction.
            Eg.: there's one upval to a local (x) to be passed:
@@ -279,13 +280,13 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
           }
         }
       }
-      R[A] = TrVM_call(vm, f,
-                       R[A], /* receiver */
-                       R[A+1], /* method */
-                       B >> 1, &R[A+2], /* args */
-                       B & 1, /* splat */
-                       cl /* closure */
-                      ); DISPATCH;
+      R[cip->a] = TrVM_call(vm, f,
+                            R[cip->a], /* receiver */
+                            R[cip->a+1], /* method */
+                            cip->b >> 1, &R[cip->a+2], /* args */
+                            cip->b & 1, /* splat */
+                            cl /* closure */
+                           ); DISPATCH;
     }
     
     /* definition */
