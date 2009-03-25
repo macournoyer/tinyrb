@@ -170,23 +170,23 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 }
 
 /* dispatch macros */
-#define NEXT_OP        (++ip, e=*ip)
+#define NEXT_OP        ++ip
 #ifdef TR_THREADED_DISPATCH
-#define OPCODES        goto *labels[e.i];
+#define OPCODES        goto *labels[ip->i];
 #define END_OPCODES    
 #define OP(name)       op_##name
-#define DISPATCH       NEXT_OP; goto *labels[e.i]
+#define DISPATCH       NEXT_OP; goto *labels[ip->i]
 #else
-#define OPCODES        for(;;) { switch(e.i) {
-#define END_OPCODES    default: printf("unknown opcode: %d\n", (int)e.i); }}
+#define OPCODES        for(;;) { switch(ip->i) {
+#define END_OPCODES    default: printf("unknown opcode: %d\n", (int)ip->i); }}
 #define OP(name)       case TR_OP_##name
 #define DISPATCH       NEXT_OP; break
 #endif
 
 /* register access macros */
-#define A    (e.a)
-#define B    (e.b)
-#define C    (e.c)
+#define A    (ip->a)
+#define B    (ip->b)
+#define C    (ip->c)
 #define nA   ((ip+1)->a)
 #define nB   ((ip+1)->b)
 #define R    stack
@@ -198,7 +198,6 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
   f->line = b->line;
   f->filename = b->filename;
   register TrInst *ip = b->code.a;
-  register TrInst e = *ip;
   OBJ *k = b->k.a;
   char **strings = b->strings.a;
   TrBlock **blocks = b->blocks.a;
@@ -211,7 +210,8 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosu
   if (closure) upvals = closure->upvals;
   
 #ifdef TR_THREADED_DISPATCH
-  static void *labels[] = { TR_OP_LABELS };
+  static void *_labels[] = { TR_OP_LABELS };
+  register void **labels = _labels;
 #endif
   
   OPCODES;
