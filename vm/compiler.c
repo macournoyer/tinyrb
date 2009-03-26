@@ -345,7 +345,8 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       PUSH_OP_ABx(b, SETCONST, reg, TrBlock_push_value(b, n->args[0]));
       break;
     case AST_ADD:
-    case AST_SUB: {
+    case AST_SUB:
+    case AST_LT: {
       int rcv = reg+1, arg = reg+2;
       if (NODE_TYPE(n->args[0]) == AST_VALUE)
         rcv = TrBlock_push_value(b, ((TrNode*)n->args[0])->args[0]) | 0x100;
@@ -355,8 +356,12 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         arg = TrBlock_push_value(b, ((TrNode*)n->args[1])->args[0]) | 0x100;
       else
         COMPILE_NODE(b, n->args[1], arg);
-      if (n->ntype == AST_ADD) PUSH_OP_ABC(b, ADD, reg, rcv, arg);
-      else PUSH_OP_ABC(b, SUB, reg, rcv, arg);
+      switch (n->ntype) {
+        case AST_ADD: PUSH_OP_ABC(b, ADD, reg, rcv, arg); break;
+        case AST_SUB: PUSH_OP_ABC(b, SUB, reg, rcv, arg); break;
+        case AST_LT:  PUSH_OP_ABC(b, LT, reg, rcv, arg); break;
+        default: assert(0);
+      }
     } break;
     default:
       printf("Compiler: unknown node type: %d in %s:%lu\n", n->ntype, TR_STR_PTR(b->filename), b->line);

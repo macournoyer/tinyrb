@@ -66,6 +66,7 @@ typedef enum {
   AST_SETGLOBAL,
   AST_ADD,
   AST_SUB,
+  AST_LT,
 } TrNodeType;
 
 typedef struct {

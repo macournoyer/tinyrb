@@ -49,6 +49,7 @@ enum TrInstCode {
   TR_OP_NEWRANGE,   /* A B C    R[A] = Range.new(start:R[A], end:R[B], exclusive:C) */
   TR_OP_ADD,        /* A B C    R[A] = RK[B] + RK[C] */
   TR_OP_SUB,        /* A B C    R[A] = RK[B] - RK[C] */
+  TR_OP_LT,         /* A B C    R[A] = RK[B] < RK[C] */
   TR_OP_SUPER,      /* TODO */
 };
 
@@ -87,6 +88,7 @@ enum TrInstCode {
   "newrange", \
   "add", \
   "sub", \
+  "lt", \
   "super"
 
 #ifdef TR_THREADED_DISPATCH
@@ -125,7 +127,8 @@ enum TrInstCode {
   &&op_SETGLOBAL, \
   &&op_NEWRANGE, \
   &&op_ADD, \
-  &&op_SUB
+  &&op_SUB, \
+  &&op_LT
   
 #endif
 

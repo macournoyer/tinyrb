@@ -303,6 +303,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
     /* TODO what if not fixnum??? */
     OP(ADD):        R[A] = TrFixnum_new(vm, TR_FIX2INT(RK(B)) + TR_FIX2INT(RK(C))); DISPATCH;
     OP(SUB):        R[A] = TrFixnum_new(vm, TR_FIX2INT(RK(B)) - TR_FIX2INT(RK(C))); DISPATCH;
+    OP(LT):         R[A] = TR_BOOL(TR_FIX2INT(RK(B)) < TR_FIX2INT(RK(C))); DISPATCH;
   END_OPCODES;
 }
 
