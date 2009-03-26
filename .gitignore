@@ -9,6 +9,7 @@
 vm/grammar.c
 
 tinyrb
+tinyrb-*
 
 vendor/peg
 vendor/gc

@@ -10,6 +10,3 @@
 
 /* enable CallSite optimization */
 #define TR_CALL_SITE
-
-/* enable method inlining as intruction */
-#define TR_INLINE_METHOD

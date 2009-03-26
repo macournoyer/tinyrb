@@ -47,24 +47,6 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
   s->method = method;
   s->miss = 0;
   
-#ifdef TR_INLINE_METHOD
-  #define DEF_INLINE(F, OP) \
-    if (func == (TrFunc*)(F)) { \
-      boing->i = TR_OP_##OP; \
-      boing->a = ip->a; \
-      boing->b = 2; \
-      return method; \
-    }
-  TrFunc *func = TR_CMETHOD(method)->func;
-  /* try to inline the method as an instruction if possible */
-  DEF_INLINE(TrFixnum_add, FIXNUM_ADD)
-  else
-  DEF_INLINE(TrFixnum_sub, FIXNUM_SUB)
-  else
-  DEF_INLINE(TrFixnum_lt, FIXNUM_LT)
-  #undef DEF_INLINE
-#endif
-
   /* Implement Monomorphic method cache by replacing the previous instruction (BOING)
      w/ CACHE that uses the CallSite to find the method instead of doing a full lookup. */
   boing->i = TR_OP_CACHE;
@@ -315,18 +297,6 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
     OP(JMP):        ip += sBx; DISPATCH;
     OP(JMPIF):      if ( TR_TEST(R[A])) ip += sBx; DISPATCH;
     OP(JMPUNLESS):  if (!TR_TEST(R[A])) ip += sBx; DISPATCH;
-    
-    /* optimizations */
-    #define INLINE_FUNC(FNC) if (likely(SITE[C].class == TR_COBJECT(R[A])->class)) { FNC; ip += B; } else { SITE[C].miss++; }
-    OP(FIXNUM_ADD):
-      INLINE_FUNC(R[A] = TrFixnum_new(vm, TR_FIX2INT(R[A]) + TR_FIX2INT(R[A+2])));
-      DISPATCH;
-    OP(FIXNUM_SUB):
-      INLINE_FUNC(R[A] = TrFixnum_new(vm, TR_FIX2INT(R[A]) - TR_FIX2INT(R[A+2])));
-      DISPATCH;
-    OP(FIXNUM_LT):
-      INLINE_FUNC(R[A] = TR_BOOL(TR_FIX2INT(R[A]) < TR_FIX2INT(R[A+2])));
-      DISPATCH;
     
   END_OPCODES;
 }

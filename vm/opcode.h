@@ -30,9 +30,6 @@ enum TrInstCode {
   TR_OP_RETURN,     /* A        return R[A] */
   TR_OP_SETUPVAL,   /* A B      upvals[B] = R[A] */
   TR_OP_GETUPVAL,   /* A B      R[A] = upvals[B] */
-  TR_OP_FIXNUM_ADD,
-  TR_OP_FIXNUM_SUB,
-  TR_OP_FIXNUM_LT,
   TR_OP_DEF,        /* A Bx     define method k[Bx] on self w/ blocks[A] */
   TR_OP_METADEF,    /* A Bx     define method k[Bx] on R[nA] w/ blocks[A] */
   TR_OP_GETCONST,   /* A Bx     R[A] = Consts[k[Bx]] */
@@ -69,9 +66,6 @@ enum TrInstCode {
   "return", \
   "setupval", \
   "getupval", \
-  "fixnum_add", \
-  "fixnum_sub", \
-  "fixnum_lt", \
   "def", \
   "metadef", \
   "getconst", \
@@ -109,9 +103,6 @@ enum TrInstCode {
   &&op_RETURN, \
   &&op_SETUPVAL, \
   &&op_GETUPVAL, \
-  &&op_FIXNUM_ADD, \
-  &&op_FIXNUM_SUB, \
-  &&op_FIXNUM_LT, \
   &&op_DEF, \
   &&op_METADEF, \
   &&op_GETCONST, \
