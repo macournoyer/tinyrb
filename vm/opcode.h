@@ -9,6 +9,7 @@ sBx   -- signed value of BC
 R[A]  -- Value of register which index is stored in A of the current instruction.
 R[nA] -- Value of the register A in the next instruction (instruction will be ignored).
 K[A]  -- Value which index is stored in A of the current instruction.
+RK[A] -- Register A or a constant index
 */
 enum TrInstCode {
   /* opname            operands description */
@@ -46,6 +47,8 @@ enum TrInstCode {
   TR_OP_GETGLOBAL,  /* A Bx     R[A] = globals[k[Bx]] */
   TR_OP_SETGLOBAL,  /* A Bx     globals[k[Bx]] = R[A] */
   TR_OP_NEWRANGE,   /* A B C    R[A] = Range.new(start:R[A], end:R[B], exclusive:C) */
+  TR_OP_ADD,        /* A B C    R[A] = RK[B] + RK[C] */
+  TR_OP_SUB,        /* A B C    R[A] = RK[B] - RK[C] */
   TR_OP_SUPER,      /* TODO */
 };
 
@@ -82,6 +85,8 @@ enum TrInstCode {
   "getglobal", \
   "setglobal", \
   "newrange", \
+  "add", \
+  "sub", \
   "super"
 
 #ifdef TR_THREADED_DISPATCH
@@ -118,7 +123,9 @@ enum TrInstCode {
   &&op_SETCVAR, \
   &&op_GETGLOBAL, \
   &&op_SETGLOBAL, \
-  &&op_NEWRANGE
+  &&op_NEWRANGE, \
+  &&op_ADD, \
+  &&op_SUB
   
 #endif
 

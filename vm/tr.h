@@ -137,7 +137,7 @@ struct TrVM;
 struct TrFrame;
 
 typedef struct {
-  u8 i, a, b, c;
+  unsigned i:6, a:8, b:9, c:9;
 } TrInst;
 
 typedef struct {

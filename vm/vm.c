@@ -182,15 +182,16 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #endif
 
 /* register access macros */
-#define A    (ip->a)
-#define B    (ip->b)
-#define C    (ip->c)
-#define nA   ((ip+1)->a)
-#define nB   ((ip+1)->b)
-#define R    stack
-#define Bx   (unsigned short)(((B<<8)+C))
-#define sBx  (short)(((B<<8)+C))
-#define SITE (b->sites.a)
+#define A     (ip->a)
+#define B     (ip->b)
+#define C     (ip->c)
+#define nA    ((ip+1)->a)
+#define nB    ((ip+1)->b)
+#define R     stack
+#define RK(X) (X & 0x100 ? k[X & ~0x100] : R[X])
+#define Bx    (unsigned short)(((B<<8)+C))
+#define sBx   (short)(((B<<8)+C))
+#define SITE  (b->sites.a)
 
 OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure) {
   f->line = b->line;
@@ -298,6 +299,10 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
     OP(JMPIF):      if ( TR_TEST(R[A])) ip += sBx; DISPATCH;
     OP(JMPUNLESS):  if (!TR_TEST(R[A])) ip += sBx; DISPATCH;
     
+    /* optimizations */
+    /* TODO what if not fixnum??? */
+    OP(ADD):        R[A] = TrFixnum_new(vm, TR_FIX2INT(RK(B)) + TR_FIX2INT(RK(C))); DISPATCH;
+    OP(SUB):        R[A] = TrFixnum_new(vm, TR_FIX2INT(RK(B)) - TR_FIX2INT(RK(C))); DISPATCH;
   END_OPCODES;
 }
 
