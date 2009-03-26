@@ -5,7 +5,7 @@
 #include "opcode.h"
 #include "internal.h"
 
-OBJ TrVM_step(VM, TrFrame *f, TrBlock * b, int argc, OBJ argv[], TrClosure *closure);
+OBJ TrVM_step(VM, TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure);
 
 static void TrFrame_push(VM, OBJ self, OBJ class, TrClosure *closure) {
   TrFrame *prevf = vm->cf < 0 ? 0 : FRAME;
@@ -131,7 +131,7 @@ static OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module, OBJ s
     TrObject_const_set(vm, FRAME->class, name, mod);
   }
   TrFrame_push(vm, mod, mod, 0);
-  TrVM_step(vm, FRAME, b, 0, 0, 0);
+  TrVM_step(vm, FRAME, b, 0, 0, 0, 0);
   TrFrame_pop(vm);
   return mod;
 }
@@ -139,22 +139,38 @@ static OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module, OBJ s
 static OBJ TrVM_interpret_method(VM, OBJ self, int argc, OBJ argv[]) {
   assert(FRAME->method);
   register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
-  if (argc != b->argc) tr_raise("Expected %lu arguments, got %d.\n", b->argc, argc);
-  return TrVM_step(vm, FRAME, b, argc, argv, 0);
+  if (argc != b->argc) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n", argc, b->argc);
+  return TrVM_step(vm, FRAME, b, 0, argc, argv, 0);
+}
+
+static OBJ TrVM_interpret_method_with_defaults(VM, OBJ self, int argc, OBJ argv[]) {
+  assert(FRAME->method);
+  register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
+  int req_argc = b->argc - kv_size(b->defaults);
+  if (argc < req_argc) tr_raise("ArgumentError: wrong number of arguments (%d for %d)\n", argc, req_argc);
+  if (argc > b->argc) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n", argc, b->argc);
+  int defi = argc - req_argc - 1; /* index in defaults table or -1 for none */
+  return TrVM_step(vm, FRAME, b, defi < 0 ? 0 : kv_A(b->defaults, defi), argc, argv, 0);
 }
 
 static OBJ TrVM_interpret_method_with_splat(VM, OBJ self, int argc, OBJ argv[]) {
   assert(FRAME->method);
+  /* TODO */
   register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
-  if (argc < b->argc-1) tr_raise("Expected at least %lu arguments, got %d.\n", b->argc-1, argc);
+  assert(kv_size(b->defaults) == 0 && "defaults with splat not supported for now");
+  if (argc < b->argc-1) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n\n", argc, b->argc-1);
   argv[b->argc-1] = TrArray_new3(vm, argc - b->argc + 1, &argv[b->argc-1]);
-  return TrVM_step(vm, FRAME, b, b->argc, argv, 0);
+  return TrVM_step(vm, FRAME, b, 0, b->argc, argv, 0);
 }
 
 static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b, int meta, OBJ receiver) {
-  TrFunc *func = (TrFunc *) (b->arg_splat
-    ? TrVM_interpret_method_with_splat
-    : TrVM_interpret_method);
+  TrFunc *func;
+  if (b->arg_splat)
+    func = (TrFunc *) TrVM_interpret_method_with_splat;
+  else if (kv_size(b->defaults) > 0)
+    func = (TrFunc *) TrVM_interpret_method_with_defaults;
+  else
+    func = (TrFunc *) TrVM_interpret_method;
   OBJ method = TrMethod_new(vm, func, (OBJ)b, -1);
   if (meta)
     TrObject_add_singleton_method(vm, receiver, name, method);
@@ -166,7 +182,7 @@ static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b, int meta, OBJ re
 static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
   TrClosure *cl = f->closure;
   if (!cl) tr_raise("LocalJumpError: no block given");
-  return TrVM_step(vm, cl->frame, cl->block, argc, argv, cl);
+  return TrVM_step(vm, cl->frame, cl->block, 0, argc, argv, cl);
 }
 
 /* dispatch macros */
@@ -194,10 +210,10 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #define sBx  (short)(((B<<8)+C))
 #define SITE (b->sites.a)
 
-OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int argc, OBJ argv[], TrClosure *closure) {
+OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure) {
   f->line = b->line;
   f->filename = b->filename;
-  register TrInst *ip = b->code.a;
+  register TrInst *ip = b->code.a + start;
   OBJ *k = b->k.a;
   char **strings = b->strings.a;
   TrBlock **blocks = b->blocks.a;
@@ -366,7 +382,7 @@ void TrVM_rescue(VM) {
 
 OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[]) {
   TrFrame_push(vm, self, class, 0);
-  OBJ ret = TrVM_step(vm, FRAME, b, argc, argv, 0);
+  OBJ ret = TrVM_step(vm, FRAME, b, 0, argc, argv, 0);
   TrFrame_pop(vm);
   return ret;
 }

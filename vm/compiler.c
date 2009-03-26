@@ -284,7 +284,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       assert(method->ntype == AST_METHOD);
       TrBlock *blk = TrBlock_new(c, 0);
       size_t blki = kv_size(b->blocks);
-      
+      int blk_reg = 0;
       kv_push(TrBlock *, b->blocks, blk);
       if (n->args[1]) {
         /* add parameters as locals in method context */
@@ -293,9 +293,15 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
           TrNode *param = (TrNode *)v;
           TrBlock_push_local(blk, param->args[0]);
           if (param->args[1]) blk->arg_splat = 1;
+          /* compile default expression and store location
+             in defaults table for later jump when executing. */
+          if (param->args[2]) {
+            COMPILE_NODE(blk, param->args[2], blk_reg);
+            kv_push(int, blk->defaults, kv_size(blk->code));
+          }
+          blk_reg++;
         });
       }
-      int blk_reg = kv_size(blk->locals);
       /* compile body of method */
       COMPILE_NODES(blk, n->args[2], i, blk_reg, 0);
       PUSH_OP_A(blk, RETURN, blk_reg);

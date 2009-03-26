@@ -7,7 +7,7 @@
 [x] && and || as instructions
 [x] unary - and !
 [x] upval in block
-[ ] default arg value
+[x] default arg value
 [ ] raise ExceptionType, ...
 [ ] begin...rescue...ensure
 [ ] def...rescue...ensure

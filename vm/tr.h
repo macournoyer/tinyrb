@@ -153,6 +153,7 @@ typedef struct TrBlock {
   kvec_t(OBJ) locals;
   kvec_t(OBJ) upvals;
   kvec_t(TrInst) code;
+  kvec_t(int) defaults;
   kvec_t(struct TrBlock *) blocks; /* TODO should not be pointers */
   size_t regc;
   size_t argc;

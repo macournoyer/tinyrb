@@ -169,7 +169,8 @@ Params    = head:Param                      { head = NODES(head) }
             ( ',' tail:Param                { PUSH_NODE(head, tail) }
             )*                              { $$ = head }
 
-Param     = - name:ID -                     { $$ = NODE(PARAM, name) }
+Param     = - name:ID - '=' - def:Expr      { $$ = NODE3(PARAM, name, 0, def) }
+          | - name:ID -                     { $$ = NODE(PARAM, name) }
           | - '*' name:ID -                 { $$ = NODE2(PARAM, name, 1) }
 
 Class     = 'class' SPACE name:CONST        { super = 0 }

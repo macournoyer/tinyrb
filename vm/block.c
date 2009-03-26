@@ -31,6 +31,11 @@ static void TrBlock_dump2(VM, TrBlock *b, int level) {
   printf("; %lu args ", b->argc);
   if (b->arg_splat) printf(", splat");
   printf("\n");
+  if (kv_size(b->defaults) > 0) {
+    printf("; defaults table: ");
+    for (i = 0; i < kv_size(b->defaults); ++i) printf("%d ", kv_A(b->defaults, i));
+    printf("\n");
+  }
   for (i = 0; i < kv_size(b->locals); ++i)
     printf(".local  %-8s ; %lu\n", INSPECT(kv_A(b->locals, i)), i);
   for (i = 0; i < kv_size(b->upvals); ++i)
