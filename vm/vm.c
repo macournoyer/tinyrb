@@ -49,10 +49,10 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
   
   /* Implement Monomorphic method cache by replacing the previous instruction (BOING)
      w/ CACHE that uses the CallSite to find the method instead of doing a full lookup. */
-  boing->i = TR_OP_CACHE;
-  boing->a = ip->a; /* receiver register */
-  boing->b = 1; /* jmp */
-  boing->c = kv_size(b->sites)-1; /* CallSite index */
+  SET_OPCODE(*boing, TR_OP_CACHE);
+  SETARG_A(*boing, GETARG_A(*ip)); /* receiver register */
+  SETARG_B(*boing, 1); /* jmp */
+  SETARG_C(*boing, kv_size(b->sites)-1); /* CallSite index */
 #endif
   
   return method;
@@ -168,35 +168,37 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 }
 
 /* dispatch macros */
-#define NEXT_OP        ++ip
+#define NEXT_INST      (i = *++ip)
 #ifdef TR_THREADED_DISPATCH
-#define OPCODES        goto *labels[ip->i];
+#define OPCODES        goto *labels[OPCODE];
 #define END_OPCODES    
 #define OP(name)       op_##name
-#define DISPATCH       NEXT_OP; goto *labels[ip->i]
+#define DISPATCH       NEXT_INST; goto *labels[OPCODE]
 #else
-#define OPCODES        for(;;) { switch(ip->i) {
-#define END_OPCODES    default: printf("unknown opcode: %d\n", (int)ip->i); }}
+#define OPCODES        for(;;) { switch(OPCODE) {
+#define END_OPCODES    default: printf("unknown opcode: %d\n", (int)OPCODE); }}
 #define OP(name)       case TR_OP_##name
-#define DISPATCH       NEXT_OP; break
+#define DISPATCH       NEXT_INST; break
 #endif
 
 /* register access macros */
-#define A     (ip->a)
-#define B     (ip->b)
-#define C     (ip->c)
-#define nA    ((ip+1)->a)
-#define nB    ((ip+1)->b)
-#define R     stack
-#define RK(X) (X & 0x100 ? k[X & ~0x100] : R[X])
-#define Bx    (unsigned short)(((B<<8)+C))
-#define sBx   (short)(((B<<8)+C))
-#define SITE  (b->sites.a)
+#define OPCODE GET_OPCODE(i)
+#define A      GETARG_A(i)
+#define B      GETARG_B(i)
+#define C      GETARG_C(i)
+#define nA     GETARG_A(*(ip+1))
+#define nB     GETARG_B(*(ip+1))
+#define R      stack
+#define RK(X)  (X & (1 << (SIZE_B - 1)) ? k[X & ~0x100] : R[X])
+#define Bx     GETARG_Bx(i)
+#define sBx    GETARG_sBx(i)
+#define SITE   (b->sites.a)
 
 OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure) {
   f->line = b->line;
   f->filename = b->filename;
   register TrInst *ip = b->code.a + start;
+  TrInst i = *ip;
   OBJ *k = b->k.a;
   char **strings = b->strings.a;
   TrBlock **blocks = b->blocks.a;
@@ -259,7 +261,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
       DISPATCH;
     OP(CALL): {
       TrClosure *cl = 0;
-      TrInst *cip = ip;
+      TrInst ci = i;
       if (C > 0) {
         /* Get upvalues using the pseudo-instructions following the CALL instruction.
            Eg.: there's one upval to a local (x) to be passed:
@@ -268,24 +270,25 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
              return  0
          */
         cl = TrClosure_new(vm, blocks[C-1]);
-        size_t i, nupval = kv_size(cl->block->upvals);
-        for (i = 0; i < nupval; ++i) {
-          ++ip;
-          if (ip->i == TR_OP_MOVE) {
-            cl->upvals[i].value = &R[ip->b];
+        size_t n, nupval = kv_size(cl->block->upvals);
+        for (n = 0; n < nupval; ++i) {
+          NEXT_INST;
+          if (OPCODE == TR_OP_MOVE) {
+            cl->upvals[n].value = &R[B];
           } else {
-            assert(ip->i == TR_OP_GETUPVAL);
-            cl->upvals[i].value = upvals[ip->b].value;
+            assert(OPCODE == TR_OP_GETUPVAL);
+            cl->upvals[n].value = upvals[B].value;
           }
         }
       }
-      R[cip->a] = TrVM_call(vm, f,
-                            R[cip->a], /* receiver */
-                            R[cip->a+1], /* method */
-                            cip->b >> 1, &R[cip->a+2], /* args */
-                            cip->b & 1, /* splat */
+      R[GETARG_A(ci)] = TrVM_call(vm, f,
+                            R[GETARG_A(ci)], /* receiver */
+                            R[GETARG_A(ci)+1], /* method */
+                            GETARG_B(ci) >> 1, &R[GETARG_A(ci)+2], /* args */
+                            GETARG_B(ci) & 1, /* splat */
                             cl /* closure */
-                           ); DISPATCH;
+                           );
+      DISPATCH;
     }
     
     /* definition */

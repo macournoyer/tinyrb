@@ -1,6 +1,63 @@
 #ifndef _OPCODE_H_
 #define _OPCODE_H_
 
+/* Taken from Lua */
+#define SIZE_C    9
+#define SIZE_B    9
+#define SIZE_Bx   (SIZE_C + SIZE_B)
+#define SIZE_A    8
+
+#define SIZE_OP   6
+
+#define POS_OP    0
+#define POS_A     (POS_OP + SIZE_OP)
+#define POS_C     (POS_A + SIZE_A)
+#define POS_B     (POS_C + SIZE_C)
+#define POS_Bx    POS_C
+
+#define MAXARG_Bx   ((1<<SIZE_Bx)-1)
+#define MAXARG_sBx  (MAXARG_Bx>>1)         /* `sBx' is signed */
+
+/* creates a mask with `n' 1 bits at position `p' */
+#define MASK1(n,p)  ((~((~(TrInst)0)<<n))<<p)
+
+/* creates a mask with `n' 0 bits at position `p' */
+#define MASK0(n,p)  (~MASK1(n,p))
+
+/* the following macros help to manipulate instructions (TrInst) */
+
+#define GET_OPCODE(i) (cast(int, ((i)>>POS_OP) & MASK1(SIZE_OP,0)))
+#define SET_OPCODE(i,o) ((i) = (((i)&MASK0(SIZE_OP,POS_OP)) | \
+    ((cast(TrInst, o)<<POS_OP)&MASK1(SIZE_OP,POS_OP))))
+
+#define GETARG_A(i) (cast(int, ((i)>>POS_A) & MASK1(SIZE_A,0)))
+#define SETARG_A(i,u) ((i) = (((i)&MASK0(SIZE_A,POS_A)) | \
+    ((cast(TrInst, u)<<POS_A)&MASK1(SIZE_A,POS_A))))
+
+#define GETARG_B(i) (cast(int, ((i)>>POS_B) & MASK1(SIZE_B,0)))
+#define SETARG_B(i,b) ((i) = (((i)&MASK0(SIZE_B,POS_B)) | \
+    ((cast(TrInst, b)<<POS_B)&MASK1(SIZE_B,POS_B))))
+
+#define GETARG_C(i) (cast(int, ((i)>>POS_C) & MASK1(SIZE_C,0)))
+#define SETARG_C(i,b) ((i) = (((i)&MASK0(SIZE_C,POS_C)) | \
+    ((cast(TrInst, b)<<POS_C)&MASK1(SIZE_C,POS_C))))
+
+#define GETARG_Bx(i)  (cast(int, ((i)>>POS_Bx) & MASK1(SIZE_Bx,0)))
+#define SETARG_Bx(i,b)  ((i) = (((i)&MASK0(SIZE_Bx,POS_Bx)) | \
+    ((cast(TrInst, b)<<POS_Bx)&MASK1(SIZE_Bx,POS_Bx))))
+
+#define GETARG_sBx(i) (GETARG_Bx(i)-MAXARG_sBx)
+#define SETARG_sBx(i,b) SETARG_Bx((i),cast(unsigned int, (b)+MAXARG_sBx))
+
+#define CREATE_ABC(o,a,b,c) ((cast(TrInst, o)<<POS_OP) \
+      | (cast(TrInst, a)<<POS_A) \
+      | (cast(TrInst, b)<<POS_B) \
+      | (cast(TrInst, c)<<POS_C))
+
+#define CREATE_ABx(o,a,bc)  ((cast(TrInst, o)<<POS_OP) \
+      | (cast(TrInst, a)<<POS_A) \
+      | (cast(TrInst, bc)<<POS_Bx))
+
 /*
 == TinyRb opcodes.
 Format of one instruction: OPCODE A B C

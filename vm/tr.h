@@ -12,6 +12,8 @@
 #include "vendor/khash.h"
 #include "gc.h"
 
+#define cast(T,X) ((T)X)
+
 #define TR_MALLOC            GC_malloc
 #define TR_CALLOC(m,n)       GC_MALLOC((m)*(n))
 #define TR_REALLOC           GC_realloc
@@ -120,6 +122,7 @@
 
 typedef unsigned long OBJ;
 typedef unsigned char u8;
+typedef unsigned int TrInst;
 
 KHASH_MAP_INIT_STR(str, OBJ);
 KHASH_MAP_INIT_INT(OBJ, OBJ);
@@ -135,10 +138,6 @@ typedef enum {
 
 struct TrVM;
 struct TrFrame;
-
-typedef struct {
-  unsigned i:6, a:8, b:9, c:9;
-} TrInst;
 
 typedef struct {
   OBJ class;

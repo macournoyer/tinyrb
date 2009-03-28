@@ -28,16 +28,18 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 }
 
 /* code generation macros */
-#define PUSH_OP_ABC(BLK,OP,A,B,C) ({ \
-  TrInst *op = (kv_pushp(TrInst, (BLK)->code)); \
-  op->i = TR_OP_##OP; op->a = (A); op->b = (B); op->c = (C); \
-  kv_size(BLK->code)-1;\
+#define PUSH_OP(BLK,I) ({ \
+  kv_push(TrInst, (BLK)->code, (I)); \
+  kv_size(BLK->code)-1; \
 })
-#define PUSH_OP_A(BLK,OP,A)     PUSH_OP_ABC((BLK), OP,(A),0,0)
-#define PUSH_OP_AB(BLK,OP,A,B)  PUSH_OP_ABC((BLK), OP,(A),(B),0)
-#define PUSH_OP_ABx(BLK,OP,A,B) PUSH_OP_ABC((BLK), OP,(A),(B)>>8,(B)-((B)>>8<<8))
-#define INST(BLK,I)             (&kv_A((BLK)->code,I))
-#define SET_Bx(I,B)             (I)->b=(B)>>8; (I)->c=(B)-((B)>>8<<8)
+#define PUSH_OP_A(BLK, OP, A)         PUSH_OP(BLK, CREATE_ABC(TR_OP_##OP, A, 0, 0))
+#define PUSH_OP_AB(BLK, OP, A, B)     PUSH_OP(BLK, CREATE_ABC(TR_OP_##OP, A, B, 0))
+#define PUSH_OP_ABC(BLK, OP, A, B, C) PUSH_OP(BLK, CREATE_ABC(TR_OP_##OP, A, B, C))
+#define PUSH_OP_ABx(BLK, OP, A, Bx)   PUSH_OP(BLK, CREATE_ABx(TR_OP_##OP, A, Bx))
+#define PUSH_OP_AsBx(BLK, OP, A, sBx) ({ \
+  TrInst __i = CREATE_ABx(TR_OP_##OP, A, 0); SETARG_sBx(__i, sBx); \
+  PUSH_OP(BLK, __i); \
+})
 
 #define COMPILE_NODE(BLK,NODE,REG) ({\
   int nlocal = kv_size(BLK->locals); \
@@ -53,7 +55,30 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
     REG += COMPILE_NODE(BLK, v, REG+REGOFF); \
   })
   
-#define NODE_TYPE(N) (((TrNode *)N)->ntype)
+#define CNODE(N)              ((TrNode *)N)
+#define NODE_TYPE(N)          (CNODE(N)->ntype)
+#define NODE_ARG(N,I)         (CNODE(N)->args[I])
+
+void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg);
+
+static int TrCompiler_compile_node_to_RK(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
+  int i;
+  
+  /* k value */
+  if (NODE_TYPE(n) == AST_VALUE) {
+    return TrBlock_push_value(b, NODE_ARG(n, 0)) | 0x100;
+    
+  /* local */
+  } else if (NODE_TYPE(n) == AST_SEND && (i = TrBlock_find_local(b, NODE_ARG(NODE_ARG(n, 1), 0))) != -1) {
+    return i;
+  
+  /* not a local, need to compile */
+  } else {
+    COMPILE_NODE(b, n, reg);
+    return reg;
+  }
+  
+}
 
 void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
   if (!n) return;
@@ -109,7 +134,15 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       } else {
         /* local */
         int i = TrBlock_push_local(b, name);
-        if (i != reg) PUSH_OP_AB(b, MOVE, i, reg);
+        TrInst *last_inst = &kv_A(b->code, kv_size(b->code) - 1);
+        switch (GET_OPCODE(*last_inst)) {
+          case TR_OP_ADD: /* Those instructions can load direcly into a local */
+          case TR_OP_SUB:
+          case TR_OP_LT:
+            SETARG_A(*last_inst, i); break;
+          default:
+            if (i != reg) PUSH_OP_AB(b, MOVE, i, reg);
+        }
       }
     } break;
     case AST_SETIVAR:
@@ -218,7 +251,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         jmp = PUSH_OP_A(b, JMPIF, reg);
       /* body */
       COMPILE_NODES(b, n->args[1], i, reg, 0);
-      SET_Bx(INST(b, jmp), kv_size(b->code) - jmp);
+      SETARG_sBx(kv_A(b->code, jmp), kv_size(b->code) - jmp);
       /* else body */
       jmp = PUSH_OP_A(b, JMP, reg);
       if (n->args[2]) {
@@ -228,7 +261,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
            nil is returned */
         PUSH_OP_A(b, NIL, reg);
       }
-      SET_Bx(INST(b, jmp), kv_size(b->code) - jmp - 1);
+      SETARG_sBx(kv_A(b->code, jmp), kv_size(b->code) - jmp - 1);
     } break;
     case AST_WHILE:
     case AST_UNTIL: {
@@ -242,8 +275,8 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       size_t jmp_end = kv_size(b->code);
       /* body */
       COMPILE_NODES(b, n->args[1], i, reg, 0);
-      SET_Bx(b->code.a + jmp_end - 1, kv_size(b->code) - jmp_end + 1);
-      PUSH_OP_ABx(b, JMP, 0, 0-(kv_size(b->code) - jmp_beg));
+      SETARG_sBx(kv_A(b->code, jmp_end - 1), kv_size(b->code) - jmp_end + 1);
+      PUSH_OP_AsBx(b, JMP, 0, 0-(kv_size(b->code) - jmp_beg) - 1);
     } break;
     case AST_AND:
     case AST_OR: {
@@ -257,7 +290,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         jmp = PUSH_OP_A(b, JMPIF, reg);
       /* arg */
       COMPILE_NODE(b, n->args[1], reg);
-      SET_Bx(INST(b, jmp), kv_size(b->code) - jmp - 1);
+      SETARG_sBx(kv_A(b->code, jmp), kv_size(b->code) - jmp - 1);
     } break;
     case AST_BOOL:
       PUSH_OP_AB(b, BOOL, reg, n->args[0]);
@@ -347,15 +380,8 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     case AST_ADD:
     case AST_SUB:
     case AST_LT: {
-      int rcv = reg+1, arg = reg+2;
-      if (NODE_TYPE(n->args[0]) == AST_VALUE)
-        rcv = TrBlock_push_value(b, ((TrNode*)n->args[0])->args[0]) | 0x100;
-      else
-        COMPILE_NODE(b, n->args[0], rcv);
-      if (NODE_TYPE(n->args[1]) == AST_VALUE)
-        arg = TrBlock_push_value(b, ((TrNode*)n->args[1])->args[0]) | 0x100;
-      else
-        COMPILE_NODE(b, n->args[1], arg);
+      int rcv = TrCompiler_compile_node_to_RK(vm, c, b, CNODE(NODE_ARG(n, 0)), reg);
+      int arg = TrCompiler_compile_node_to_RK(vm, c, b, CNODE(NODE_ARG(n, 1)), reg);
       switch (n->ntype) {
         case AST_ADD: PUSH_OP_ABC(b, ADD, reg, rcv, arg); break;
         case AST_SUB: PUSH_OP_ABC(b, SUB, reg, rcv, arg); break;
