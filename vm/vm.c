@@ -302,11 +302,17 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
     OP(JMPIF):      if ( TR_TEST(R[A])) ip += sBx; DISPATCH;
     OP(JMPUNLESS):  if (!TR_TEST(R[A])) ip += sBx; DISPATCH;
     
-    /* optimizations */
-    /* TODO what if not fixnum??? */
-    OP(ADD):        R[A] = TrFixnum_new(vm, TR_FIX2INT(RK(B)) + TR_FIX2INT(RK(C))); DISPATCH;
-    OP(SUB):        R[A] = TrFixnum_new(vm, TR_FIX2INT(RK(B)) - TR_FIX2INT(RK(C))); DISPATCH;
-    OP(LT):         R[A] = TR_BOOL(TR_FIX2INT(RK(B)) < TR_FIX2INT(RK(C))); DISPATCH;
+    /* arithmetic optimizations */
+    #define ARITH_OPT(MSG, FUNC) {\
+      OBJ rb = RK(B); \
+      if (likely(TR_IS_A(rb, Fixnum))) \
+        R[A] = FUNC; \
+      else \
+        R[A] = tr_send(rb, MSG, RK(C)); \
+    }
+    OP(ADD):        ARITH_OPT(vm->sADD, TrFixnum_new(vm, TR_FIX2INT(rb) + TR_FIX2INT(RK(C))) ); DISPATCH;
+    OP(SUB):        ARITH_OPT(vm->sSUB, TrFixnum_new(vm, TR_FIX2INT(rb) - TR_FIX2INT(RK(C))) ); DISPATCH;
+    OP(LT):         ARITH_OPT(vm->sLT, TR_BOOL(TR_FIX2INT(rb) < TR_FIX2INT(RK(C))) ); DISPATCH;
   END_OPCODES;
 }
 
@@ -415,6 +421,9 @@ TrVM *TrVM_new() {
   
   vm->self = TrObject_new(vm);
   vm->cf = -1;
+  vm->sADD = tr_intern("+");
+  vm->sSUB = tr_intern("-");
+  vm->sLT = tr_intern("<");
   
   TrVM_load(vm, "lib/boot.rb");
   

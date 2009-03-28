@@ -214,6 +214,11 @@ typedef struct TrVM {
   OBJ primitives[3];
   int debug;
   OBJ exception;
+  
+  /* cached objects */
+  OBJ sADD;
+  OBJ sSUB;
+  OBJ sLT;
 } TrVM;
 
 typedef struct {

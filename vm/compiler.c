@@ -381,7 +381,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     case AST_SUB:
     case AST_LT: {
       int rcv = TrCompiler_compile_node_to_RK(vm, c, b, CNODE(NODE_ARG(n, 0)), reg);
-      int arg = TrCompiler_compile_node_to_RK(vm, c, b, CNODE(NODE_ARG(n, 1)), reg);
+      int arg = TrCompiler_compile_node_to_RK(vm, c, b, CNODE(NODE_ARG(n, 1)), reg+1);
       switch (n->ntype) {
         case AST_ADD: PUSH_OP_ABC(b, ADD, reg, rcv, arg); break;
         case AST_SUB: PUSH_OP_ABC(b, SUB, reg, rcv, arg); break;
