@@ -271,7 +271,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
          */
         cl = TrClosure_new(vm, blocks[C-1]);
         size_t n, nupval = kv_size(cl->block->upvals);
-        for (n = 0; n < nupval; ++i) {
+        for (n = 0; n < nupval; ++n) {
           NEXT_INST;
           if (OPCODE == TR_OP_MOVE) {
             cl->upvals[n].value = &R[B];
