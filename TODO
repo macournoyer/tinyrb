@@ -36,8 +36,7 @@
 [ ] Do not create control frame on C function calls
 [ ] Store Fixnum as immediate value
 [ ] Cache constant lookup
-[ ] Peephole optimization (Remove useless register allocations)
-[ ] Inline more methods as VM instructions
+[x] Peephole optimization (Remove useless register allocations)
 [ ] case...when
 [ ] Float, Bignum
 [ ] Reimplement Array, Hash using Tuple like Rubinius or fix Hash to use #hash

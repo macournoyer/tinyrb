@@ -303,6 +303,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
     OP(JMPUNLESS):  if (!TR_TEST(R[A])) ip += sBx; DISPATCH;
     
     /* arithmetic optimizations */
+    /* TODO cache lookup in tr_send and force send if method was redefined */
     #define ARITH_OPT(MSG, FUNC) {\
       OBJ rb = RK(B); \
       if (likely(TR_IS_A(rb, Fixnum))) \
