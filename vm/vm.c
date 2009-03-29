@@ -198,7 +198,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
   f->line = b->line;
   f->filename = b->filename;
   register TrInst *ip = b->code.a + start;
-  TrInst i = *ip;
+  register TrInst i = *ip;
   OBJ *k = b->k.a;
   char **strings = b->strings.a;
   TrBlock **blocks = b->blocks.a;
