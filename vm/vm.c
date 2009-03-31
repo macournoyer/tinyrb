@@ -202,7 +202,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
   char **strings = b->strings.a;
   TrBlock **blocks = b->blocks.a;
   size_t nlocals = kv_size(b->locals);
-  register OBJ *stack = f->stack = TR_ALLOC_N(OBJ, b->regc + nlocals);
+  register OBJ *stack = f->stack = TR_ALLOC_N(OBJ, b->regc);
   /* transfer locals */
   assert(argc <= nlocals && "can't fit args in locals");
   TR_MEMCPY_N(stack, argv, OBJ, argc);

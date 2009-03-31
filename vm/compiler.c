@@ -28,6 +28,7 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 }
 
 /* code generation macros */
+#define REG(R)                        if (R >= b->regc) b->regc = R+1;
 #define PUSH_OP(BLK,I) ({ \
   kv_push(TrInst, (BLK)->code, (I)); \
   kv_size(BLK->code)-1; \
@@ -41,18 +42,20 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
   PUSH_OP(BLK, __i); \
 })
 
-#define COMPILE_NODE(BLK,NODE,REG) ({\
+#define COMPILE_NODE(BLK,NODE,R) ({\
   int nlocal = kv_size(BLK->locals); \
-  TrCompiler_compile_node(vm, c, BLK, (TrNode *)NODE, REG); \
+  REG(R); \
+  TrCompiler_compile_node(vm, c, BLK, (TrNode *)NODE, R); \
   kv_size(BLK->locals) - nlocal; \
 })
 
 #define ASSERT_NO_LOCAL_IN(MSG) \
   if (start_reg != reg) tr_raise("Can't create local variable inside " #MSG)
 
-#define COMPILE_NODES(BLK,NODES,I,REG,REGOFF) \
+#define COMPILE_NODES(BLK,NODES,I,R,ROFF) \
   TR_ARRAY_EACH(NODES, I, v, { \
-    REG += COMPILE_NODE(BLK, v, REG+REGOFF); \
+    R += COMPILE_NODE(BLK, v, R+ROFF); \
+    REG(R); \
   })
   
 #define CNODE(N)              ((TrNode *)N)
@@ -83,7 +86,7 @@ static int TrCompiler_compile_node_to_RK(VM, TrCompiler *c, TrBlock *b, TrNode *
 void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
   if (!n) return;
   int start_reg = reg;
-  if (reg >= b->regc) b->regc++;
+  REG(reg);
   b->line = n->line;
   /* TODO this shit is very repetitive, need to refactor */
   switch (n->ntype) {
@@ -122,6 +125,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     case AST_RANGE: {
       COMPILE_NODE(b, n->args[0], reg);
       COMPILE_NODE(b, n->args[1], reg+1);
+      REG(reg+1);
       ASSERT_NO_LOCAL_IN(Range);
       PUSH_OP_ABC(b, NEWRANGE, reg, reg+1, n->args[2]);
     } break;
@@ -384,6 +388,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
     case AST_LT: {
       int rcv = TrCompiler_compile_node_to_RK(vm, c, b, CNODE(NODE_ARG(n, 0)), reg);
       int arg = TrCompiler_compile_node_to_RK(vm, c, b, CNODE(NODE_ARG(n, 1)), reg+1);
+      REG(reg+1);
       switch (n->ntype) {
         case AST_ADD: PUSH_OP_ABC(b, ADD, reg, rcv, arg); break;
         case AST_SUB: PUSH_OP_ABC(b, SUB, reg, rcv, arg); break;
