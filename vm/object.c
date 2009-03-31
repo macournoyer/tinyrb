@@ -5,8 +5,18 @@ OBJ TrObject_new(VM) {
   return (OBJ) TR_INIT_OBJ(Object);
 }
 
+int TrObject_type(VM, OBJ obj) {
+  switch (obj) {
+    case TR_NIL: return TR_T_NilClass;
+    case TR_TRUE: return TR_T_TrueClass;
+    case TR_FALSE: return TR_T_FalseClass;
+  }
+  if (TR_IS_FIX(obj)) return TR_T_Fixnum;
+  return TR_COBJECT(obj)->type;
+}
+
 OBJ TrObject_method(VM, OBJ self, OBJ name) {
-  return TrModule_instance_method(vm, TR_COBJECT(self)->class, name);
+  return TrModule_instance_method(vm, TR_CLASS(self), name);
 }
 
 /* TODO respect namespace */
@@ -34,7 +44,7 @@ OBJ TrObject_add_singleton_method(VM, OBJ self, OBJ name, OBJ method) {
 }
 
 static OBJ TrObject_class(VM, OBJ self) {
-  OBJ class = TR_COBJECT(self)->class;
+  OBJ class = TR_CLASS(self);
   /* find the first non-metaclass */
   while (class && (!TR_IS_A(class, Class) || TR_CCLASS(class)->meta))
     class = TR_CCLASS(class)->super;
@@ -43,7 +53,7 @@ static OBJ TrObject_class(VM, OBJ self) {
 }
 
 static OBJ TrObject_object_id(VM, OBJ self) {
-  return TrFixnum_new(vm, (int)&self);
+  return TR_INT2FIX((int)&self);
 }
 
 static OBJ TrObject_instance_eval(VM, OBJ self, OBJ code) {
@@ -58,11 +68,11 @@ static OBJ TrObject_inspect(VM, OBJ self) {
 }
 
 void TrObject_preinit(VM) {
-  TR_INIT_CLASS(Object, /* ignored */ Object);
+  TR_INIT_CORE_CLASS(Object, /* ignored */ Object);
 }
 
 void TrObject_init(VM) {
-  OBJ c = TR_CLASS(Object);
+  OBJ c = TR_CORE_CLASS(Object);
   tr_def(c, "class", TrObject_class, 0);
   tr_def(c, "method", TrObject_method, 1);
   tr_def(c, "object_id", TrObject_object_id, 0);

@@ -20,7 +20,7 @@ OBJ TrHash_new2(VM, size_t n, OBJ items[]) {
 
 static OBJ TrHash_size(VM, OBJ self) {
   TrHash *h = TR_CHASH(self);
-  return TrFixnum_new(vm, kh_size(h->kh));
+  return TR_INT2FIX(kh_size(h->kh));
 }
 
 /* TODO use Object#hash as the key */
@@ -52,7 +52,7 @@ static OBJ TrHash_delete(VM, OBJ self, OBJ key) {
 }
 
 void TrHash_init(VM) {
-  OBJ c = TR_INIT_CLASS(Hash, Object);
+  OBJ c = TR_INIT_CORE_CLASS(Hash, Object);
   tr_def(c, "length", TrHash_size, 0);
   tr_def(c, "size", TrHash_size, 0);
   tr_def(c, "[]", TrHash_get, 1);

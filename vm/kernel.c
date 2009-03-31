@@ -8,7 +8,7 @@ OBJ TrBinding_new(VM, TrFrame *f) {
 }
 
 void TrBinding_init(VM) {
-  TR_INIT_CLASS(Binding, Object);
+  TR_INIT_CORE_CLASS(Binding, Object);
 }
 
 static OBJ TrKernel_puts(VM, OBJ self, int argc, OBJ argv[]) {
@@ -44,7 +44,7 @@ static OBJ TrKernel_raise(VM, OBJ self, OBJ exception) {
 
 void TrKernel_init(VM) {
   OBJ m = tr_defmodule("Kernel");
-  TrModule_include(vm, TR_CLASS(Object), m);
+  TrModule_include(vm, TR_CORE_CLASS(Object), m);
   tr_def(m, "puts", TrKernel_puts, -1);
   tr_def(m, "eval", TrKernel_eval, -1);
   tr_def(m, "load", TrKernel_load, 1);

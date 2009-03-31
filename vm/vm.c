@@ -42,8 +42,7 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
 #ifdef TR_CALL_SITE
   TrInst *boing = (ip-1);
   TrCallSite *s = (kv_pushp(TrCallSite, b->sites));
-  /* TODO support metaclass */
-  s->class = TR_COBJECT(receiver)->class;
+  s->class = TR_CLASS(receiver);
   s->method = method;
   s->miss = 0;
   
@@ -61,7 +60,7 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
 static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int argc, OBJ *args, int splat, TrClosure *cl) {
   /* prepare call frame */
   /* TODO do not create a call frame if calling a pure C function */
-  TrFrame_push(vm, receiver, TR_COBJECT(receiver)->class, cl);
+  TrFrame_push(vm, receiver, TR_CLASS(receiver), cl);
   register TrFrame *f = FRAME;
   f->method = TR_CMETHOD(method);
   register TrFunc *func = f->method->func;
@@ -109,7 +108,7 @@ static OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module, OBJ s
     if (module)
       mod = TrModule_new(vm, name);
     else
-      mod = TrClass_new(vm, name, super ? super : TR_CLASS(Object));
+      mod = TrClass_new(vm, name, super ? super : TR_CORE_CLASS(Object));
     TrObject_const_set(vm, FRAME->class, name, mod);
   }
   TrFrame_push(vm, mod, mod, 0);
@@ -225,7 +224,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
     OP(STRING):     R[A] = TrString_new2(vm, strings[Bx]); DISPATCH;
     OP(SELF):       R[A] = f->self; DISPATCH;
     OP(NIL):        R[A] = TR_NIL; DISPATCH;
-    OP(BOOL):       R[A] = B+1; DISPATCH;
+    OP(BOOL):       R[A] = B; DISPATCH;
     OP(NEWARRAY):   R[A] = TrArray_new3(vm, B, &R[A+1]); DISPATCH;
     OP(NEWHASH):    R[A] = TrHash_new2(vm, B, &R[A+1]); DISPATCH;
     OP(NEWRANGE):   R[A] = TrRange_new(vm, R[A], R[B], C); DISPATCH;
@@ -251,7 +250,7 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
     OP(CACHE):
       /* TODO how to expire cache? */
       assert(&SITE[C] && "Method cached but no CallSite found");
-      if (likely(SITE[C].class == TR_COBJECT(R[A])->class)) {
+      if (likely(SITE[C].class == TR_CLASS((R[A])))) {
         R[A+1] = SITE[C].method;
         ip += B;
       } else {
@@ -306,21 +305,27 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
     /* TODO cache lookup in tr_send and force send if method was redefined */
     #define ARITH_OPT(MSG, FUNC) {\
       OBJ rb = RK(B); \
-      if (likely(TR_IS_A(rb, Fixnum))) \
+      if (likely(TR_IS_FIX(rb))) \
         R[A] = FUNC; \
       else \
         R[A] = tr_send(rb, MSG, RK(C)); \
     }
-    OP(ADD):        ARITH_OPT(vm->sADD, TrFixnum_new(vm, TR_FIX2INT(rb) + TR_FIX2INT(RK(C))) ); DISPATCH;
-    OP(SUB):        ARITH_OPT(vm->sSUB, TrFixnum_new(vm, TR_FIX2INT(rb) - TR_FIX2INT(RK(C))) ); DISPATCH;
+    OP(ADD):        ARITH_OPT(vm->sADD, TR_INT2FIX(TR_FIX2INT(rb) + TR_FIX2INT(RK(C))) ); DISPATCH;
+    OP(SUB):        ARITH_OPT(vm->sSUB, TR_INT2FIX(TR_FIX2INT(rb) - TR_FIX2INT(RK(C))) ); DISPATCH;
     OP(LT):         ARITH_OPT(vm->sLT, TR_BOOL(TR_FIX2INT(rb) < TR_FIX2INT(RK(C))) ); DISPATCH;
+    OP(NEG):        ARITH_OPT(vm->sNEG, TR_INT2FIX(-TR_FIX2INT(rb)) ); DISPATCH;
+    OP(NOT): {
+      OBJ rb = RK(B);
+      R[A] = TR_BOOL(!TR_TEST(rb));
+      DISPATCH;
+    }
   END_OPCODES;
 }
 
 OBJ TrVM_eval(VM, char *code, char *filename) {
   TrBlock *b = TrBlock_compile(vm, code, filename, 0);
   if (vm->debug) TrBlock_dump(vm, b);
-  return TrVM_run(vm, b, vm->self, TR_COBJECT(vm->self)->class, 0, 0);
+  return TrVM_run(vm, b, vm->self, TR_CLASS(vm->self), 0, 0);
 }
 
 OBJ TrVM_load(VM, char *filename) {
@@ -389,11 +394,11 @@ TrVM *TrVM_new() {
   TrModule_init(vm);
   TrClass_init(vm);
   TrObject_preinit(vm);
-  TrClass *symbolc = TR_CCLASS(TR_CLASS(Symbol));
-  TrClass *modulec = TR_CCLASS(TR_CLASS(Module));
-  TrClass *classc = TR_CCLASS(TR_CLASS(Class));
-  TrClass *methodc = TR_CCLASS(TR_CLASS(Method));
-  TrClass *objectc = TR_CCLASS(TR_CLASS(Object));
+  TrClass *symbolc = TR_CCLASS(TR_CORE_CLASS(Symbol));
+  TrClass *modulec = TR_CCLASS(TR_CORE_CLASS(Module));
+  TrClass *classc = TR_CCLASS(TR_CORE_CLASS(Class));
+  TrClass *methodc = TR_CCLASS(TR_CORE_CLASS(Method));
+  TrClass *objectc = TR_CCLASS(TR_CORE_CLASS(Object));
   /* set proper superclass has Object is defined last */
   symbolc->super = modulec->super = methodc->super = (OBJ)objectc;
   classc->super = (OBJ)modulec;
@@ -425,6 +430,8 @@ TrVM *TrVM_new() {
   vm->sADD = tr_intern("+");
   vm->sSUB = tr_intern("-");
   vm->sLT = tr_intern("<");
+  vm->sNEG = tr_intern("@-");
+  vm->sNOT = tr_intern("!");
   
   TrVM_load(vm, "lib/boot.rb");
   

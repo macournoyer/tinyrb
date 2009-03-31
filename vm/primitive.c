@@ -14,13 +14,9 @@ OBJ TrFalse_to_s(VM, OBJ self) {
 }
 
 void TrPrimitive_init(VM) {
-  OBJ nilc = TR_INIT_CLASS(NilClass, Object);
-  OBJ truec = TR_INIT_CLASS(TrueClass, Object);
-  OBJ falsec = TR_INIT_CLASS(FalseClass, Object);
-  
-  vm->primitives[TR_NIL] = TrClass_allocate(vm, nilc);
-  vm->primitives[TR_TRUE] = TrClass_allocate(vm, truec);
-  vm->primitives[TR_FALSE] = TrClass_allocate(vm, falsec);
+  OBJ nilc = TR_INIT_CORE_CLASS(NilClass, Object);
+  OBJ truec = TR_INIT_CORE_CLASS(TrueClass, Object);
+  OBJ falsec = TR_INIT_CORE_CLASS(FalseClass, Object);
   
   tr_def(nilc, "to_s", TrNil_to_s, 0);
   tr_def(truec, "to_s", TrTrue_to_s, 0);

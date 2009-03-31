@@ -57,7 +57,7 @@ static OBJ TrModule_name(VM, OBJ self) {
 }
 
 void TrModule_init(VM) {
-  OBJ c = TR_INIT_CLASS(Module, Object);
+  OBJ c = TR_INIT_CORE_CLASS(Module, Object);
   tr_def(c, "name", TrModule_name, 0);
   tr_def(c, "include", TrModule_include, 1);
   tr_def(c, "instance_method", TrModule_instance_method, 1);
@@ -90,7 +90,7 @@ OBJ TrClass_superclass(VM, OBJ self) {
 }
 
 void TrClass_init(VM) {
-  OBJ c = TR_INIT_CLASS(Class, Module);
+  OBJ c = TR_INIT_CORE_CLASS(Class, Module);
   tr_def(c, "superclass", TrClass_superclass, 0);
   tr_def(c, "allocate", TrClass_allocate, 0);
 }
@@ -118,7 +118,7 @@ OBJ TrMethod_new(VM, TrFunc *func, OBJ data, int arity) {
 }
 
 OBJ TrMethod_name(VM, OBJ self) { return TR_CMETHOD(self)->name; }
-OBJ TrMethod_arity(VM, OBJ self) { return TrFixnum_new(vm, TR_CMETHOD(self)->arity); }
+OBJ TrMethod_arity(VM, OBJ self) { return TR_INT2FIX(TR_CMETHOD(self)->arity); }
 
 OBJ TrMethod_dump(VM, OBJ self) {
   TrMethod *m = TR_CMETHOD(self);
@@ -131,7 +131,7 @@ OBJ TrMethod_dump(VM, OBJ self) {
 }
 
 void TrMethod_init(VM) {
-  OBJ c = TR_INIT_CLASS(Method, Object);
+  OBJ c = TR_INIT_CORE_CLASS(Method, Object);
   tr_def(c, "name", TrMethod_name, 0);
   tr_def(c, "arity", TrMethod_arity, 0);
   tr_def(c, "dump", TrMethod_dump, 0);

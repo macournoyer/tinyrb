@@ -67,6 +67,8 @@ typedef enum {
   AST_ADD,
   AST_SUB,
   AST_LT,
+  AST_NEG,
+  AST_NOT,
 } TrNodeType;
 
 typedef struct {

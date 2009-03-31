@@ -50,11 +50,11 @@ static OBJ TrArray_set(VM, OBJ self, OBJ at, OBJ x) {
 }
 
 static OBJ TrArray_length(VM, OBJ self) {
-  return TrFixnum_new(vm, TR_ARRAY_SIZE(self));
+  return TR_INT2FIX(TR_ARRAY_SIZE(self));
 }
 
 void TrArray_init(VM) {
-  OBJ c = TR_INIT_CLASS(Array, Object);
+  OBJ c = TR_INIT_CORE_CLASS(Array, Object);
   tr_def(c, "length", TrArray_length, 0);
   tr_def(c, "size", TrArray_length, 0);
   tr_def(c, "<<", TrArray_push, 1);

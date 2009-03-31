@@ -19,13 +19,13 @@
 #define TR_REALLOC           GC_realloc
 #define TR_FREE(S)           
 
-#define TR_COBJECT(X)        ((TrObject*)TR_BOX(X))
-#define TR_TYPE(X)           (TR_COBJECT(X)->type)
+#define TR_TYPE(X)           TrObject_type(vm, (X))
+#define TR_CLASS(X)          (TR_IMMEDIATE(X) ? vm->classes[TR_TYPE(X)] : TR_COBJECT(X)->class)
 #define TR_IS_A(X,T)         (TR_TYPE(X) == TR_T_##T)
+#define TR_COBJECT(X)        ((TrObject*)(X))
 #define TR_CTYPE(X,T)        (tr_assert(TR_IS_A(X,T), "TypeError: expected " #T),(Tr##T*)(X))
 #define TR_CCLASS(X)         (tr_assert(TR_IS_A(X,Class)||TR_IS_A(X,Module), "TypeError: expected Class"),(TrClass*)(X))
 #define TR_CMODULE(X)        TR_CCLASS(X)
-#define TR_CFIXNUM(X)        TR_CTYPE(X,Fixnum)
 #define TR_CARRAY(X)         TR_CTYPE(X,Array)
 #define TR_CHASH(X)          TR_CTYPE(X,Hash)
 #define TR_CRANGE(X)         TR_CTYPE(X,Range)
@@ -35,7 +35,6 @@
 
 #define TR_STR_PTR(S)        (TR_CSTRING(S)->ptr)
 #define TR_STR_LEN(S)        (TR_CSTRING(S)->len)
-#define TR_FIX2INT(F)        (TR_CFIXNUM(F)->value)
 #define TR_ARRAY_PUSH(X,I)   kv_push(OBJ, ((TrArray*)(X))->kv, (I))
 #define TR_ARRAY_AT(X,I)     kv_A((TR_CARRAY(X))->kv, (I))
 #define TR_ARRAY_SIZE(X)     kv_size(TR_CARRAY(X)->kv)
@@ -79,12 +78,15 @@
 #define FRAME                (&vm->frames[vm->cf])
 #define PREV_FRAME           (&vm->frames[vm->cf-1])
 
+#define TR_IMMEDIATE(X)      (X == TR_NIL || X == TR_TRUE || X == TR_FALSE || TR_IS_FIX(X))
+#define TR_IS_FIX(F)         ((F) & 1)
+#define TR_FIX2INT(F)        (((int)(F) >> 1))
+#define TR_INT2FIX(I)        ((I) << 1 |  1)
 #define TR_NIL               ((OBJ)0)
-#define TR_FALSE             ((OBJ)1)
-#define TR_TRUE              ((OBJ)2)
+#define TR_FALSE             ((OBJ)2)
+#define TR_TRUE              ((OBJ)4)
 #define TR_TEST(X)           ((X) == TR_NIL || (X) == TR_FALSE ? 0 : 1)
 #define TR_BOOL(X)           ((X) ? TR_TRUE : TR_FALSE)
-#define TR_BOX(X)            ((X) < 3 ? vm->primitives[X] : (X))
 
 #define TR_OBJECT_HEADER \
   TR_T type; \
@@ -97,10 +99,10 @@
   o->ivars = kh_init(OBJ); \
   o; \
 })
-#define TR_CLASS(T)          vm->classes[TR_T_##T]
-#define TR_INIT_CLASS(T,S) \
-  TR_CLASS(T) = TrObject_const_set(vm, vm->self, tr_intern(#T), \
-                                   TrClass_new(vm, tr_intern(#T), TR_CLASS(S)))
+#define TR_CORE_CLASS(T)     vm->classes[TR_T_##T]
+#define TR_INIT_CORE_CLASS(T,S) \
+  TR_CORE_CLASS(T) = TrObject_const_set(vm, vm->self, tr_intern(#T), \
+                                   TrClass_new(vm, tr_intern(#T), TR_CORE_CLASS(S)))
 
 #define tr_intern(S)         TrSymbol_new(vm, (S))
 #define tr_raise(M,A...)     TrVM_raise(vm, tr_sprintf(vm, (M), ##A))
@@ -112,11 +114,10 @@
 #define tr_defclass(N)       TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N)))
 #define tr_defmodule(N)      TrObject_const_set(vm, vm->self, tr_intern(N), TrModule_new(vm, tr_intern(N)))
 #define tr_send(R,MSG,A...)  ({ \
-  OBJ r = TR_BOX(R); \
-  TrMethod *m = TR_CMETHOD(TrObject_method(vm, r, (MSG))); \
+  TrMethod *m = TR_CMETHOD(TrObject_method(vm, R, (MSG))); \
   if (!m) tr_raise("Method not found: %s\n", TR_STR_PTR(MSG)); \
   FRAME->method = m; \
-  m->func(vm, r, ##A); \
+  m->func(vm, R, ##A); \
 })
 #define tr_send2(R,STR,A...) tr_send((R), tr_intern(STR), ##A)
 
@@ -211,7 +212,6 @@ typedef struct TrVM {
   size_t cf; /* current frame */
   khash_t(OBJ) *consts;
   OBJ self;
-  OBJ primitives[3];
   int debug;
   OBJ exception;
   
@@ -219,6 +219,8 @@ typedef struct TrVM {
   OBJ sADD;
   OBJ sSUB;
   OBJ sLT;
+  OBJ sNEG;
+  OBJ sNOT;
 } TrVM;
 
 typedef struct {
@@ -241,11 +243,6 @@ typedef struct {
   unsigned char interned:1;
 } TrString;
 typedef TrString TrSymbol;
-
-typedef struct {
-  TR_OBJECT_HEADER;
-  int value;
-} TrFixnum;
 
 typedef struct {
   TR_OBJECT_HEADER;
@@ -283,10 +280,6 @@ void TrSymbol_init(VM);
 void TrString_init(VM);
 
 /* number */
-OBJ TrFixnum_new(VM, int value);
-OBJ TrFixnum_add(VM, OBJ self, OBJ other);
-OBJ TrFixnum_sub(VM, OBJ self, OBJ other);
-OBJ TrFixnum_lt(VM, OBJ self, OBJ other);
 void TrFixnum_init(VM);
 
 /* array */
@@ -309,6 +302,7 @@ TrClosure *TrClosure_new(VM, TrBlock *b);
 
 /* object */
 OBJ TrObject_new(VM);
+int TrObject_type(VM, OBJ obj);
 OBJ TrObject_method(VM, OBJ self, OBJ name);
 OBJ TrObject_const_set(VM, OBJ self, OBJ name, OBJ value);
 OBJ TrObject_const_get(VM, OBJ self, OBJ name);

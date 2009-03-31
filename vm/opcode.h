@@ -107,6 +107,8 @@ enum TrInstCode {
   TR_OP_ADD,        /* A B C    R[A] = RK[B] + RK[C] */
   TR_OP_SUB,        /* A B C    R[A] = RK[B] - RK[C] */
   TR_OP_LT,         /* A B C    R[A] = RK[B] < RK[C] */
+  TR_OP_NEG,        /* A B      R[A] = -RK[B] */
+  TR_OP_NOT,        /* A B      R[A] = !RK[B] */
   TR_OP_SUPER,      /* TODO */
 };
 
@@ -146,6 +148,8 @@ enum TrInstCode {
   "add", \
   "sub", \
   "lt", \
+  "neg", \
+  "not", \
   "super"
 
 #ifdef TR_THREADED_DISPATCH
@@ -185,7 +189,9 @@ enum TrInstCode {
   &&op_NEWRANGE, \
   &&op_ADD, \
   &&op_SUB, \
-  &&op_LT
+  &&op_LT, \
+  &&op_NEG, \
+  &&op_NOT
   
 #endif
 

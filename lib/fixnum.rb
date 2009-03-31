@@ -6,8 +6,4 @@ class Fixnum
       i = i + 1
     end
   end
-  
-  def -@
-    0 - self
-  end
 end

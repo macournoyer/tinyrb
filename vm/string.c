@@ -42,7 +42,7 @@ static OBJ TrSymbol_to_s(VM, OBJ self) {
 }
 
 void TrSymbol_init(VM) {
-  OBJ c = TR_INIT_CLASS(Symbol, Object);
+  OBJ c = TR_INIT_CORE_CLASS(Symbol, Object);
   tr_def(c, "to_s", TrSymbol_to_s, 0);
 }
 
@@ -53,7 +53,7 @@ static OBJ TrString_to_s(VM, OBJ self) {
 }
 
 static OBJ TrString_size(VM, OBJ self) {
-  return TrFixnum_new(vm, TR_CSTRING(self)->len);
+  return TR_INT2FIX(TR_CSTRING(self)->len);
 }
 
 OBJ TrString_new(VM, const char *str, size_t len) {
@@ -90,8 +90,8 @@ OBJ TrString_replace(VM, OBJ self, OBJ other) {
 }
 
 OBJ TrString_cmp(VM, OBJ self, OBJ other) {
-  if (!TR_IS_A(other, String)) return TrFixnum_new(vm, -1);
-  return TrFixnum_new(vm, strcmp(TR_STR_PTR(self), TR_STR_PTR(other)));
+  if (!TR_IS_A(other, String)) return TR_INT2FIX(-1);
+  return TR_INT2FIX(strcmp(TR_STR_PTR(self), TR_STR_PTR(other)));
 }
 
 OBJ TrString_substring(VM, OBJ self, OBJ start, OBJ len) {
@@ -123,7 +123,7 @@ OBJ tr_sprintf(VM, const char *fmt, ...) {
 }
 
 void TrString_init(VM) {
-  OBJ c = TR_INIT_CLASS(String, Object);
+  OBJ c = TR_INIT_CORE_CLASS(String, Object);
   tr_def(c, "to_s", TrString_to_s, 0);
   tr_def(c, "to_sym", TrString_to_sym, 0);
   tr_def(c, "size", TrString_size, 0);

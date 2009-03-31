@@ -104,8 +104,8 @@ BinOp     = ( rcv:SpecCall | rcv:Receiver )
             | op:BINOP - arg:Expr           { $$ = NODE2(SEND, rcv, NODE2(MSG, op, NODES(NODE(ARG, arg)))) }
             ) 
 
-UnaryOp   = '-' rcv:Expr                    { $$ = NODE2(SEND, rcv, NODE(MSG, TrSymbol_new(yyvm, "-@"))) }
-          | '!' rcv:Expr                    { $$ = NODE2(SEND, rcv, NODE(MSG, TrSymbol_new(yyvm, "!"))) }
+UnaryOp   = '-' rcv:Expr                    { $$ = NODE(NEG, rcv) }
+          | '!' rcv:Expr                    { $$ = NODE(NOT, rcv) }
 
 Message   = name:ID                         { args = 0 }
               ( '(' args:Args? ')'
@@ -204,8 +204,8 @@ Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | v:STRING2                       { $$ = NODE(STRING, v) }
           | v:CONST                         { $$ = NODE(CONST, v) }
           | 'nil'                           { $$ = NODE(NIL, 0) }
-          | 'true'                          { $$ = NODE(BOOL, 1) }
-          | 'false'                         { $$ = NODE(BOOL, 0) }
+          | 'true'                          { $$ = NODE(BOOL, TR_TRUE) }
+          | 'false'                         { $$ = NODE(BOOL, TR_FALSE) }
           | 'self'                          { $$ = NODE(SELF, 0) }
           | name:IVAR                       { $$ = NODE(GETIVAR, name) }
           | name:CVAR                       { $$ = NODE(GETCVAR, name) }
@@ -250,7 +250,7 @@ ASSIGN    = < '=' > &(!'=')                 { $$ = TrSymbol_new(yyvm, yytext) }
 IVAR      = < '@' NAME >                    { $$ = TrSymbol_new(yyvm, yytext) }
 CVAR      = < '@@' NAME >                   { $$ = TrSymbol_new(yyvm, yytext) }
 GLOBAL    = < '$' NAME >                    { $$ = TrSymbol_new(yyvm, yytext) }
-NUMBER    = < [0-9]+ >                      { $$ = TrFixnum_new(yyvm, atoi(yytext)) }
+NUMBER    = < [0-9]+ >                      { $$ = TR_INT2FIX(atoi(yytext)) }
 SYMBOL    = ':' < (NAME | KEYWORD) >        { $$ = TrSymbol_new(yyvm, yytext) }
 
 STRING1   = '\''                            { STRING_START }

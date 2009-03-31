@@ -139,6 +139,8 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
           case TR_OP_ADD: /* Those instructions can load direcly into a local */
           case TR_OP_SUB:
           case TR_OP_LT:
+          case TR_OP_NEG:
+          case TR_OP_NOT:
             SETARG_A(*last_inst, i); break;
           default:
             if (i != reg) PUSH_OP_AB(b, MOVE, i, reg);
@@ -386,6 +388,15 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         case AST_ADD: PUSH_OP_ABC(b, ADD, reg, rcv, arg); break;
         case AST_SUB: PUSH_OP_ABC(b, SUB, reg, rcv, arg); break;
         case AST_LT:  PUSH_OP_ABC(b, LT, reg, rcv, arg); break;
+        default: assert(0);
+      }
+    } break;
+    case AST_NEG:
+    case AST_NOT: {
+      int rcv = TrCompiler_compile_node_to_RK(vm, c, b, CNODE(NODE_ARG(n, 0)), reg);
+      switch (n->ntype) {
+        case AST_NEG: PUSH_OP_AB(b, NEG, reg, rcv); break;
+        case AST_NOT: PUSH_OP_AB(b, NOT, reg, rcv); break;
         default: assert(0);
       }
     } break;

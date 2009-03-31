@@ -1,14 +1,8 @@
 #include "tr.h"
 #include "internal.h"
 
-#define MATH(A,OP,B)  TrFixnum_new(vm, TR_FIX2INT(A) OP TR_FIX2INT(B))
+#define MATH(A,OP,B)  TR_INT2FIX(TR_FIX2INT(A) OP TR_FIX2INT(B))
 #define CMP(A,OP,B)   TR_BOOL(TR_FIX2INT(A) OP TR_FIX2INT(B))
-
-OBJ TrFixnum_new(VM, int value) {
-  TrFixnum *n = TR_INIT_OBJ(Fixnum);
-  n->value = value;
-  return (OBJ)n;
-}
 
 OBJ TrFixnum_add(VM, OBJ self, OBJ other) { return MATH(self, +, other); }
 OBJ TrFixnum_sub(VM, OBJ self, OBJ other) { return MATH(self, -, other); }
@@ -27,7 +21,7 @@ OBJ TrFixnum_to_s(VM, OBJ self) {
 }
 
 void TrFixnum_init(VM) {
-  OBJ c = TR_INIT_CLASS(Fixnum, Object);
+  OBJ c = TR_INIT_CORE_CLASS(Fixnum, Object);
   tr_def(c, "+", TrFixnum_add, 1);
   tr_def(c, "-", TrFixnum_sub, 1);
   tr_def(c, "*", TrFixnum_mul, 1);
