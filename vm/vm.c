@@ -5,33 +5,25 @@
 #include "opcode.h"
 #include "internal.h"
 
-OBJ TrVM_step(VM, TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure);
+static OBJ TrVM_interpret(VM, TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure);
 
-static void TrFrame_push(VM, OBJ self, OBJ class, TrClosure *closure) {
-  TrFrame *prevf = vm->cf < 0 ? 0 : FRAME;
-  vm->cf++;
-  if (vm->cf >= TR_MAX_FRAMES) tr_raise("Stack overflow");
-  TrFrame *f = FRAME;
-  f->method = TR_NIL;
-  f->filename = TR_NIL;
+static inline void TrFrame_push(VM, OBJ self, OBJ class, TrClosure *closure) {
+  register int cf = ++vm->cf;
+  if (cf >= TR_MAX_FRAMES) tr_raise("Stack overflow");
+  register TrFrame *f = FRAME;
   f->self = self;
   f->class = class;
-  f->line = 1;
-  if (prevf) {
+  if (cf != 0) {
+    TrFrame *prevf = PREV_FRAME;
     f->closure = prevf->closure;
+    /* TODO how not to do this on every call ? */
     TR_MEMCPY(&f->rescue_jmp, &prevf->rescue_jmp, jmp_buf);
-  }
-  if (closure) f->closure = closure;
-  
-  /* init first frame */
-  if (vm->cf == 0) {
-    TR_RESCUE({
-      exit(1);
-    })
+    if (closure) f->closure = closure;
   }
 }
 
-static void TrFrame_pop(VM) {
+static inline void TrFrame_pop(VM) {
+  /* TODO for GC: release everything on the stack */
   vm->cf--;
 }
 
@@ -62,7 +54,7 @@ static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int
   /* TODO do not create a call frame if calling a pure C function */
   TrFrame_push(vm, receiver, TR_CLASS(receiver), cl);
   register TrFrame *f = FRAME;
-  f->method = TR_CMETHOD(method);
+  register TrMethod *m = f->method = TR_CMETHOD(method);
   register TrFunc *func = f->method->func;
   if (cl) cl->frame = callingf;
   OBJ ret = TR_NIL;
@@ -78,10 +70,10 @@ static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int
     args = new_args;
   }
   
-  if (f->method->arity == -1) {
+  if (m->arity == -1) {
     ret = func(vm, receiver, argc, args);
   } else {
-    if (f->method->arity != argc) tr_raise("Expected %d arguments, got %d.\n", f->method->arity, argc);
+    if (m->arity != argc) tr_raise("Expected %d arguments, got %d.\n", f->method->arity, argc);
     switch (argc) {
       case 0:  ret = func(vm, receiver); break;
       case 1:  ret = func(vm, receiver, args[0]); break;
@@ -112,7 +104,7 @@ static OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module, OBJ s
     TrObject_const_set(vm, FRAME->class, name, mod);
   }
   TrFrame_push(vm, mod, mod, 0);
-  TrVM_step(vm, FRAME, b, 0, 0, 0, 0);
+  TrVM_interpret(vm, FRAME, b, 0, 0, 0, 0);
   TrFrame_pop(vm);
   return mod;
 }
@@ -121,7 +113,7 @@ static OBJ TrVM_interpret_method(VM, OBJ self, int argc, OBJ argv[]) {
   assert(FRAME->method);
   register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
   if (argc != b->argc) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n", argc, b->argc);
-  return TrVM_step(vm, FRAME, b, 0, argc, argv, 0);
+  return TrVM_interpret(vm, FRAME, b, 0, argc, argv, 0);
 }
 
 static OBJ TrVM_interpret_method_with_defaults(VM, OBJ self, int argc, OBJ argv[]) {
@@ -131,17 +123,17 @@ static OBJ TrVM_interpret_method_with_defaults(VM, OBJ self, int argc, OBJ argv[
   if (argc < req_argc) tr_raise("ArgumentError: wrong number of arguments (%d for %d)\n", argc, req_argc);
   if (argc > b->argc) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n", argc, b->argc);
   int defi = argc - req_argc - 1; /* index in defaults table or -1 for none */
-  return TrVM_step(vm, FRAME, b, defi < 0 ? 0 : kv_A(b->defaults, defi), argc, argv, 0);
+  return TrVM_interpret(vm, FRAME, b, defi < 0 ? 0 : kv_A(b->defaults, defi), argc, argv, 0);
 }
 
 static OBJ TrVM_interpret_method_with_splat(VM, OBJ self, int argc, OBJ argv[]) {
   assert(FRAME->method);
-  /* TODO */
   register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
+  /* TODO support defaults */
   assert(kv_size(b->defaults) == 0 && "defaults with splat not supported for now");
   if (argc < b->argc-1) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n\n", argc, b->argc-1);
   argv[b->argc-1] = TrArray_new3(vm, argc - b->argc + 1, &argv[b->argc-1]);
-  return TrVM_step(vm, FRAME, b, 0, b->argc, argv, 0);
+  return TrVM_interpret(vm, FRAME, b, 0, b->argc, argv, 0);
 }
 
 static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b, int meta, OBJ receiver) {
@@ -163,7 +155,7 @@ static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b, int meta, OBJ re
 static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
   TrClosure *cl = f->closure;
   if (!cl) tr_raise("LocalJumpError: no block given");
-  return TrVM_step(vm, cl->frame, cl->block, 0, argc, argv, cl);
+  return TrVM_interpret(vm, cl->frame, cl->block, 0, argc, argv, cl);
 }
 
 /* dispatch macros */
@@ -193,7 +185,7 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #define sBx    GETARG_sBx(i)
 #define SITE   (b->sites.a)
 
-OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure) {
+static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure) {
   f->line = b->line;
   f->filename = b->filename;
   register TrInst *ip = b->code.a + start;
@@ -201,13 +193,14 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
   OBJ *k = b->k.a;
   char **strings = b->strings.a;
   TrBlock **blocks = b->blocks.a;
-  size_t nlocals = kv_size(b->locals);
-  register OBJ *stack = f->stack = TR_ALLOC_N(OBJ, b->regc);
+  register OBJ *stack = TR_ALLOC_N(OBJ, b->regc); /* TODO = f->stack */
+  TrUpval *upvals = closure ? closure->upvals : 0;
   /* transfer locals */
-  assert(argc <= nlocals && "can't fit args in locals");
-  TR_MEMCPY_N(stack, argv, OBJ, argc);
-  TrUpval *upvals = 0;
-  if (closure) upvals = closure->upvals;
+  if (argc > 0) { 
+    size_t nlocals = kv_size(b->locals);
+    assert(argc <= nlocals && "can't fit args in locals");
+    TR_MEMCPY_N(stack, argv, OBJ, argc);
+  }
   
 #ifdef TR_THREADED_DISPATCH
   static void *_labels[] = { TR_OP_LABELS };
@@ -236,10 +229,10 @@ OBJ TrVM_step(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv
     /* variable and consts */
     OP(SETUPVAL):   assert(upvals && upvals[B].value); *(upvals[B].value) = R[A]; DISPATCH;
     OP(GETUPVAL):   assert(upvals); R[A] = *(upvals[B].value); DISPATCH;
-    OP(SETIVAR):    TR_SETIVAR(f->self, k[Bx], R[A]); DISPATCH;
-    OP(GETIVAR):    R[A] = TR_GETIVAR(f->self, k[Bx]); DISPATCH;
-    OP(SETCVAR):    TR_SETIVAR(f->class, k[Bx], R[A]); DISPATCH;
-    OP(GETCVAR):    R[A] = TR_GETIVAR(f->class, k[Bx]); DISPATCH;
+    OP(SETIVAR):    tr_setivar(f->self, k[Bx], R[A]); DISPATCH;
+    OP(GETIVAR):    R[A] = tr_getivar(f->self, k[Bx]); DISPATCH;
+    OP(SETCVAR):    tr_setivar(f->class, k[Bx], R[A]); DISPATCH;
+    OP(GETCVAR):    R[A] = tr_getivar(f->class, k[Bx]); DISPATCH;
     OP(SETCONST):   TrObject_const_set(vm, f->self, k[Bx], R[A]); DISPATCH;
     OP(GETCONST):   R[A] = TrObject_const_get(vm, f->self, k[Bx]); DISPATCH;
     OP(SETGLOBAL):  TR_KH_SET(vm->globals, k[Bx], R[A]); DISPATCH;
@@ -373,7 +366,7 @@ void TrVM_rescue(VM) {
 
 OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[]) {
   TrFrame_push(vm, self, class, 0);
-  OBJ ret = TrVM_step(vm, FRAME, b, 0, argc, argv, 0);
+  OBJ ret = TrVM_interpret(vm, FRAME, b, 0, argc, argv, 0);
   TrFrame_pop(vm);
   return ret;
 }
@@ -427,11 +420,19 @@ TrVM *TrVM_new() {
   
   vm->self = TrObject_new(vm);
   vm->cf = -1;
+  
+  /* cache some commonly used values */
   vm->sADD = tr_intern("+");
   vm->sSUB = tr_intern("-");
   vm->sLT = tr_intern("<");
   vm->sNEG = tr_intern("@-");
   vm->sNOT = tr_intern("!");
+  
+  /* init first frame */
+  if (setjmp(vm->frames[0].rescue_jmp)) {
+    TrVM_rescue(vm);
+    exit(1);
+  }
   
   TrVM_load(vm, "lib/boot.rb");
   

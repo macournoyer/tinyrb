@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <setjmp.h>
+
 #include "config.h"
 #include "vendor/kvec.h"
 #include "vendor/khash.h"
@@ -14,11 +15,13 @@
 
 #define cast(T,X) ((T)X)
 
+/* allocation macros */
 #define TR_MALLOC            GC_malloc
 #define TR_CALLOC(m,n)       GC_MALLOC((m)*(n))
 #define TR_REALLOC           GC_realloc
 #define TR_FREE(S)           
 
+/* type convertion macros */
 #define TR_TYPE(X)           TrObject_type(vm, (X))
 #define TR_CLASS(X)          (TR_IMMEDIATE(X) ? vm->classes[TR_TYPE(X)] : TR_COBJECT(X)->class)
 #define TR_IS_A(X,T)         (TR_TYPE(X) == TR_T_##T)
@@ -33,8 +36,11 @@
 #define TR_CMETHOD(X)        ((TrMethod*)X)
 #define TR_CBINDING(X)       TR_CTYPE(X,Binding)
 
+/* string macros */
 #define TR_STR_PTR(S)        (TR_CSTRING(S)->ptr)
 #define TR_STR_LEN(S)        (TR_CSTRING(S)->len)
+
+/* array macros */
 #define TR_ARRAY_PUSH(X,I)   kv_push(OBJ, ((TrArray*)(X))->kv, (I))
 #define TR_ARRAY_AT(X,I)     kv_A((TR_CARRAY(X))->kv, (I))
 #define TR_ARRAY_SIZE(X)     kv_size(TR_CARRAY(X)->kv)
@@ -48,6 +54,8 @@
       } \
     } \
   })
+
+/* raw hash macros */
 #define TR_KH_GET(KH,K) ({ \
   OBJ key = (K); \
   khash_t(OBJ) *kh = (KH); \
@@ -71,13 +79,12 @@
       } \
   })
 
-#define TR_GETIVAR(O,N)      TR_KH_GET(TR_COBJECT(O)->ivars, N)
-#define TR_SETIVAR(O,N,V)    TR_KH_SET(TR_COBJECT(O)->ivars, N, V)
-
+/* vm macros */
 #define VM                   struct TrVM *vm
 #define FRAME                (&vm->frames[vm->cf])
 #define PREV_FRAME           (&vm->frames[vm->cf-1])
 
+/* immediate values macros */
 #define TR_IMMEDIATE(X)      (X == TR_NIL || X == TR_TRUE || X == TR_FALSE || TR_IS_FIX(X))
 #define TR_IS_FIX(F)         ((F) & 1)
 #define TR_FIX2INT(F)        (((int)(F) >> 1))
@@ -88,11 +95,14 @@
 #define TR_TEST(X)           ((X) == TR_NIL || (X) == TR_FALSE ? 0 : 1)
 #define TR_BOOL(X)           ((X) ? TR_TRUE : TR_FALSE)
 
+/* common header share by all object */
 #define TR_OBJECT_HEADER \
   TR_T type; \
   OBJ class; \
   khash_t(OBJ) *ivars
-#define TR_INIT_OBJ(T) ({ \
+
+/* core classes macros */
+#define TR_INIT_CORE_OBJECT(T) ({ \
   Tr##T *o = TR_ALLOC(Tr##T); \
   o->type  = TR_T_##T; \
   o->class = vm->classes[TR_T_##T]; \
@@ -104,11 +114,14 @@
   TR_CORE_CLASS(T) = TrObject_const_set(vm, vm->self, tr_intern(#T), \
                                    TrClass_new(vm, tr_intern(#T), TR_CORE_CLASS(S)))
 
+/* API macros */
+#define tr_getivar(O,N)      TR_KH_GET(TR_COBJECT(O)->ivars, N)
+#define tr_setivar(O,N,V)    TR_KH_SET(TR_COBJECT(O)->ivars, N, V)
 #define tr_intern(S)         TrSymbol_new(vm, (S))
 #define tr_raise(M,A...)     TrVM_raise(vm, tr_sprintf(vm, (M), ##A))
 #define tr_raise_errno(M)    tr_raise("%s: %s", strerror(errno), (M))
 #define tr_assert(X,M,A...)  ((X) ? (X) : TrVM_raise(vm, tr_sprintf(vm, (M), ##A)))
-#define TR_RESCUE(B)         if (setjmp(FRAME->rescue_jmp)) { TrVM_rescue(vm); B }
+#define tr_rescue(B)         if (setjmp(FRAME->rescue_jmp)) { TrVM_rescue(vm); B }
 #define tr_def(C,N,F,A)      TrModule_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_metadef(O,N,F,A)  TrObject_add_singleton_method(vm, (O), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_defclass(N)       TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N)))
@@ -189,13 +202,12 @@ typedef struct {
 typedef struct TrFrame {
   TrClosure *closure;
   TrMethod *method;  /* current called method */
-  OBJ *stack;
+  OBJ stack[255];    /* TODO allocate dynamically to use less mem */
   OBJ *upvals;
   OBJ self;
   OBJ class;
   OBJ filename;
   size_t line;
-  TrInst *ip;
   jmp_buf rescue_jmp;
 } TrFrame;
 
@@ -208,7 +220,7 @@ typedef struct TrVM {
   khash_t(str) *symbols;
   khash_t(OBJ) *globals;
   OBJ classes[TR_T_MAX];
-  TrFrame frames[TR_MAX_FRAMES];
+  TrFrame frames[TR_MAX_FRAMES];  /* TODO allocate dynamically to use less mem */
   size_t cf; /* current frame */
   khash_t(OBJ) *consts;
   OBJ self;

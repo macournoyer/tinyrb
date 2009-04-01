@@ -17,7 +17,7 @@ TrBlock *TrBlock_new(TrCompiler *compiler, TrBlock *parent) {
   return b;
 }
 
-#define INSPECT(K)  (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", TR_FIX2INT(K)), buf))
+#define INSPECT_K(K)  (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", TR_FIX2INT(K)), buf))
 
 static void TrBlock_dump2(VM, TrBlock *b, int level) {
   static char *opcode_names[] = { TR_OP_NAMES };
@@ -35,26 +35,25 @@ static void TrBlock_dump2(VM, TrBlock *b, int level) {
     printf("\n");
   }
   for (i = 0; i < kv_size(b->locals); ++i)
-    printf(".local  %-8s ; %lu\n", INSPECT(kv_A(b->locals, i)), i);
+    printf(".local  %-8s ; %lu\n", INSPECT_K(kv_A(b->locals, i)), i);
   for (i = 0; i < kv_size(b->upvals); ++i)
-    printf(".upval  %-8s ; %lu\n", INSPECT(kv_A(b->upvals, i)), i);
-  for (i = 0; i < kv_size(b->k); ++i) {
-    printf(".value  %-8s ; %lu\n", INSPECT(kv_A(b->k, i)), i);
-  }
+    printf(".upval  %-8s ; %lu\n", INSPECT_K(kv_A(b->upvals, i)), i);
+  for (i = 0; i < kv_size(b->k); ++i)
+    printf(".value  %-8s ; %lu\n", INSPECT_K(kv_A(b->k, i)), i);
   for (i = 0; i < kv_size(b->strings); ++i)
     printf(".string %-8s ; %lu\n", kv_A(b->strings, i), i);
   for (i = 0; i < kv_size(b->code); ++i) {
     TrInst op = kv_A(b->code, i);
     printf("[%03lu] %-10s %3d %3d %3d", i, opcode_names[GET_OPCODE(op)], GETARG_A(op), GETARG_B(op), GETARG_C(op));
     switch (GET_OPCODE(op)) {
-      case TR_OP_LOADK:    printf(" ; R[%d] = %s", GETARG_A(op), INSPECT(kv_A(b->k, GETARG_Bx(op)))); break;
+      case TR_OP_LOADK:    printf(" ; R[%d] = %s", GETARG_A(op), INSPECT_K(kv_A(b->k, GETARG_Bx(op)))); break;
       case TR_OP_STRING:   printf(" ; R[%d] = \"%s\"", GETARG_A(op), kv_A(b->strings, GETARG_Bx(op))); break;
-      case TR_OP_LOOKUP:   printf(" ; R[%d] = R[%d].method(:%s)", GETARG_A(op)+1, GETARG_A(op), INSPECT(kv_A(b->k, GETARG_Bx(op)))); break;
+      case TR_OP_LOOKUP:   printf(" ; R[%d] = R[%d].method(:%s)", GETARG_A(op)+1, GETARG_A(op), INSPECT_K(kv_A(b->k, GETARG_Bx(op)))); break;
       case TR_OP_CALL:     printf(" ; R[%d] = R[%d].R[%d](%d)", GETARG_A(op), GETARG_A(op), GETARG_A(op)+1, GETARG_B(op)>>1); break;
-      case TR_OP_SETUPVAL: printf(" ; %s = R[%d]", INSPECT(kv_A(b->upvals, GETARG_B(op))), GETARG_A(op)); break;
-      case TR_OP_GETUPVAL: printf(" ; R[%d] = %s", GETARG_A(op), INSPECT(kv_A(b->upvals, GETARG_B(op)))); break;
+      case TR_OP_SETUPVAL: printf(" ; %s = R[%d]", INSPECT_K(kv_A(b->upvals, GETARG_B(op))), GETARG_A(op)); break;
+      case TR_OP_GETUPVAL: printf(" ; R[%d] = %s", GETARG_A(op), INSPECT_K(kv_A(b->upvals, GETARG_B(op)))); break;
       case TR_OP_JMP:      printf(" ; %d", GETARG_sBx(op)); break;
-      case TR_OP_DEF:      printf(" ; %s => %p", INSPECT(kv_A(b->k, GETARG_Bx(op))), kv_A(b->blocks, GETARG_A(op))); break;
+      case TR_OP_DEF:      printf(" ; %s => %p", INSPECT_K(kv_A(b->k, GETARG_Bx(op))), kv_A(b->blocks, GETARG_A(op))); break;
     }
     printf("\n");
   }

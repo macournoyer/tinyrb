@@ -10,9 +10,9 @@
 #define TR_MEMCPY_N(X,Y,T,N) memcpy((X), (Y), sizeof(T)*(N))
 
 /* ast building macros */
-#define NODE(T,A)            TrNode_new(compiler->vm, AST_##T, (A), 0, 0, compiler->line)
-#define NODE2(T,A,B)         TrNode_new(compiler->vm, AST_##T, (A), (B), 0, compiler->line)
-#define NODE3(T,A,B,C)       TrNode_new(compiler->vm, AST_##T, (A), (B), (C), compiler->line)
+#define NODE(T,A)            TrNode_new(compiler->vm, NODE_##T, (A), 0, 0, compiler->line)
+#define NODE2(T,A,B)         TrNode_new(compiler->vm, NODE_##T, (A), (B), 0, compiler->line)
+#define NODE3(T,A,B,C)       TrNode_new(compiler->vm, NODE_##T, (A), (B), (C), compiler->line)
 #define NODES(I)             TrArray_new2(compiler->vm, 1, (I))
 #define NODES_N(N,I...)      TrArray_new2(compiler->vm, (N), ##I)
 #define PUSH_NODE(A,N)       TR_ARRAY_PUSH((A),(N))
@@ -28,47 +28,48 @@
 #define unlikely(x) x
 #endif
 
+/* types of nodes in the AST built by the parser */
 typedef enum {
-  AST_ROOT,
-  AST_BLOCK,
-  AST_VALUE,
-  AST_STRING,
-  AST_ASSIGN,
-  AST_ARG,
-  AST_SEND,
-  AST_MSG,
-  AST_IF,
-  AST_UNLESS,
-  AST_AND,
-  AST_OR,
-  AST_WHILE,
-  AST_UNTIL,
-  AST_BOOL,
-  AST_NIL,
-  AST_SELF,
-  AST_RETURN,
-  AST_YIELD,
-  AST_DEF,
-  AST_METHOD,
-  AST_PARAM,
-  AST_CLASS,
-  AST_MODULE,
-  AST_CONST,
-  AST_SETCONST,
-  AST_ARRAY,
-  AST_HASH,
-  AST_RANGE,
-  AST_GETIVAR,
-  AST_SETIVAR,
-  AST_GETCVAR,
-  AST_SETCVAR,
-  AST_GETGLOBAL,
-  AST_SETGLOBAL,
-  AST_ADD,
-  AST_SUB,
-  AST_LT,
-  AST_NEG,
-  AST_NOT,
+  NODE_ROOT,
+  NODE_BLOCK,
+  NODE_VALUE,
+  NODE_STRING,
+  NODE_ASSIGN,
+  NODE_ARG,
+  NODE_SEND,
+  NODE_MSG,
+  NODE_IF,
+  NODE_UNLESS,
+  NODE_AND,
+  NODE_OR,
+  NODE_WHILE,
+  NODE_UNTIL,
+  NODE_BOOL,
+  NODE_NIL,
+  NODE_SELF,
+  NODE_RETURN,
+  NODE_YIELD,
+  NODE_DEF,
+  NODE_METHOD,
+  NODE_PARAM,
+  NODE_CLASS,
+  NODE_MODULE,
+  NODE_CONST,
+  NODE_SETCONST,
+  NODE_ARRAY,
+  NODE_HASH,
+  NODE_RANGE,
+  NODE_GETIVAR,
+  NODE_SETIVAR,
+  NODE_GETCVAR,
+  NODE_SETCVAR,
+  NODE_GETGLOBAL,
+  NODE_SETGLOBAL,
+  NODE_ADD,
+  NODE_SUB,
+  NODE_LT,
+  NODE_NEG,
+  NODE_NOT,
 } TrNodeType;
 
 typedef struct {
@@ -104,11 +105,5 @@ int TrBlock_push_upval(TrBlock *blk, OBJ name);
 /* compiler */
 TrCompiler *TrCompiler_new(VM, const char *fn);
 void TrCompiler_compile(TrCompiler *c);
-
-/* parser */
-void *TrParserAlloc(void *(*)(size_t));
-void TrParser(void *, int, OBJ, TrCompiler *);
-void TrParserFree(void *, void (*)(void*));
-void TrParserTrace(FILE *stream, char *zPrefix);
 
 #endif /* _INTERNAL_H_ */

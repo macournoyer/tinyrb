@@ -24,7 +24,7 @@ OBJ TrSymbol_new(VM, const char *str) {
   OBJ id = TrSymbol_lookup(vm, str);
   
   if (!id) {
-    TrSymbol *s = TR_INIT_OBJ(Symbol);
+    TrSymbol *s = TR_INIT_CORE_OBJECT(Symbol);
     s->len = strlen(str);
     s->ptr = TR_ALLOC_N(char, s->len+1);
     s->interned = 1;
@@ -57,7 +57,7 @@ static OBJ TrString_size(VM, OBJ self) {
 }
 
 OBJ TrString_new(VM, const char *str, size_t len) {
-  TrString *s = TR_INIT_OBJ(String);
+  TrString *s = TR_INIT_CORE_OBJECT(String);
   s->len = len;
   s->ptr = TR_ALLOC_N(char, s->len+1);
   s->interned = 0;
@@ -71,7 +71,7 @@ OBJ TrString_new2(VM, const char *str) {
 }
 
 OBJ TrString_new3(VM, size_t len) {
-  TrString *s = TR_INIT_OBJ(String);
+  TrString *s = TR_INIT_CORE_OBJECT(String);
   s->len = len;
   s->ptr = TR_ALLOC_N(char, s->len+1);
   s->interned = 0;

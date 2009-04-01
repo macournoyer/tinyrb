@@ -2,7 +2,7 @@
 #include "internal.h"
 
 OBJ TrBinding_new(VM, TrFrame *f) {
-  TrBinding *b = TR_INIT_OBJ(Binding);
+  TrBinding *b = TR_INIT_CORE_OBJECT(Binding);
   b->frame = f;
   return (OBJ)b;
 }

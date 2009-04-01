@@ -10,7 +10,7 @@
 
 OBJ TrIModule_new(VM, OBJ module, OBJ super) {
   TrModule *m = TR_CMODULE(module);
-  TrModule *im = TR_INIT_OBJ(Module);
+  TrModule *im = TR_INIT_CORE_OBJECT(Module);
   im->name = m->name;
   im->methods = m->methods;
   im->super = super;
@@ -20,7 +20,7 @@ OBJ TrIModule_new(VM, OBJ module, OBJ super) {
 /* module */
 
 OBJ TrModule_new(VM, OBJ name) {
-  TrModule *m = TR_INIT_OBJ(Module);
+  TrModule *m = TR_INIT_CORE_OBJECT(Module);
   TR_INIT_MODULE(m);
   return (OBJ)m;
 }
@@ -68,7 +68,7 @@ void TrModule_init(VM) {
 /* class */
 
 OBJ TrClass_new(VM, OBJ name, OBJ super) {
-  TrClass *c = TR_INIT_OBJ(Class);
+  TrClass *c = TR_INIT_CORE_OBJECT(Class);
   TR_INIT_MODULE(c);
   /* if VM is booting, those might not be set */
   if (super && TR_CCLASS(super)->class) c->class = TrMetaClass_new(vm, TR_CCLASS(super)->class);
@@ -77,7 +77,7 @@ OBJ TrClass_new(VM, OBJ name, OBJ super) {
 }
 
 OBJ TrClass_allocate(VM, OBJ self) {
-  TrObject *o = TR_INIT_OBJ(Object);
+  TrObject *o = TR_INIT_CORE_OBJECT(Object);
   o->class = self;
   return (OBJ)o;
 }
@@ -110,7 +110,7 @@ OBJ TrMetaClass_new(VM, OBJ super) {
 /* method */
 
 OBJ TrMethod_new(VM, TrFunc *func, OBJ data, int arity) {
-  TrMethod *m = TR_INIT_OBJ(Method);
+  TrMethod *m = TR_INIT_CORE_OBJECT(Method);
   m->func = func;
   m->data = data;
   m->arity = arity;

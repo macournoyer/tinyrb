@@ -2,7 +2,7 @@
 #include "internal.h"
 
 OBJ TrObject_new(VM) {
-  return (OBJ) TR_INIT_OBJ(Object);
+  return (OBJ) TR_INIT_CORE_OBJECT(Object);
 }
 
 int TrObject_type(VM, OBJ obj) {

@@ -2,7 +2,7 @@
 #include "internal.h"
 
 OBJ TrRange_new(VM, OBJ first, OBJ last, int exclusive) {
-  TrRange *r = TR_INIT_OBJ(Range);
+  TrRange *r = TR_INIT_CORE_OBJECT(Range);
   r->first = first;
   r->last = last;
   r->exclusive = exclusive;

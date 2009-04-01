@@ -3,7 +3,7 @@
 #include "internal.h"
 
 OBJ TrArray_new(VM) {
-  TrArray *a = TR_INIT_OBJ(Array);
+  TrArray *a = TR_INIT_CORE_OBJECT(Array);
   kv_init(a->kv);
   return (OBJ)a;
 }

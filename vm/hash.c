@@ -2,7 +2,7 @@
 #include "internal.h"
 
 OBJ TrHash_new(VM) {
-  TrHash *h = TR_INIT_OBJ(Hash);
+  TrHash *h = TR_INIT_CORE_OBJECT(Hash);
   h->kh = kh_init(OBJ);
   return (OBJ)h;
 }
