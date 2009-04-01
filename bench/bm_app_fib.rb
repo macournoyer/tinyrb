@@ -6,4 +6,5 @@ def fib(n)
   end
 end
 
-puts fib(34)
+fib(34)
+

@@ -121,7 +121,7 @@
 #define tr_raise(M,A...)     TrVM_raise(vm, tr_sprintf(vm, (M), ##A))
 #define tr_raise_errno(M)    tr_raise("%s: %s", strerror(errno), (M))
 #define tr_assert(X,M,A...)  ((X) ? (X) : TrVM_raise(vm, tr_sprintf(vm, (M), ##A)))
-#define tr_rescue(B)         if (setjmp(FRAME->rescue_jmp)) { TrVM_rescue(vm); B }
+#define tr_rescue(B)         if (setjmp(FRAME->rescue_jmp)) { B }
 #define tr_def(C,N,F,A)      TrModule_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_metadef(O,N,F,A)  TrObject_add_singleton_method(vm, (O), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_defclass(N)       TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N)))
@@ -187,7 +187,9 @@ typedef struct TrUpval {
 typedef struct TrClosure {
   TrBlock *block;
   TrUpval *upvals;
-  struct TrFrame *frame;
+  OBJ self;
+  OBJ class;
+  struct TrClosure *parent;
 } TrClosure;
 
 typedef OBJ (TrFunc)(VM, OBJ receiver, ...);
@@ -310,7 +312,7 @@ OBJ TrRange_new(VM, OBJ start, OBJ end, int exclusive);
 void TrRange_init(VM);
 
 /* proc */
-TrClosure *TrClosure_new(VM, TrBlock *b);
+TrClosure *TrClosure_new(VM, TrBlock *b, OBJ self, OBJ class, TrClosure *parent);
 
 /* object */
 OBJ TrObject_new(VM);

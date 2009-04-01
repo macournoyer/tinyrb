@@ -13,12 +13,10 @@ static inline void TrFrame_push(VM, OBJ self, OBJ class, TrClosure *closure) {
   register TrFrame *f = FRAME;
   f->self = self;
   f->class = class;
+  f->closure = closure;
   if (cf != 0) {
-    TrFrame *prevf = PREV_FRAME;
-    f->closure = prevf->closure;
     /* TODO how not to do this on every call ? */
-    TR_MEMCPY(&f->rescue_jmp, &prevf->rescue_jmp, jmp_buf);
-    if (closure) f->closure = closure;
+    TR_MEMCPY(&f->rescue_jmp, &PREV_FRAME->rescue_jmp, jmp_buf);
   }
 }
 
@@ -56,7 +54,6 @@ static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int
   register TrFrame *f = FRAME;
   register TrMethod *m = f->method = TR_CMETHOD(method);
   register TrFunc *func = f->method->func;
-  if (cl) cl->frame = callingf;
   OBJ ret = TR_NIL;
   
   /* splat last arg is needed */
@@ -155,7 +152,10 @@ static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b, int meta, OBJ re
 static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
   TrClosure *cl = f->closure;
   if (!cl) tr_raise("LocalJumpError: no block given");
-  return TrVM_interpret(vm, cl->frame, cl->block, 0, argc, argv, cl);
+  TrFrame_push(vm, cl->self, cl->class, cl->parent);
+  OBJ ret = TrVM_interpret(vm, FRAME, cl->block, 0, argc, argv, cl);
+  TrFrame_pop(vm);
+  return ret;
 }
 
 /* dispatch macros */
@@ -186,14 +186,14 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #define SITE   (b->sites.a)
 
 static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure) {
-  f->line = b->line;
-  f->filename = b->filename;
   register TrInst *ip = b->code.a + start;
   register TrInst i = *ip;
   OBJ *k = b->k.a;
   char **strings = b->strings.a;
   TrBlock **blocks = b->blocks.a;
-  register OBJ *stack = TR_ALLOC_N(OBJ, b->regc); /* TODO = f->stack */
+  register OBJ *stack = f->stack;
+  f->line = b->line;
+  f->filename = b->filename;
   TrUpval *upvals = closure ? closure->upvals : 0;
   /* transfer locals */
   if (argc > 0) { 
@@ -261,7 +261,7 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
              move    0  0  0 ; this is not executed
              return  0
          */
-        cl = TrClosure_new(vm, blocks[C-1]);
+        cl = TrClosure_new(vm, blocks[C-1], f->self, f->class, f->closure);
         size_t n, nupval = kv_size(cl->block->upvals);
         for (n = 0; n < nupval; ++n) {
           NEXT_INST;
