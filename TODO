@@ -44,6 +44,7 @@
 [ ] Run RubySpecs
 [ ] Implement & operator
 [ ] Get it to build w/ -ansi gcc option (might need to get rid of khash.h)
+[ ] Use freegetopt for parsing cmd line args
 
 @Someday
 [ ] Compile to file
