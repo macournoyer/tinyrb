@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -DDEBUG -g -O2 -funroll-loops -fomit-frame-pointer -fstrict-aliasing
+CFLAGS = -std=c99 -pedantic -Wall -Wextra -DDEBUG -g -O2 -funroll-loops -fomit-frame-pointer -fstrict-aliasing
 INCS = -Ivm -Ivendor/gc/build/include
 LIBS = ${GC}
 GC = vendor/gc/build/lib/libgc.a
