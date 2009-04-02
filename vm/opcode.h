@@ -15,8 +15,13 @@
 #define POS_B     (POS_C + SIZE_C)
 #define POS_Bx    POS_C
 
+#if SIZE_Bx < TR_BITSINT-1
 #define MAXARG_Bx   ((1<<SIZE_Bx)-1)
 #define MAXARG_sBx  (MAXARG_Bx>>1)         /* `sBx' is signed */
+#else
+#define MAXARG_Bx   MAX_INT
+#define MAXARG_sBx  MAX_INT
+#endif
 
 /* creates a mask with `n' 1 bits at position `p' */
 #define MASK1(n,p)  ((~((~(TrInst)0)<<n))<<p)
