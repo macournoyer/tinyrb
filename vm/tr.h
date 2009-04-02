@@ -138,8 +138,8 @@ typedef unsigned long OBJ;
 typedef unsigned char u8;
 typedef unsigned int TrInst;
 
-KHASH_MAP_INIT_STR(str, OBJ);
-KHASH_MAP_INIT_INT(OBJ, OBJ);
+KHASH_MAP_INIT_STR(str, OBJ)
+KHASH_MAP_INIT_INT(OBJ, OBJ)
 
 typedef enum {
   /*  0 */ TR_T_Object, TR_T_Module, TR_T_Class, TR_T_Method, TR_T_Binding,
