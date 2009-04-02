@@ -20,7 +20,7 @@
 #define TR_BITSINT  16
 #elif INT_MAX > 2147483640L
 /* int has at least 32 bits */
-#define TR_BITSINT	32
+#define TR_BITSINT  32
 #else
 #error "you must define TR_BITSINT with number of bits in an integer"
 #endif
