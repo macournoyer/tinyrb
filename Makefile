@@ -1,9 +1,10 @@
 CC = gcc
-CFLAGS = -std=c99 -pedantic -Wall -Wextra -DDEBUG -g -O2 -funroll-loops -fomit-frame-pointer -fstrict-aliasing
-INCS = -Ivm -Ivendor/gc/build/include
-LIBS = ${GC}
+CFLAGS = -std=c99 -pedantic -Wall -Wextra -D_XOPEN_SOURCE -DDEBUG -g -O2 -funroll-loops -fomit-frame-pointer -fstrict-aliasing
+INCS = -Ivm -Ivendor/gc/build/include -Ivendor
+LIBS = ${GC} ${FREEGETOPT}
 GC = vendor/gc/build/lib/libgc.a
 LEG = vendor/peg/leg
+FREEGETOPT = vendor/freegetopt/getopt.o
 
 SRC = vm/string.c vm/number.c vm/range.c vm/primitive.c vm/proc.c vm/array.c vm/hash.c vm/class.c vm/kernel.c vm/object.c vm/block.c vm/compiler.c vm/grammar.c vm/vm.c vm/tr.c
 OBJ = ${SRC:.c=.o}
@@ -21,6 +22,8 @@ tinyrb: ${LIBS} ${OBJ}
 vm/grammar.c: ${LEG} vm/grammar.leg
 	@echo "  leg vm/grammar.leg"
 	@${LEG} -ovm/grammar.c vm/grammar.leg
+
+${FREEGETOPT}:
 
 ${LEG}:
 	@echo " make peg/leg"
@@ -42,7 +45,7 @@ size: clean
 	@ruby -e 'puts "%0.2fK" % (Dir["vm/*.{c,leg,h}"].inject(0) {|s,f| s += File.size(f)} / 1024.0)'
 
 clean:
-	@rm -f vm/*.o vm/grammar.c
+	$(RM) vm/*.o vm/grammar.c
 
 rebuild: clean tinyrb
 
