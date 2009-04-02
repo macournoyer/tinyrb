@@ -1,5 +1,11 @@
 #include "tr.h"
 
+#ifdef __unix__
+  #include <unistd.h>
+#else
+  #include "freegetopt/getopt.h"
+#endif
+
 static int usage() {
   printf("usage: tinyrb [options] [file]\n"
          "options:\n"
@@ -10,30 +16,33 @@ static int usage() {
   return 1;
 }
 
-#define OPTION(n) if (strcmp(argv[i], n) == 0)
-
 int main (int argc, char *argv[]) {
-  int i;
+  int opt;
   TrVM *vm = TrVM_new();
-  
-  if (argc > 1) {
-    for (i = 0; i < argc; i++) {
-      OPTION("-e") {
-        TrVM_eval(vm, argv[++i], "<eval>");
+
+  while((opt = getopt(argc, argv, "e:vdh")) != -1) {
+    switch(opt) {
+      case 'e':
+        TrVM_eval(vm, optarg, "<eval>");
         return 0;
-      }
-      OPTION("-v") {
+      case 'v':
         printf("tinyrb %s\n", TR_VERSION);
         return 1;
-      }
-      OPTION("-d") {
+      case 'd':
         vm->debug++;
         continue;
-      }
-      OPTION("-h") {
+      case 'h':
+      default:
         return usage();
-      }
     }
+  }
+
+  /* These lines allow us to tread argc and argv as though 
+   * any switches were not there */
+  argc -= optind;
+  argv += optind;
+  
+  if (argc > 1) {
     TrVM_load(vm, argv[argc-1]);
     return 0;
   }
