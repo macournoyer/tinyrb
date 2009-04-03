@@ -51,7 +51,7 @@
 #define SETARG_Bx(i,b)  ((i) = (((i)&MASK0(SIZE_Bx,POS_Bx)) | \
     ((cast(TrInst, b)<<POS_Bx)&MASK1(SIZE_Bx,POS_Bx))))
 
-#define GETARG_sBx(i) (GETARG_Bx(i)-MAXARG_sBx)
+#define GETARG_sBx(i) cast(int, GETARG_Bx(i)-MAXARG_sBx)
 #define SETARG_sBx(i,b) SETARG_Bx((i),cast(unsigned int, (b)+MAXARG_sBx))
 
 #define CREATE_ABC(o,a,b,c) ((cast(TrInst, o)<<POS_OP) \
