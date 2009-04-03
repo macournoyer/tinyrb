@@ -14,14 +14,13 @@ static inline void TrFrame_push(VM, OBJ self, OBJ class, TrClosure *closure) {
   f->self = self;
   f->class = class;
   f->closure = closure;
-  if (cf != 0) {
-    /* TODO how not to do this on every call ? */
-    TR_MEMCPY(&f->rescue_jmp, &PREV_FRAME->rescue_jmp, jmp_buf);
-  }
 }
 
 static inline void TrFrame_pop(VM) {
+  register int cf = vm->cf;
+  register TrFrame *f = FRAME;
   /* TODO for GC: release everything on the stack */
+  if (cf) f->has_rescue_jmp = 0;
   vm->cf--;
 }
 
@@ -343,10 +342,16 @@ void TrVM_raise(VM, OBJ exception) {
     assert(0);
   }
   vm->exception = exception;
-  if (vm->cf == -1)
+  if (vm->cf == -1) {
     TrVM_rescue(vm);
-  else
-    longjmp(FRAME->rescue_jmp, 1);
+    return;
+  }
+  
+  int i;
+  for (i = vm->cf; i >= 0; --i) {
+    if (vm->frames[i].has_rescue_jmp)
+      longjmp(vm->frames[i].rescue_jmp, 1);
+  }
 }
 
 void TrVM_rescue(VM) {
@@ -419,7 +424,6 @@ TrVM *TrVM_new() {
   TrRange_init(vm);
   
   vm->self = TrObject_new(vm);
-  vm->cf = -1;
   
   /* cache some commonly used values */
   vm->sADD = tr_intern("+");
@@ -429,10 +433,12 @@ TrVM *TrVM_new() {
   vm->sNOT = tr_intern("!");
   
   /* init first frame */
-  if (setjmp(vm->frames[0].rescue_jmp)) {
+  vm->cf = 0;
+  tr_rescue({
     TrVM_rescue(vm);
     exit(1);
-  }
+  });
+  vm->cf = -1;
   
   TrVM_load(vm, "lib/boot.rb");
   
