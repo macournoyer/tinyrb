@@ -1,10 +1,25 @@
 CC = gcc
-CFLAGS = -std=c99 -pedantic -Wall -Wextra -D_XOPEN_SOURCE -DDEBUG -g -O2 -funroll-loops -fomit-frame-pointer -fstrict-aliasing
+CFLAGS = -std=c99 -Wall -Wextra -D_XOPEN_SOURCE -DDEBUG -g ${OPTIMIZE}
 INCS = -Ivm -Ivendor/gc/build/include -Ivendor
-LIBS = ${GC} ${FREEGETOPT}
+LIBS = ${GC} 
 GC = vendor/gc/build/lib/libgc.a
 LEG = vendor/peg/leg
 FREEGETOPT = vendor/freegetopt/getopt.o
+
+# Optimizations
+ifndef DEV
+OPTIMIZE = -O3 -funroll-loops -fomit-frame-pointer -fstrict-aliasing
+endif
+
+ifdef COMPAT
+CFLAGS += -pedantic -DTR_THREADED_DISPATCH=0
+endif
+
+# Plateform specific libs
+SYS = $(shell uname -s)
+ifneq ($(SYS),Linux)
+LIBS += ${FREEGETOPT}
+endif
 
 SRC = vm/string.c vm/number.c vm/range.c vm/primitive.c vm/proc.c vm/array.c vm/hash.c vm/class.c vm/kernel.c vm/object.c vm/block.c vm/compiler.c vm/grammar.c vm/vm.c vm/tr.c
 OBJ = ${SRC:.c=.o}
