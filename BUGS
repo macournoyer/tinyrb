@@ -1,7 +1,1 @@
-Failures on Fedora x86_64, reported by postmodern
-http://rafb.net/p/4L3z3Y69.html
-http://rafb.net/p/zp9cth25.html
-http://rafb.net/p/NYeXnd29.html
-
-Fail to compile latest Ubuntu because freegetopt conflict w/ builtin getopt
-test/raise.rb fails on Ubuntu too
+test/raise.rb fails on Ubuntu and Fedora x86_64

@@ -49,6 +49,7 @@ void TrSymbol_init(VM) {
 /* string */
 
 static OBJ TrString_to_s(VM, OBJ self) {
+  UNUSED(vm);
   return self;
 }
 
@@ -95,9 +96,9 @@ OBJ TrString_cmp(VM, OBJ self, OBJ other) {
 }
 
 OBJ TrString_substring(VM, OBJ self, OBJ start, OBJ len) {
-  size_t s = TR_FIX2INT(start);
-  size_t l = TR_FIX2INT(len);
-  if (s < 0 || (s+l) > TR_STR_LEN(self)) return TR_NIL;
+  int s = TR_FIX2INT(start);
+  int l = TR_FIX2INT(len);
+  if (s < 0 || (s+l) > (int)TR_STR_LEN(self)) return TR_NIL;
   return TrString_new(vm, TR_STR_PTR(self)+s, l);
 }
 

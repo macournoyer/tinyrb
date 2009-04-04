@@ -11,7 +11,7 @@ OBJ TrArray_new(VM) {
 OBJ TrArray_new2(VM, int argc, ...) {
   OBJ a = TrArray_new(vm);
   va_list argp;
-  size_t  i;
+  int i;
   va_start(argp, argc);
   for (i = 0; i < argc; ++i) TR_ARRAY_PUSH(a, va_arg(argp, OBJ));
   va_end(argp);
@@ -20,12 +20,13 @@ OBJ TrArray_new2(VM, int argc, ...) {
 
 OBJ TrArray_new3(VM, int argc, OBJ items[]) {
   OBJ a = TrArray_new(vm);
-  size_t  i;
+  int i;
   for (i = 0; i < argc; ++i) TR_ARRAY_PUSH(a, items[i]);
   return a;
 }
 
 static OBJ TrArray_push(VM, OBJ self, OBJ x) {
+  UNUSED(vm);
   TR_ARRAY_PUSH(self, x);
   return x;
 }
@@ -38,7 +39,7 @@ static inline int TrArray_at2index(VM, OBJ self, OBJ at) {
 
 static OBJ TrArray_at(VM, OBJ self, OBJ at) {
   int i = TrArray_at2index(vm, self, at);
-  if (i < 0 || i >= TR_ARRAY_SIZE(self)) return TR_NIL;
+  if (i < 0 || i >= (int)TR_ARRAY_SIZE(self)) return TR_NIL;
   return TR_ARRAY_AT(self, i);
 }
 

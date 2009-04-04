@@ -117,8 +117,8 @@ OBJ TrMethod_new(VM, TrFunc *func, OBJ data, int arity) {
   return (OBJ)m;
 }
 
-OBJ TrMethod_name(VM, OBJ self) { return TR_CMETHOD(self)->name; }
-OBJ TrMethod_arity(VM, OBJ self) { return TR_INT2FIX(TR_CMETHOD(self)->arity); }
+OBJ TrMethod_name(VM, OBJ self) { UNUSED(vm); return TR_CMETHOD(self)->name; }
+OBJ TrMethod_arity(VM, OBJ self) { UNUSED(vm); return TR_INT2FIX(TR_CMETHOD(self)->arity); }
 
 OBJ TrMethod_dump(VM, OBJ self) {
   TrMethod *m = TR_CMETHOD(self);

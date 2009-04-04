@@ -28,7 +28,7 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
   OBJ method = TrObject_method(vm, receiver, msg);
   if (!method) tr_raise("Method not found: `%s'\n", TR_STR_PTR(msg));
 
-#ifdef TR_CALL_SITE
+#if TR_CALL_SITE
   TrInst *boing = (ip-1);
   TrCallSite *s = (kv_pushp(TrCallSite, b->sites));
   s->class = TR_CLASS(receiver);
@@ -46,7 +46,7 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
   return method;
 }
 
-static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int argc, OBJ *args, int splat, TrClosure *cl) {
+static inline OBJ TrVM_call(VM, OBJ receiver, OBJ method, int argc, OBJ *args, int splat, TrClosure *cl) {
   /* prepare call frame */
   /* TODO do not create a call frame if calling a pure C function */
   TrFrame_push(vm, receiver, TR_CLASS(receiver), cl);
@@ -89,7 +89,7 @@ static inline OBJ TrVM_call(VM, TrFrame *callingf, OBJ receiver, OBJ method, int
   return ret;
 }
 
-static OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module, OBJ super) {
+static OBJ TrVM_defclass(VM, OBJ name, TrBlock *b, int module, OBJ super) {
   OBJ mod = TrObject_const_get(vm, FRAME->class, name);
   
   if (!mod) { /* new module/class */
@@ -106,28 +106,31 @@ static OBJ TrVM_defclass(VM, TrFrame *f, OBJ name, TrBlock *b, int module, OBJ s
 }
 
 static OBJ TrVM_interpret_method(VM, OBJ self, int argc, OBJ argv[]) {
+  UNUSED(self);
   assert(FRAME->method);
   register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
-  if (argc != b->argc) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n", argc, b->argc);
+  if (argc != (int)b->argc) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n", argc, b->argc);
   return TrVM_interpret(vm, FRAME, b, 0, argc, argv, 0);
 }
 
 static OBJ TrVM_interpret_method_with_defaults(VM, OBJ self, int argc, OBJ argv[]) {
+  UNUSED(self);
   assert(FRAME->method);
   register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
   int req_argc = b->argc - kv_size(b->defaults);
   if (argc < req_argc) tr_raise("ArgumentError: wrong number of arguments (%d for %d)\n", argc, req_argc);
-  if (argc > b->argc) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n", argc, b->argc);
+  if (argc > (int)b->argc) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n", argc, b->argc);
   int defi = argc - req_argc - 1; /* index in defaults table or -1 for none */
   return TrVM_interpret(vm, FRAME, b, defi < 0 ? 0 : kv_A(b->defaults, defi), argc, argv, 0);
 }
 
 static OBJ TrVM_interpret_method_with_splat(VM, OBJ self, int argc, OBJ argv[]) {
+  UNUSED(self);
   assert(FRAME->method);
   register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
   /* TODO support defaults */
   assert(kv_size(b->defaults) == 0 && "defaults with splat not supported for now");
-  if (argc < b->argc-1) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n\n", argc, b->argc-1);
+  if (argc < (int)b->argc-1) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n\n", argc, b->argc-1);
   argv[b->argc-1] = TrArray_new3(vm, argc - b->argc + 1, &argv[b->argc-1]);
   return TrVM_interpret(vm, FRAME, b, 0, b->argc, argv, 0);
 }
@@ -159,7 +162,7 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 
 /* dispatch macros */
 #define NEXT_INST      (i = *++ip)
-#ifdef TR_THREADED_DISPATCH
+#if TR_THREADED_DISPATCH
 #define OPCODES        goto *labels[OPCODE];
 #define END_OPCODES    
 #define OP(name)       op_##name
@@ -196,12 +199,11 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
   TrUpval *upvals = closure ? closure->upvals : 0;
   /* transfer locals */
   if (argc > 0) { 
-    size_t nlocals = kv_size(b->locals);
-    assert(argc <= nlocals && "can't fit args in locals");
+    assert(argc <= (int)kv_size(b->locals) && "can't fit args in locals");
     TR_MEMCPY_N(stack, argv, OBJ, argc);
   }
   
-#ifdef TR_THREADED_DISPATCH
+#if TR_THREADED_DISPATCH
   static void *_labels[] = { TR_OP_LABELS };
   register void **labels = _labels;
 #endif
@@ -272,7 +274,7 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
           }
         }
       }
-      R[GETARG_A(ci)] = TrVM_call(vm, f,
+      R[GETARG_A(ci)] = TrVM_call(vm,
                             R[GETARG_A(ci)], /* receiver */
                             R[GETARG_A(ci)+1], /* method */
                             GETARG_B(ci) >> 1, &R[GETARG_A(ci)+2], /* args */
@@ -285,8 +287,8 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
     /* definition */
     OP(DEF):        TrVM_defmethod(vm, f, k[Bx], blocks[A], 0, 0); DISPATCH;
     OP(METADEF):    TrVM_defmethod(vm, f, k[Bx], blocks[A], 1, R[nA]); ip++; DISPATCH;
-    OP(CLASS):      TrVM_defclass(vm, f, k[Bx], blocks[A], 0, R[nA]); ip++; DISPATCH;
-    OP(MODULE):     TrVM_defclass(vm, f, k[Bx], blocks[A], 1, 0); DISPATCH;
+    OP(CLASS):      TrVM_defclass(vm, k[Bx], blocks[A], 0, R[nA]); ip++; DISPATCH;
+    OP(MODULE):     TrVM_defclass(vm, k[Bx], blocks[A], 1, 0); DISPATCH;
     
     /* jumps */
     OP(JMP):        ip += sBx; DISPATCH;
@@ -360,7 +362,7 @@ void TrVM_rescue(VM) {
   /* Error before VM was started, can be bad... */
   if (vm->cf == -1) exit(1);
   
-  size_t i;
+  int i;
   for (i = vm->cf-1; i != -1 ; --i) {
     TrFrame f = vm->frames[i];
     printf("\tfrom %s:%lu", f.filename ? TR_STR_PTR(f.filename) : "?", f.line);

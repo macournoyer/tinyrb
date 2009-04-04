@@ -4,14 +4,14 @@
 
 /* Direct threaded code is used to dispatch instructions.
    It's very fast, but GCC specific. */
-#if __GNUC__ > 3
-#define TR_THREADED_DISPATCH
+#if __GNUC__ > 3 && !defined(TR_THREADED_DISPATCH)
+#define TR_THREADED_DISPATCH 1
 #endif
 
-#define TR_MAX_FRAMES 255
-
 /* enable CallSite optimization */
-#define TR_CALL_SITE
+#define TR_CALL_SITE 1
+
+#define TR_MAX_FRAMES 255
 
 #define MAX_INT (INT_MAX-2)  /* maximum value of an int (-2 for safety) */
 

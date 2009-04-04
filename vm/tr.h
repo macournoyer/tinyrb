@@ -13,7 +13,8 @@
 #include "vendor/khash.h"
 #include "gc.h"
 
-#define cast(T,X) ((T)X)
+#define UNUSED(expr)         do { (void)(expr); } while (0)
+#define cast(T,X)            ((T)X)
 
 /* allocation macros */
 #define TR_MALLOC            GC_malloc
@@ -224,7 +225,7 @@ typedef struct TrVM {
   khash_t(OBJ) *globals;
   OBJ classes[TR_T_MAX];
   TrFrame frames[TR_MAX_FRAMES];  /* TODO allocate dynamically to use less mem */
-  size_t cf; /* current frame */
+  int cf; /* current frame */
   khash_t(OBJ) *consts;
   OBJ self;
   int debug;

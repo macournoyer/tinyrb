@@ -4,6 +4,7 @@
 
 /* ast node */
 OBJ TrNode_new(VM, TrNodeType type, OBJ a, OBJ b, OBJ c, size_t line) {
+  UNUSED(vm);
   TrNode *n = TR_ALLOC(TrNode);
   n->ntype = type;
   n->type = TR_T_Node;
@@ -43,7 +44,7 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 })
 
 #define COMPILE_NODE(BLK,NODE,R) ({\
-  int nlocal = kv_size(BLK->locals); \
+  size_t nlocal = kv_size(BLK->locals); \
   REG(R); \
   TrCompiler_compile_node(vm, c, BLK, (TrNode *)NODE, R); \
   kv_size(BLK->locals) - nlocal; \
@@ -137,7 +138,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         PUSH_OP_AB(b, SETUPVAL, reg, TrBlock_push_upval(b, name));
       } else {
         /* local */
-        int i = TrBlock_push_local(b, name);
+        size_t i = TrBlock_push_local(b, name);
         TrInst *last_inst = &kv_A(b->code, kv_size(b->code) - 1);
         switch (GET_OPCODE(*last_inst)) {
           case TR_OP_ADD: /* Those instructions can load direcly into a local */

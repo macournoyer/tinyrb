@@ -12,16 +12,19 @@ void TrBinding_init(VM) {
 }
 
 static OBJ TrKernel_puts(VM, OBJ self, int argc, OBJ argv[]) {
-  size_t i;
+  UNUSED(self);
+  int i;
   for (i = 0; i < argc; ++i) printf("%s\n", TR_STR_PTR(tr_send2(argv[i], "to_s")));
   return TR_NIL;
 }
 
 static OBJ TrKernel_binding(VM, OBJ self) {
+  UNUSED(self);
   return TrBinding_new(vm, PREV_FRAME);
 }
 
 static OBJ TrKernel_eval(VM, OBJ self, int argc, OBJ argv[]) {
+  UNUSED(self);
   if (argc < 1) tr_raise("string argument required");
   if (argc > 4) tr_raise("Too much arguments");
   OBJ string = argv[0];
@@ -34,10 +37,12 @@ static OBJ TrKernel_eval(VM, OBJ self, int argc, OBJ argv[]) {
 }
 
 static OBJ TrKernel_load(VM, OBJ self, OBJ filename) {
+  UNUSED(self);
   return TrVM_load(vm, TR_STR_PTR(filename));
 }
 
 static OBJ TrKernel_raise(VM, OBJ self, OBJ exception) {
+  UNUSED(self);
   TrVM_raise(vm, exception);
   return TR_NIL;
 }

@@ -79,7 +79,7 @@ int TrBlock_push_string(TrBlock *blk, char *str) {
   size_t i;
   for (i = 0; i < kv_size(blk->strings); ++i)
     if (strcmp(kv_A(blk->strings, i), str) == 0) return i;
-  size_t len = strlen(str);
+  int len = strlen(str);
   char *ptr = TR_ALLOC_N(char, len+1);
   TR_MEMCPY_N(ptr, str, char, len+1);
   kv_push(char *, blk->strings, ptr);
@@ -94,7 +94,7 @@ int TrBlock_find_local(TrBlock *blk, OBJ name) {
 }
 
 int TrBlock_push_local(TrBlock *blk, OBJ name) {
-  size_t i = TrBlock_find_local(blk, name);
+  int i = TrBlock_find_local(blk, name);
   if (i != -1) return i;
   kv_push(OBJ, blk->locals, name);
   return kv_size(blk->locals)-1;
@@ -116,7 +116,7 @@ int TrBlock_find_upval_in_scope(TrBlock *blk, OBJ name) {
 }
 
 int TrBlock_push_upval(TrBlock *blk, OBJ name) {
-  size_t i = TrBlock_find_upval(blk, name);
+  int i = TrBlock_find_upval(blk, name);
   if (i != -1) return i;
   
   TrBlock *b = blk;

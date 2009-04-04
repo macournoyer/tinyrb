@@ -6,6 +6,7 @@ OBJ TrObject_new(VM) {
 }
 
 int TrObject_type(VM, OBJ obj) {
+  UNUSED(vm);
   switch (obj) {
     case TR_NIL: return TR_T_NilClass;
     case TR_TRUE: return TR_T_TrueClass;
@@ -21,12 +22,14 @@ OBJ TrObject_method(VM, OBJ self, OBJ name) {
 
 /* TODO respect namespace */
 OBJ TrObject_const_get(VM, OBJ self, OBJ name) {
+  UNUSED(self);
   khiter_t k = kh_get(OBJ, vm->consts, name);
   if (k != kh_end(vm->consts)) return kh_value(vm->consts, k);
   return TR_NIL;
 }
 
 OBJ TrObject_const_set(VM, OBJ self, OBJ name, OBJ value) {
+  UNUSED(self);
   int ret;
   khiter_t k = kh_put(OBJ, vm->consts, name, &ret);
   if (!ret) kh_del(OBJ, vm->consts, k);
@@ -53,6 +56,7 @@ static OBJ TrObject_class(VM, OBJ self) {
 }
 
 static OBJ TrObject_object_id(VM, OBJ self) {
+  UNUSED(vm);
   return TR_INT2FIX((int)&self);
 }
 

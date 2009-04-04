@@ -157,7 +157,7 @@ enum TrInstCode {
   "not", \
   "super"
 
-#ifdef TR_THREADED_DISPATCH
+#if TR_THREADED_DISPATCH
 /* has to be in some order as in enum TrInstCode */
 #define TR_OP_LABELS \
   &&op_BOING, \
