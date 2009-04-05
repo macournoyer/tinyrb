@@ -1,50 +1,35 @@
 @Next
-[x] Range
-[x] Allow {...} for blocks
-[x] Implement metaclass
-[x] def <object>.some_method
-[x] Array splat
-[x] && and || as instructions
-[x] unary - and !
-[x] upval in block
-[x] default arg value
 [ ] raise ExceptionType, ...
 [ ] begin...rescue...ensure
 [ ] def...rescue...ensure
-[ ] Fix operator precedence
 [ ] super(...)
-[x] return w/ args
 [ ] break
 [ ] next
-[ ] non local return/break
+[ ] non local return/break/next
 [ ] Regexp
-[ ] Proc
+[ ] IO
+[ ] File
+[ ] Dir
+[ ] Kernel#require
+[ ] Fix {...} for blocks
 [ ] namespace constants in Module (A::B)
 *** See TODO in code too!
 
 @Later
+[ ] Proc
 [ ] String interpolation
 [ ] FFI
-[ ] IO
-[ ] File
-[ ] Dir
-[ ] require
 [ ] Replace GC w/ smaller, simple & embeddable one (tricolor or refcount)
 [ ] Embed bytecode of /lib stuff inside executable
 [ ] ||= &&= +=, etc.
-[x] Remove GET/SETLOCAL instruction (include locals in registers, like Lua)
-[ ] Do not create control frame on C function calls
-[ ] Store Fixnum as immediate value
 [ ] Cache constant lookup
-[x] Peephole optimization (Remove useless register allocations)
 [ ] case...when
 [ ] Float, Bignum
 [ ] Reimplement Array, Hash using Tuple like Rubinius or fix Hash to use #hash
 [ ] puts nil # => nil in MRI
-[ ] Run RubySpecs
 [ ] Implement & operator
-[ ] Get it to build w/ -ansi gcc option (might need to get rid of khash.h)
-[x] Use freegetopt for parsing cmd line args
+[ ] Run RubySpecs
+[ ] Fix operator precedence
 
 @Someday
 [ ] Compile to file
