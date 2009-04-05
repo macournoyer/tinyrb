@@ -256,7 +256,7 @@ typedef struct {
   TR_OBJECT_HEADER;
   char *ptr;
   size_t len;
-  unsigned char interned;
+  int interned:1;
 } TrString;
 typedef TrString TrSymbol;
 
