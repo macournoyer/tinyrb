@@ -29,7 +29,7 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 }
 
 /* code generation macros */
-#define REG(R)                        if (R >= b->regc) b->regc = R+1;
+#define REG(R)                        if ((size_t)R >= b->regc) b->regc = (size_t)R+1;
 #define PUSH_OP(BLK,I) ({ \
   kv_push(TrInst, (BLK)->code, (I)); \
   kv_size(BLK->code)-1; \
@@ -138,7 +138,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         PUSH_OP_AB(b, SETUPVAL, reg, TrBlock_push_upval(b, name));
       } else {
         /* local */
-        size_t i = TrBlock_push_local(b, name);
+        int i = TrBlock_push_local(b, name);
         TrInst *last_inst = &kv_A(b->code, kv_size(b->code) - 1);
         switch (GET_OPCODE(*last_inst)) {
           case TR_OP_ADD: /* Those instructions can load direcly into a local */
@@ -236,9 +236,10 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         
         /* if passed block has upvalues generate one pseudo-instructions for each (A reg is ignored). */
         if (blk && kv_size(blk->upvals)) {
-          for(i = 0; i < kv_size(blk->upvals); ++i) {
-            OBJ upval_name = kv_A(blk->upvals, i);
-            size_t vali = TrBlock_find_local(b, upval_name);
+          size_t j;
+          for(j = 0; j < kv_size(blk->upvals); ++j) {
+            OBJ upval_name = kv_A(blk->upvals, j);
+            int vali = TrBlock_find_local(b, upval_name);
             if (vali != -1)
               PUSH_OP_AB(b, MOVE, 0, vali);
             else
