@@ -14,7 +14,7 @@
 #define NODE2(T,A,B)         TrNode_new(compiler->vm, NODE_##T, (A), (B), 0, compiler->line)
 #define NODE3(T,A,B,C)       TrNode_new(compiler->vm, NODE_##T, (A), (B), (C), compiler->line)
 #define NODES(I)             TrArray_new2(compiler->vm, 1, (I))
-#define NODES_N(N,I...)      TrArray_new2(compiler->vm, (N), ##I)
+#define NODES_N(N,...)       TrArray_new2(compiler->vm, (N), ##__VA_ARGS__)
 #define PUSH_NODE(A,N)       TR_ARRAY_PUSH((A),(N))
 #define SYMCAT(A,B)          tr_intern(strcat(TR_STR_PTR(A), TR_STR_PTR(B)))
 

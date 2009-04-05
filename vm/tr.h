@@ -119,21 +119,21 @@
 #define tr_getivar(O,N)      TR_KH_GET(TR_COBJECT(O)->ivars, N)
 #define tr_setivar(O,N,V)    TR_KH_SET(TR_COBJECT(O)->ivars, N, V)
 #define tr_intern(S)         TrSymbol_new(vm, (S))
-#define tr_raise(M,A...)     TrVM_raise(vm, tr_sprintf(vm, (M), ##A))
+#define tr_raise(M,...)      TrVM_raise(vm, tr_sprintf(vm, (M), ##__VA_ARGS__))
 #define tr_raise_errno(M)    tr_raise("%s: %s", strerror(errno), (M))
-#define tr_assert(X,M,A...)  ((X) ? (X) : TrVM_raise(vm, tr_sprintf(vm, (M), ##A)))
+#define tr_assert(X,M,...)   ((X) ? (X) : TrVM_raise(vm, tr_sprintf(vm, (M), ##__VA_ARGS__)))
 #define tr_rescue(B)         FRAME->has_rescue_jmp = 1; if (setjmp(FRAME->rescue_jmp)) { B }
 #define tr_def(C,N,F,A)      TrModule_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_metadef(O,N,F,A)  TrObject_add_singleton_method(vm, (O), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_defclass(N)       TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N)))
 #define tr_defmodule(N)      TrObject_const_set(vm, vm->self, tr_intern(N), TrModule_new(vm, tr_intern(N)))
-#define tr_send(R,MSG,A...)  ({ \
+#define tr_send(R,MSG,...)   ({ \
   TrMethod *m = TR_CMETHOD(TrObject_method(vm, R, (MSG))); \
   if (!m) tr_raise("Method not found: %s\n", TR_STR_PTR(MSG)); \
   FRAME->method = m; \
-  m->func(vm, R, ##A); \
+  m->func(vm, R, ##__VA_ARGS__); \
 })
-#define tr_send2(R,STR,A...) tr_send((R), tr_intern(STR), ##A)
+#define tr_send2(R,STR,...)  tr_send((R), tr_intern(STR), ##__VA_ARGS__)
 
 typedef unsigned long OBJ;
 typedef unsigned char u8;
@@ -256,7 +256,7 @@ typedef struct {
   TR_OBJECT_HEADER;
   char *ptr;
   size_t len;
-  unsigned char interned:1;
+  unsigned char interned;
 } TrString;
 typedef TrString TrSymbol;
 
