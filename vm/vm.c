@@ -14,13 +14,13 @@ static inline void TrFrame_push(VM, OBJ self, OBJ class, TrClosure *closure) {
   f->self = self;
   f->class = class;
   f->closure = closure;
+  kv_init(f->rescues);
 }
 
 static inline void TrFrame_pop(VM) {
-  register int cf = vm->cf;
   register TrFrame *f = FRAME;
   /* TODO for GC: release everything on the stack */
-  if (cf) f->has_rescue_jmp = 0;
+  if (kv_size(f->rescues)) kv_destroy(f->rescues);
   vm->cf--;
 }
 

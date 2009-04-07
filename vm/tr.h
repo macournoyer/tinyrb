@@ -20,7 +20,7 @@
 #define TR_MALLOC            GC_malloc
 #define TR_CALLOC(m,n)       GC_MALLOC((m)*(n))
 #define TR_REALLOC           GC_realloc
-#define TR_FREE(S)           
+#define TR_FREE(S)           UNUSED(S)
 
 /* type convertion macros */
 #define TR_TYPE(X)           TrObject_type(vm, (X))
@@ -203,6 +203,11 @@ typedef struct {
   int arity;
 } TrMethod;
 
+typedef struct TrRescue {
+  OBJ class;
+  jmp_buf jmp;
+} TrRescue;
+
 typedef struct TrFrame {
   TrClosure *closure;
   TrMethod *method;  /* current called method */
@@ -212,9 +217,7 @@ typedef struct TrFrame {
   OBJ class;
   OBJ filename;
   size_t line;
-  /* kvec_t(TrRescue) rescues; */
-  jmp_buf rescue_jmp;
-  int has_rescue_jmp;
+  kvec_t(TrRescue) rescues;
 } TrFrame;
 
 typedef struct {

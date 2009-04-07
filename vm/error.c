@@ -73,6 +73,8 @@ void TrException_raise(VM, OBJ exception) {
   tr_setglobal("$!", exception);
   tr_setglobal("$@", backtrace);
   
+  /* Unwind the stack frame to browse a rescue handler that can handle the exception.
+     building the backtrace at the same time. */
   TrFrame *f;
   while ((f = TrVM_pop_frame(vm))) {
     OBJ str;
@@ -85,8 +87,13 @@ void TrException_raise(VM, OBJ exception) {
                        filename, f->line);
     TR_ARRAY_PUSH(backtrace, str);
     
-    if (f->has_rescue_jmp)
-      longjmp(f->rescue_jmp, 1);
+    size_t i;
+    for (i = 0; i < kv_size(f->rescues); ++i) {
+      TrRescue *r = &kv_A(f->rescues, i);
+      /* TODO compare using kind_of or something similar */
+      if (r->class == TR_CLASS(exception))
+        longjmp(r->jmp, 1);
+    }
   }
   
   /* not rescued, use default handler */
