@@ -1,5 +1,7 @@
 #include "tr.h"
 
+/* Error management stuff */
+
 /* Exception
  NoMemoryError
  ScriptError
@@ -54,7 +56,7 @@ static OBJ TrException_backtrace(VM, OBJ self) {
   return tr_getivar(self, "@backtrace");
 }
 
-static void TrException_print(VM, OBJ exception) {
+static void TrException_default_handler(VM, OBJ exception) {
   TrClass *c = TR_CCLASS(TR_CLASS(exception));
   OBJ msg = tr_getivar(exception, "@message");
   OBJ backtrace = tr_getivar(exception, "@backtrace");
@@ -63,11 +65,14 @@ static void TrException_print(VM, OBJ exception) {
   TR_ARRAY_EACH(backtrace, i, v, {
     printf("%s\n", TR_STR_PTR(v));
   });
+  
+  TrVM_destroy(vm);
+  exit(1);
 }
 
 void TrException_raise(VM, OBJ exception) {
-  /* Uhoh! Error before VM was started... */
-  assert(vm->cf >= 0);
+  /* Error before VM was started? */
+  if (vm->cf < 0) TrException_default_handler(vm, exception);
   
   OBJ backtrace = tr_getivar(exception, "@backtrace");
   tr_setglobal("$!", exception);
@@ -97,9 +102,7 @@ void TrException_raise(VM, OBJ exception) {
   }
   
   /* not rescued, use default handler */
-  TrException_print(vm, exception);
-  TrVM_destroy(vm);
-  exit(1);
+  TrException_default_handler(vm, exception);
 }
 
 void TrError_init(VM) {

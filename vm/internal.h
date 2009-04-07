@@ -70,6 +70,8 @@ typedef enum {
   NODE_LT,
   NODE_NEG,
   NODE_NOT,
+  NODE_BEGIN,
+  NODE_RESCUE
 } TrNodeType;
 
 typedef struct {

@@ -54,6 +54,7 @@ Stmt      = While
           | If
           | Unless
           | Def
+          | Begin
           | Class
           | Module
           | Expr
@@ -159,6 +160,19 @@ Unless    = 'unless' SPACE cond:Expr SEP    { else_body = 0 }
 
 Else      = 'else' SEP - body:Stmts -       { $$ = body }
 
+Begin     = 'begin' SEP                     { rescues = ensure = 0 }
+            - body:Stmts
+            rescues:Rescue*
+            ensure:Ensure?
+            'end'                           { $$ = NODE3(BEGIN, body, rescues, ensure) }
+
+Rescue    = 'rescue'                        { type = 0 }
+            (- type:Expr)? SEP
+            - body:OptStmts                 { $$ = NODE2(RESCUE, type, body) }
+
+Ensure    = 'ensure' SEP
+            - body:OptStmts                 { $$ = body }
+
 Method    = rcv:ID '.' name:METHOD          { $$ = NODE2(METHOD, NODE2(SEND, 0, NODE(MSG, rcv)), name) }
           | rcv:Value '.' name:METHOD       { $$ = NODE2(METHOD, rcv, name) }
           | name:METHOD                     { $$ = NODE2(METHOD, 0, name) }
@@ -229,6 +243,7 @@ KEYWORD   = 'while' | 'until' | 'do' | 'end' |
             'if' | 'unless' | 'else' |
             'true' | 'false' | 'nil' | 'self' |
             'class' | 'module' | 'def' |
+            'begin' | 'rescue' | 'ensure' |
             'yield' | 'return'
 
 NAME      = [a-zA-Z0-9_]+
