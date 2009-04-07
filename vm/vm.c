@@ -9,7 +9,7 @@ static OBJ TrVM_interpret(VM, TrFrame *f, TrBlock *b, int start, int argc, OBJ a
 
 static inline void TrFrame_push(VM, OBJ self, OBJ class, TrClosure *closure) {
   register int cf = ++vm->cf;
-  if (cf >= TR_MAX_FRAMES) tr_raise("Stack overflow");
+  if (cf >= TR_MAX_FRAMES) tr_raise(SystemStackError, "Stack overflow");
   register TrFrame *f = FRAME;
   f->self = self;
   f->class = class;
@@ -24,9 +24,17 @@ static inline void TrFrame_pop(VM) {
   vm->cf--;
 }
 
+TrFrame *TrVM_pop_frame(VM) {
+  if (vm->cf > 0) {
+    TrFrame_pop(vm);
+    return FRAME;
+  }
+  return 0;
+}
+
 static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
   OBJ method = TrObject_method(vm, receiver, msg);
-  if (!method) tr_raise("Method not found: `%s'\n", TR_STR_PTR(msg));
+  if (!method) tr_raise(NoMethodError, "Method not found: `%s'", TR_STR_PTR(msg));
 
 #if TR_CALL_SITE
   TrInst *boing = (ip-1);
@@ -69,7 +77,7 @@ static inline OBJ TrVM_call(VM, OBJ receiver, OBJ method, int argc, OBJ *args, i
   if (m->arity == -1) {
     ret = func(vm, receiver, argc, args);
   } else {
-    if (m->arity != argc) tr_raise("Expected %d arguments, got %d.\n", f->method->arity, argc);
+    if (m->arity != argc) tr_raise(ArgumentError, "Expected %d arguments, got %d.", f->method->arity, argc);
     switch (argc) {
       case 0:  ret = func(vm, receiver); break;
       case 1:  ret = func(vm, receiver, args[0]); break;
@@ -82,7 +90,7 @@ static inline OBJ TrVM_call(VM, OBJ receiver, OBJ method, int argc, OBJ *args, i
       case 8:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]); break;
       case 9:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]); break;
       case 10: ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]); break;
-      default: tr_raise("Too much arguments: %d, max is %d for now.\n", argc, 10);
+      default: tr_raise(ArgumentError, "Too much arguments: %d, max is %d for now.", argc, 10);
     }
   }
   TrFrame_pop(vm);
@@ -109,7 +117,7 @@ static OBJ TrVM_interpret_method(VM, OBJ self, int argc, OBJ argv[]) {
   UNUSED(self);
   assert(FRAME->method);
   register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
-  if (argc != (int)b->argc) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n", argc, b->argc);
+  if (argc != (int)b->argc) tr_raise(ArgumentError, "wrong number of arguments (%d for %lu)", argc, b->argc);
   return TrVM_interpret(vm, FRAME, b, 0, argc, argv, 0);
 }
 
@@ -118,8 +126,8 @@ static OBJ TrVM_interpret_method_with_defaults(VM, OBJ self, int argc, OBJ argv[
   assert(FRAME->method);
   register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
   int req_argc = b->argc - kv_size(b->defaults);
-  if (argc < req_argc) tr_raise("ArgumentError: wrong number of arguments (%d for %d)\n", argc, req_argc);
-  if (argc > (int)b->argc) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n", argc, b->argc);
+  if (argc < req_argc) tr_raise(ArgumentError, "wrong number of arguments (%d for %d)", argc, req_argc);
+  if (argc > (int)b->argc) tr_raise(ArgumentError, "wrong number of arguments (%d for %lu)", argc, b->argc);
   int defi = argc - req_argc - 1; /* index in defaults table or -1 for none */
   return TrVM_interpret(vm, FRAME, b, defi < 0 ? 0 : kv_A(b->defaults, defi), argc, argv, 0);
 }
@@ -130,7 +138,7 @@ static OBJ TrVM_interpret_method_with_splat(VM, OBJ self, int argc, OBJ argv[]) 
   register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
   /* TODO support defaults */
   assert(kv_size(b->defaults) == 0 && "defaults with splat not supported for now");
-  if (argc < (int)b->argc-1) tr_raise("ArgumentError: wrong number of arguments (%d for %lu)\n\n", argc, b->argc-1);
+  if (argc < (int)b->argc-1) tr_raise(ArgumentError, "wrong number of arguments (%d for %lu)", argc, b->argc-1);
   argv[b->argc-1] = TrArray_new3(vm, argc - b->argc + 1, &argv[b->argc-1]);
   return TrVM_interpret(vm, FRAME, b, 0, b->argc, argv, 0);
 }
@@ -153,7 +161,7 @@ static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b, int meta, OBJ re
 
 static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
   TrClosure *cl = f->closure;
-  if (!cl) tr_raise("LocalJumpError: no block given");
+  if (!cl) tr_raise(LocalJumpError, "no block given");
   TrFrame_push(vm, cl->self, cl->class, cl->parent);
   OBJ ret = TrVM_interpret(vm, FRAME, cl->block, 0, argc, argv, cl);
   TrFrame_pop(vm);
@@ -234,10 +242,10 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
     /* variable and consts */
     OP(SETUPVAL):   assert(upvals && upvals[B].value); *(upvals[B].value) = R[A]; DISPATCH;
     OP(GETUPVAL):   assert(upvals); R[A] = *(upvals[B].value); DISPATCH;
-    OP(SETIVAR):    tr_setivar(f->self, k[Bx], R[A]); DISPATCH;
-    OP(GETIVAR):    R[A] = tr_getivar(f->self, k[Bx]); DISPATCH;
-    OP(SETCVAR):    tr_setivar(f->class, k[Bx], R[A]); DISPATCH;
-    OP(GETCVAR):    R[A] = tr_getivar(f->class, k[Bx]); DISPATCH;
+    OP(SETIVAR):    TR_KH_SET(TR_COBJECT(f->self)->ivars, k[Bx], R[A]); DISPATCH;
+    OP(GETIVAR):    R[A] = TR_KH_GET(TR_COBJECT(f->self)->ivars, k[Bx]); DISPATCH;
+    OP(SETCVAR):    TR_KH_SET(TR_COBJECT(f->class)->ivars, k[Bx], R[A]); DISPATCH;
+    OP(GETCVAR):    R[A] = TR_KH_GET(TR_COBJECT(f->class)->ivars, k[Bx]); DISPATCH;
     OP(SETCONST):   TrObject_const_set(vm, f->self, k[Bx], R[A]); DISPATCH;
     OP(GETCONST):   R[A] = TrObject_const_get(vm, f->self, k[Bx]); DISPATCH;
     OP(SETGLOBAL):  TR_KH_SET(vm->globals, k[Bx], R[A]); DISPATCH;
@@ -342,39 +350,6 @@ OBJ TrVM_load(VM, char *filename) {
   return TR_NIL;
 }
 
-void TrVM_raise(VM, OBJ exception) {
-  if (vm->debug) {
-    printf("%s\n", TR_STR_PTR(exception));
-    assert(0);
-  }
-  vm->exception = exception;
-  if (vm->cf == -1) {
-    TrVM_rescue(vm);
-    return;
-  }
-  
-  int i;
-  for (i = vm->cf; i >= 0; --i) {
-    if (vm->frames[i].has_rescue_jmp)
-      longjmp(vm->frames[i].rescue_jmp, 1);
-  }
-}
-
-void TrVM_rescue(VM) {
-  printf("%s\n", TR_STR_PTR(vm->exception));
-  
-  /* Error before VM was started, can be bad... */
-  if (vm->cf == -1) exit(1);
-  
-  int i;
-  for (i = vm->cf-1; i != -1 ; --i) {
-    TrFrame f = vm->frames[i];
-    printf("\tfrom %s:%lu", f.filename ? TR_STR_PTR(f.filename) : "?", f.line);
-    if (f.method) printf(":in `%s'", TR_STR_PTR(TR_CMETHOD(f.method)->name));
-    printf("\n");
-  }
-}
-
 OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[]) {
   TrFrame_push(vm, self, class, 0);
   OBJ ret = TrVM_interpret(vm, FRAME, b, 0, argc, argv, 0);
@@ -420,6 +395,7 @@ TrVM *TrVM_new() {
   
   /* bootstrap rest of core classes, order is no longer important here */
   TrObject_init(vm);
+  TrError_init(vm);
   TrBinding_init(vm);
   TrPrimitive_init(vm);
   TrKernel_init(vm);
@@ -429,7 +405,8 @@ TrVM *TrVM_new() {
   TrHash_init(vm);
   TrRange_init(vm);
   
-  vm->self = TrObject_new(vm);
+  vm->self = TrObject_alloc(vm, 0);
+  vm->cf = -1;
   
   /* cache some commonly used values */
   vm->sADD = tr_intern("+");
@@ -437,14 +414,6 @@ TrVM *TrVM_new() {
   vm->sLT = tr_intern("<");
   vm->sNEG = tr_intern("@-");
   vm->sNOT = tr_intern("!");
-  
-  /* init first frame */
-  vm->cf = 0;
-  tr_rescue({
-    TrVM_rescue(vm);
-    exit(1);
-  });
-  vm->cf = -1;
   
   TrVM_load(vm, "lib/boot.rb");
   

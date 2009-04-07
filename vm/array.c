@@ -45,7 +45,7 @@ static OBJ TrArray_at(VM, OBJ self, OBJ at) {
 
 static OBJ TrArray_set(VM, OBJ self, OBJ at, OBJ x) {
   int i = TrArray_at2index(vm, self, at);
-  if (i < 0) tr_raise("IndexError: index %d out of array", i);
+  if (i < 0) tr_raise(IndexError, "index %d out of array", i);
   kv_a(OBJ, (TR_CARRAY(self))->kv, i) = x;
   return x;
 }

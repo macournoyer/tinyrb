@@ -27,13 +27,14 @@
 #define TR_CLASS(X)          (TR_IMMEDIATE(X) ? vm->classes[TR_TYPE(X)] : TR_COBJECT(X)->class)
 #define TR_IS_A(X,T)         (TR_TYPE(X) == TR_T_##T)
 #define TR_COBJECT(X)        ((TrObject*)(X))
-#define TR_CTYPE(X,T)        (tr_assert(TR_IS_A(X,T), "TypeError: expected " #T),(Tr##T*)(X))
-#define TR_CCLASS(X)         (tr_assert(TR_IS_A(X,Class)||TR_IS_A(X,Module), "TypeError: expected Class"),(TrClass*)(X))
+#define TR_TYPE_ERROR(T)     TrException_raise(vm, TrException_new(vm, vm->cTypeError, TrString_new2(vm, "Expected " #T)))
+#define TR_CTYPE(X,T)        ((TR_IS_A(X,T) ? 0 : TR_TYPE_ERROR(T)),(Tr##T*)(X))
+#define TR_CCLASS(X)         ((TR_IS_A(X,Class) || TR_IS_A(X,Module) ? 0 : TR_TYPE_ERROR(T)),(TrClass*)(X))
 #define TR_CMODULE(X)        TR_CCLASS(X)
 #define TR_CARRAY(X)         TR_CTYPE(X,Array)
 #define TR_CHASH(X)          TR_CTYPE(X,Hash)
 #define TR_CRANGE(X)         TR_CTYPE(X,Range)
-#define TR_CSTRING(X)        (tr_assert(TR_IS_A(X,String)||TR_IS_A(X,Symbol), "TypeError: expected String"),(TrString*)(X))
+#define TR_CSTRING(X)        ((TR_IS_A(X,String) || TR_IS_A(X,Symbol) ? 0 : TR_TYPE_ERROR(T)),(TrString*)(X))
 #define TR_CMETHOD(X)        ((TrMethod*)X)
 #define TR_CBINDING(X)       TR_CTYPE(X,Binding)
 
@@ -116,20 +117,21 @@
                                    TrClass_new(vm, tr_intern(#T), TR_CORE_CLASS(S)))
 
 /* API macros */
-#define tr_getivar(O,N)      TR_KH_GET(TR_COBJECT(O)->ivars, N)
-#define tr_setivar(O,N,V)    TR_KH_SET(TR_COBJECT(O)->ivars, N, V)
+#define tr_getivar(O,N)      TR_KH_GET(TR_COBJECT(O)->ivars, tr_intern(N))
+#define tr_setivar(O,N,V)    TR_KH_SET(TR_COBJECT(O)->ivars, tr_intern(N), V)
+#define tr_getglobal(N)      TR_KH_GET(vm->globals, tr_intern(N))
+#define tr_setglobal(N,V)    TR_KH_SET(vm->globals, tr_intern(N), V)
 #define tr_intern(S)         TrSymbol_new(vm, (S))
-#define tr_raise(M,...)      TrVM_raise(vm, tr_sprintf(vm, (M), ##__VA_ARGS__))
-#define tr_raise_errno(M)    tr_raise("%s: %s", strerror(errno), (M))
-#define tr_assert(X,M,...)   ((X) ? (X) : TrVM_raise(vm, tr_sprintf(vm, (M), ##__VA_ARGS__)))
+#define tr_raise(T,M,...)    TrException_raise(vm, TrException_new(vm, vm->c##T, tr_sprintf(vm, (M), ##__VA_ARGS__)))
+#define tr_raise_errno(M)    tr_raise(SystemCallError, "%s: %s", strerror(errno), (M))
 #define tr_rescue(B)         FRAME->has_rescue_jmp = 1; if (setjmp(FRAME->rescue_jmp)) { B }
 #define tr_def(C,N,F,A)      TrModule_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_metadef(O,N,F,A)  TrObject_add_singleton_method(vm, (O), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
-#define tr_defclass(N)       TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N)))
+#define tr_defclass(N,S)     TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N), S))
 #define tr_defmodule(N)      TrObject_const_set(vm, vm->self, tr_intern(N), TrModule_new(vm, tr_intern(N)))
 #define tr_send(R,MSG,...)   ({ \
   TrMethod *m = TR_CMETHOD(TrObject_method(vm, R, (MSG))); \
-  if (!m) tr_raise("Method not found: %s\n", TR_STR_PTR(MSG)); \
+  if (!m) tr_raise(NoMethodError, "Method not found: %s", TR_STR_PTR(MSG)); \
   FRAME->method = m; \
   m->func(vm, R, ##__VA_ARGS__); \
 })
@@ -162,7 +164,7 @@ typedef struct {
 
 typedef struct TrBlock {
   /* static */
-  kvec_t(OBJ) k; /* TODO rename to values ? */
+  kvec_t(OBJ) k;
   kvec_t(char *) strings;
   kvec_t(OBJ) locals;
   kvec_t(OBJ) upvals;
@@ -172,7 +174,6 @@ typedef struct TrBlock {
   size_t regc;
   size_t argc;
   size_t arg_splat;
-  int inherit_scope:1;
   OBJ filename;
   size_t line;
   struct TrBlock *parent;
@@ -211,6 +212,7 @@ typedef struct TrFrame {
   OBJ class;
   OBJ filename;
   size_t line;
+  /* kvec_t(TrRescue) rescues; */
   jmp_buf rescue_jmp;
   int has_rescue_jmp;
 } TrFrame;
@@ -223,13 +225,27 @@ typedef struct {
 typedef struct TrVM {
   khash_t(str) *symbols;
   khash_t(OBJ) *globals;
-  OBJ classes[TR_T_MAX];
+  khash_t(OBJ) *consts;           /* TODO this goes in modules */
+  OBJ classes[TR_T_MAX];          /* core classes */
   TrFrame frames[TR_MAX_FRAMES];  /* TODO allocate dynamically to use less mem */
-  int cf; /* current frame */
-  khash_t(OBJ) *consts;
-  OBJ self;
+  int cf;                         /* current frame */
+  OBJ self;                       /* root object */
   int debug;
-  OBJ exception;
+  
+  /* exceptions */
+  OBJ cException;
+  OBJ cScriptError;
+  OBJ cSyntaxError;
+  OBJ cStandardError;
+  OBJ cArgumentError;
+  OBJ cRuntimeError;
+  OBJ cTypeError;
+  OBJ cSystemCallError;
+  OBJ cIndexError;
+  OBJ cLocalJumpError;
+  OBJ cSystemStackError;
+  OBJ cNameError;
+  OBJ cNoMethodError;
   
   /* cached objects */
   OBJ sADD;
@@ -279,10 +295,9 @@ typedef struct {
 
 /* vm */
 TrVM *TrVM_new();
+TrFrame *TrVM_pop_frame(VM);
 OBJ TrVM_eval(VM, char *code, char *filename);
 OBJ TrVM_load(VM, char *filename);
-void TrVM_raise(VM, OBJ exception);
-void TrVM_rescue(VM);
 OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[]);
 void TrVM_destroy(TrVM *vm);
 
@@ -317,7 +332,7 @@ void TrRange_init(VM);
 TrClosure *TrClosure_new(VM, TrBlock *b, OBJ self, OBJ class, TrClosure *parent);
 
 /* object */
-OBJ TrObject_new(VM);
+OBJ TrObject_alloc(VM, OBJ class);
 int TrObject_type(VM, OBJ obj);
 OBJ TrObject_method(VM, OBJ self, OBJ name);
 OBJ TrObject_const_set(VM, OBJ self, OBJ name, OBJ value);
@@ -349,6 +364,11 @@ void TrBinding_init(VM);
 
 /* primitive */
 void TrPrimitive_init(VM);
+
+/* error */
+OBJ TrException_new(VM, OBJ class, OBJ message);
+void TrException_raise(VM, OBJ exception);
+void TrError_init(VM);
 
 /* compiler */
 TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno);

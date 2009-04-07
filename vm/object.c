@@ -1,8 +1,10 @@
 #include "tr.h"
 #include "internal.h"
 
-OBJ TrObject_new(VM) {
-  return (OBJ) TR_INIT_CORE_OBJECT(Object);
+OBJ TrObject_alloc(VM, OBJ class) {
+  TrObject *o = TR_INIT_CORE_OBJECT(Object);
+  if (class) o->class = class;
+  return (OBJ) o;
 }
 
 int TrObject_type(VM, OBJ obj) {

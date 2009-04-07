@@ -36,7 +36,7 @@ Root      = s:Stmts EOF                     { compiler->node = NODE(ROOT, s) }
           | .
           { 
             VM = yyvm;
-            tr_raise("SyntaxError at line %d, while parsing: `%s'\n", compiler->line, yybuf)
+            tr_raise(SyntaxError, "at line %d, while parsing: `%s'\n", compiler->line, yybuf)
           }
 
 Stmts     = SEP*

@@ -25,8 +25,8 @@ static OBJ TrKernel_binding(VM, OBJ self) {
 
 static OBJ TrKernel_eval(VM, OBJ self, int argc, OBJ argv[]) {
   UNUSED(self);
-  if (argc < 1) tr_raise("string argument required");
-  if (argc > 4) tr_raise("Too much arguments");
+  if (argc < 1) tr_raise(ArgumentError, "string argument required");
+  if (argc > 4) tr_raise(ArgumentError, "Too much arguments");
   OBJ string = argv[0];
   TrFrame *f = (argc > 1 && argv[1]) ? TR_CBINDING(argv[1])->frame : FRAME;
   char *filename = (argc > 2 && argv[1]) ? TR_STR_PTR(argv[2]) : "<eval>";
@@ -41,9 +41,26 @@ static OBJ TrKernel_load(VM, OBJ self, OBJ filename) {
   return TrVM_load(vm, TR_STR_PTR(filename));
 }
 
-static OBJ TrKernel_raise(VM, OBJ self, OBJ exception) {
+static OBJ TrKernel_raise(VM, OBJ self, int argc, OBJ argv[]) {
   UNUSED(self);
-  TrVM_raise(vm, exception);
+  OBJ e = TR_NIL;
+  switch (argc) {
+    case 0:
+      e = tr_getglobal("$!");
+      break;
+    case 1:
+      if (TR_IS_A(argv[0], String))
+        e = TrException_new(vm, vm->cRuntimeError, argv[0]);
+      else
+        e = tr_send2(argv[0], "exception");
+      break;
+    case 2:
+      e = tr_send2(argv[0], "exception", argv[1]);
+      break;
+    default:
+      tr_raise(ArgumentError, "wrong number of arguments (%d for 2)", argc);
+  }
+  TrException_raise(vm, e);
   return TR_NIL;
 }
 
@@ -54,5 +71,5 @@ void TrKernel_init(VM) {
   tr_def(m, "eval", TrKernel_eval, -1);
   tr_def(m, "load", TrKernel_load, 1);
   tr_def(m, "binding", TrKernel_binding, 0);
-  tr_def(m, "raise", TrKernel_raise, 1);
+  tr_def(m, "raise", TrKernel_raise, -1);
 }
