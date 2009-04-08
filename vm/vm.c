@@ -163,7 +163,7 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 /* dispatch macros */
 #define NEXT_INST      (i = *++ip)
 #if TR_THREADED_DISPATCH
-#define OPCODES        goto *labels[OPCODE];
+#define OPCODES        static void *labels[] = { TR_OP_LABELS }; goto *labels[OPCODE];
 #define END_OPCODES    
 #define OP(name)       op_##name
 #define DISPATCH       NEXT_INST; goto *labels[OPCODE]
@@ -188,25 +188,29 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #define SITE   (b->sites.a)
 
 static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure) {
+#if TR_USE_MACHINE_REGS && __i386__
+  register TrInst *ip __asm__ ("esi") = b->code.a + start;
+  register OBJ *stack __asm__ ("edi") = f->stack;
+#elif TR_USE_MACHINE_REGS && __x86_64__
+  register TrInst *ip __asm__ ("r15") = b->code.a + start;
+  register OBJ *stack __asm__ ("r14") = f->stack;
+#else
   register TrInst *ip = b->code.a + start;
-  register TrInst i = *ip;
+  register OBJ *stack = f->stack;
+#endif
+  TrInst i = *ip;
   OBJ *k = b->k.a;
   char **strings = b->strings.a;
   TrBlock **blocks = b->blocks.a;
-  register OBJ *stack = f->stack;
   f->line = b->line;
   f->filename = b->filename;
   TrUpval *upvals = closure ? closure->upvals : 0;
+
   /* transfer locals */
   if (argc > 0) { 
     assert(argc <= (int)kv_size(b->locals) && "can't fit args in locals");
     TR_MEMCPY_N(stack, argv, OBJ, argc);
   }
-  
-#if TR_THREADED_DISPATCH
-  static void *_labels[] = { TR_OP_LABELS };
-  register void **labels = _labels;
-#endif
   
   OPCODES;
     

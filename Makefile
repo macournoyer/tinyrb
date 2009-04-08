@@ -12,7 +12,7 @@ OPTIMIZE = -O3 -funroll-loops -fomit-frame-pointer -fstrict-aliasing
 endif
 
 ifdef COMPAT
-CFLAGS += -pedantic -DTR_THREADED_DISPATCH=0
+CFLAGS += -pedantic -DTR_COMPAT_MODE
 endif
 
 # Plateform specific libs

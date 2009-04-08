@@ -2,20 +2,31 @@
 
 #include <limits.h>
 
+/* Non portable optimizations */
+#ifndef TR_COMPAT_MODE
+
 /* Direct threaded code is used to dispatch instructions.
-   It's very fast, but GCC specific. */
-#if __GNUC__ > 3 && !defined(TR_THREADED_DISPATCH)
+   It's very fast, but a GCC 3.x or greater extension. */
+#if __GNUC__ > 3
 #define TR_THREADED_DISPATCH 1
 #endif
 
-/* enable CallSite optimization */
-#define TR_CALL_SITE 1
+/* Force the interpreter to store the stack and instruction
+   pointer in machine registers. Works only on x86 machines. */
+#if __GNUC__
+#define TR_USE_MACHINE_REGS 1
+#endif
 
+#endif
+
+/* Portable optimizations */
+#define TR_CALL_SITE  1            /* enable caching method lookup at the call site */
+
+/* Various limits */
 #define TR_MAX_FRAMES 255
+#define MAX_INT       (INT_MAX-2)  /* maximum value of an int (-2 for safety) */
 
-#define MAX_INT (INT_MAX-2)  /* maximum value of an int (-2 for safety) */
-
-/* TR_BITSINT defines the number of bits in an int. */
+/* TR_BITSINT defines the number of bits in an int. (Blindly stolen from Lua) */
 #if INT_MAX-20 < 32760
 #define TR_BITSINT  16
 #elif INT_MAX > 2147483640L
