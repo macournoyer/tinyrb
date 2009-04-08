@@ -6,17 +6,17 @@ def deep_in
   guacamole
 end
 
-begin
+# begin
   deep_in
   puts "oh no boy, ur not coming here!"
-rescue RuntimeError
-  puts $!
-  puts $@
-rescue
-  puts "nooo!"
-ensure
-  puts "ensured"
-end
+# rescue RuntimeError
+#   puts $!
+#   puts $@
+# rescue
+#   puts "nooo!"
+# ensure
+#   puts "ensured"
+# end
 
 # => ouch!
 # => test/raise.rb:2:in `guacamole'

@@ -14,22 +14,11 @@ static inline void TrFrame_push(VM, OBJ self, OBJ class, TrClosure *closure) {
   f->self = self;
   f->class = class;
   f->closure = closure;
-  kv_init(f->rescues);
 }
 
 static inline void TrFrame_pop(VM) {
-  register TrFrame *f = FRAME;
   /* TODO for GC: release everything on the stack */
-  if (kv_size(f->rescues)) kv_destroy(f->rescues);
   vm->cf--;
-}
-
-TrFrame *TrVM_pop_frame(VM) {
-  if (vm->cf > 0) {
-    TrFrame_pop(vm);
-    return FRAME;
-  }
-  return 0;
 }
 
 static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
@@ -326,6 +315,32 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
       DISPATCH;
     }
   END_OPCODES;
+}
+
+void TrVM_raise(VM, OBJ exception) {
+  /* Error before VM was started? */
+  if (vm->cf < 0) TrException_default_handler(vm, exception);
+  
+  OBJ backtrace = TrException_backtrace(vm, exception);
+  tr_setglobal("$!", exception);
+  tr_setglobal("$@", backtrace);
+  
+  TrFrame *f;
+  TrFrame_pop(vm);
+  for (f = FRAME; vm->cf >= 0; TrFrame_pop(vm), f = FRAME) {
+    OBJ str;
+    char *filename = f->filename ? TR_STR_PTR(f->filename) : "?";
+    if (f->method)
+      str = tr_sprintf(vm, "\tfrom %s:%lu:in `%s'",
+                       filename, f->line, TR_STR_PTR(TR_CMETHOD(f->method)->name));
+    else
+      str = tr_sprintf(vm, "\tfrom %s:%lu",
+                       filename, f->line);
+    TR_ARRAY_PUSH(backtrace, str);
+  }
+  
+  /* not rescued, use default handler */
+  TrException_default_handler(vm, exception);
 }
 
 OBJ TrVM_eval(VM, char *code, char *filename) {

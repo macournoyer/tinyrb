@@ -52,11 +52,11 @@ static OBJ TrException_message(VM, OBJ self) {
   return tr_getivar(self, "@message");
 }
 
-static OBJ TrException_backtrace(VM, OBJ self) {
+OBJ TrException_backtrace(VM, OBJ self) {
   return tr_getivar(self, "@backtrace");
 }
 
-static void TrException_default_handler(VM, OBJ exception) {
+void TrException_default_handler(VM, OBJ exception) {
   TrClass *c = TR_CCLASS(TR_CLASS(exception));
   OBJ msg = tr_getivar(exception, "@message");
   OBJ backtrace = tr_getivar(exception, "@backtrace");
@@ -68,41 +68,6 @@ static void TrException_default_handler(VM, OBJ exception) {
   
   TrVM_destroy(vm);
   exit(1);
-}
-
-void TrException_raise(VM, OBJ exception) {
-  /* Error before VM was started? */
-  if (vm->cf < 0) TrException_default_handler(vm, exception);
-  
-  OBJ backtrace = tr_getivar(exception, "@backtrace");
-  tr_setglobal("$!", exception);
-  tr_setglobal("$@", backtrace);
-  
-  /* Unwind the stack frame to browse a rescue handler that can handle the exception.
-     building the backtrace at the same time. */
-  TrFrame *f;
-  while ((f = TrVM_pop_frame(vm))) {
-    OBJ str;
-    char *filename = f->filename ? TR_STR_PTR(f->filename) : "?";
-    if (f->method)
-      str = tr_sprintf(vm, "\tfrom %s:%lu:in `%s'",
-                       filename, f->line, TR_STR_PTR(TR_CMETHOD(f->method)->name));
-    else
-      str = tr_sprintf(vm, "\tfrom %s:%lu",
-                       filename, f->line);
-    TR_ARRAY_PUSH(backtrace, str);
-    
-    size_t i;
-    for (i = 0; i < kv_size(f->rescues); ++i) {
-      TrRescue *r = &kv_A(f->rescues, i);
-      /* TODO compare using kind_of or something similar */
-      if (r->class == TR_CLASS(exception))
-        longjmp(r->jmp, 1);
-    }
-  }
-  
-  /* not rescued, use default handler */
-  TrException_default_handler(vm, exception);
 }
 
 void TrError_init(VM) {
