@@ -337,6 +337,9 @@ void TrVM_raise(VM, OBJ exception) {
       str = tr_sprintf(vm, "\tfrom %s:%lu",
                        filename, f->line);
     TR_ARRAY_PUSH(backtrace, str);
+    
+    /* if (f->rescue) ... */
+    /* if (f->ensure) ... */
   }
   
   /* not rescued, use default handler */
