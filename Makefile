@@ -1,7 +1,8 @@
 CC = gcc
 CFLAGS = -std=c99 -Wall -Wextra -D_XOPEN_SOURCE -DDEBUG -g ${OPTIMIZE}
-INCS = -Ivm -Ivendor/gc/build/include -Ivendor
-LIBS = ${GC} 
+INCS = -Ivm -Ivendor/gc/build/include -Ivendor `pkg-config --cflags libpcre`
+LIBS = ${GC}
+PKG_LIBS = `pkg-config --libs libpcre`
 GC = vendor/gc/build/lib/libgc.a
 LEG = vendor/peg/leg
 FREEGETOPT = vendor/freegetopt/getopt.o
@@ -21,7 +22,7 @@ ifneq ($(SYS),Linux)
 LIBS += ${FREEGETOPT}
 endif
 
-SRC = vm/string.c vm/number.c vm/range.c vm/primitive.c vm/proc.c vm/array.c vm/hash.c vm/class.c vm/kernel.c vm/object.c vm/block.c vm/compiler.c vm/grammar.c vm/vm.c vm/tr.c
+SRC = vm/string.c vm/number.c vm/range.c vm/regexp.c vm/primitive.c vm/proc.c vm/array.c vm/hash.c vm/class.c vm/kernel.c vm/object.c vm/block.c vm/compiler.c vm/grammar.c vm/vm.c vm/tr.c
 OBJ = ${SRC:.c=.o}
 OBJ_MIN = vm/tr.o
 
@@ -32,7 +33,7 @@ all: tinyrb
 	@${CC} -c ${CFLAGS} ${INCS} -o $@ $<
 
 tinyrb: ${LIBS} ${OBJ}
-	@${CC} ${CFLAGS} ${OBJ_POTION} ${OBJ} ${LIBS} -o tinyrb
+	@${CC} ${CFLAGS} ${OBJ_POTION} ${OBJ} ${LIBS} ${PKG_LIBS} -o tinyrb
 
 vm/grammar.c: ${LEG} vm/grammar.leg
 	@echo "  leg vm/grammar.leg"
