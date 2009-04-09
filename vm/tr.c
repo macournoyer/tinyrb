@@ -42,7 +42,7 @@ int main (int argc, char *argv[]) {
   argc -= optind;
   argv += optind;
   
-  if (argc > 0) {
+  if (argc > 1) {
     TrVM_load(vm, argv[argc-1]);
     return 0;
   }
