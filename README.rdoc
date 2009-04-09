@@ -14,15 +14,20 @@ http://github.com/macournoyer/tinyrb
 
 == Install
 
-  # If you're on Mac OS X or don't already pkg-config
+  # If you're on Mac OS X or don't already have pkg-config
   sudo port install pkg-config
   
   # Install PCRE for regexp stuff
-  sudo port install pcre # or apt-get or whatever
+  # on Mac OS X
+  sudo port install pcre
+  # on Linux
+  sudo apt-get install libpcre3-dev
   
   # Build tinyrb
   make
-  make test # optional
+  
+  # Test it (optional)
+  make test
   ./tinyrb -h
 
 == What WON'T be in tinyrb (tiny patches accepted)
