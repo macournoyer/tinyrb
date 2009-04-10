@@ -1,9 +1,9 @@
 CC = gcc
 CFLAGS = -std=c99 -Wall -Wextra -D_XOPEN_SOURCE -DDEBUG -g ${OPTIMIZE}
-INCS = -Ivm -Ivendor/gc/build/include -Ivendor `pkg-config --cflags libpcre`
-LIBS = ${GC}
-PKG_LIBS = `pkg-config --libs libpcre`
-GC = vendor/gc/build/lib/libgc.a
+INCS = -Ivm -Ivendor/gc/include -Ivendor/pcre -Ivendor
+LIBS = ${GC} ${PCRE}
+GC = vendor/gc/.libs/libgc.a
+PCRE = vendor/pcre/.libs/libpcre.a
 LEG = vendor/peg/leg
 FREEGETOPT = vendor/freegetopt/getopt.o
 
@@ -47,7 +47,11 @@ ${LEG}:
 
 ${GC}:
 	@echo " make gc"
-	@cd vendor/gc && ./configure --prefix=`pwd`/build --disable-threads -q && make -s && make install -s
+	@cd vendor/gc && ./configure --disable-threads -q && make -s
+
+${PCRE}:
+	@echo " make pcre"
+	@cd vendor/pcre && ./configure -q && make -s
 
 test: tinyrb
 	@ruby test/runner

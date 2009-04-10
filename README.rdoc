@@ -14,20 +14,8 @@ http://github.com/macournoyer/tinyrb
 
 == Install
 
-  # If you're on Mac OS X or don't already have pkg-config
-  sudo port install pkg-config
-  
-  # Install PCRE for regexp stuff
-  # on Mac OS X
-  sudo port install pcre
-  # on Linux
-  sudo apt-get install libpcre3-dev
-  
-  # Build tinyrb
   make
-  
-  # Test it (optional)
-  make test
+  make test # optional
   ./tinyrb -h
 
 == What WON'T be in tinyrb (tiny patches accepted)
@@ -55,5 +43,7 @@ Inspired by:
 
 kvec.h and khash.h (c) 2008, by Attractive Chaos <attractivechaos@aol.co.uk>
 GC Copyright 1988, 1989 Hans-J. Boehm, Alan J. Demers
+PCRE Copyright (c) 1997-2008 University of Cambridge released under BSD license
 
-(c) Marc-Andre Cournoyer <macournoyer@gmail.com>
+tinyrb is Copyright (c) Marc-Andre Cournoyer <macournoyer@gmail.com> and
+released under Ruby license
