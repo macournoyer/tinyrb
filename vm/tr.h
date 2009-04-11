@@ -240,6 +240,7 @@ typedef struct TrVM {
   OBJ cStandardError;
   OBJ cArgumentError;
   OBJ cRuntimeError;
+  OBJ cRegexpError;
   OBJ cTypeError;
   OBJ cSystemCallError;
   OBJ cIndexError;

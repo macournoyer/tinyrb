@@ -18,7 +18,7 @@ OBJ TrRegexp_new(VM, char *pattern, int options) {
   
   if (r->re == NULL) {
     TrRegex_free(vm, (OBJ)r);
-    tr_raise("RegexpError: compilation failed at offset %d: %s", erroffset, error);
+    tr_raise(RegexpError, "compilation failed at offset %d: %s", erroffset, error);
   }
     
   return (OBJ)r;
@@ -51,7 +51,7 @@ OBJ TrRegexp_match(VM, OBJ self, OBJ str) {
   
   if (rc == 0) {
     rc = OVECCOUNT/3;
-    tr_raise("RegexpError: Too much matches, only %d supported for now", rc - 1);
+    tr_raise(RegexpError, "Too much matches, only %d supported for now", rc - 1);
   }
   
   /* TODO should create a MatchData object */

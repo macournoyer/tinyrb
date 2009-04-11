@@ -60,7 +60,7 @@ void TrException_default_handler(VM, OBJ exception) {
   TrClass *c = TR_CCLASS(TR_CLASS(exception));
   OBJ msg = tr_getivar(exception, "@message");
   OBJ backtrace = tr_getivar(exception, "@backtrace");
-
+  
   printf("%s: %s\n", TR_STR_PTR(c->name), TR_STR_PTR(msg));
   TR_ARRAY_EACH(backtrace, i, v, {
     printf("%s\n", TR_STR_PTR(v));
@@ -82,6 +82,7 @@ void TrError_init(VM) {
   vm->cSyntaxError = tr_defclass("SyntaxError", vm->cScriptError);
   vm->cStandardError = tr_defclass("StandardError", vm->cException);
   vm->cArgumentError = tr_defclass("ArgumentError", vm->cStandardError);
+  vm->cRegexpError = tr_defclass("RegexpError", vm->cStandardError);
   vm->cRuntimeError = tr_defclass("RuntimeError", vm->cStandardError);
   vm->cTypeError = tr_defclass("TypeError", vm->cStandardError);
   vm->cSystemCallError = tr_defclass("SystemCallError", vm->cStandardError);
