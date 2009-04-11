@@ -11,7 +11,7 @@
 #define yyvm      compiler->vm
 
 static char *charbuf;
-static OBJ sbuf;
+static char *sbuf;
 static size_t nbuf;
 static TrCompiler *compiler;
 
@@ -24,20 +24,17 @@ static TrCompiler *compiler;
   result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1); \
 }
 
-#define STRING_START sbuf = TrString_new3(yyvm, 4096); nbuf = 0
+/* TODO grow buffer */
+#define STRING_MAX   4096
+#define STRING_START sbuf = TR_ALLOC_N(char, STRING_MAX); nbuf = 0
 #define STRING_PUSH(P,L) \
-  VM = yyvm; \
-  TR_MEMCPY_N(TR_STR_PTR(sbuf) + nbuf, (P), char, (L)); \
+  assert(nbuf + (L) < 4096); \
+  TR_MEMCPY_N(sbuf + nbuf, (P), char, (L)); \
   nbuf += (L)
 
 %}
 
 Root      = s:Stmts EOF                     { compiler->node = NODE(ROOT, s) }
-          | .
-          { 
-            VM = yyvm;
-            tr_raise(SyntaxError, "at line %d, while parsing: `%s'\n", compiler->line, yybuf)
-          }
 
 Stmts     = SEP*
             - head:Stmt Comment?            { head = NODES(head) }
@@ -54,7 +51,6 @@ Stmt      = While
           | If
           | Unless
           | Def
-          | Begin
           | Class
           | Module
           | Expr
@@ -145,7 +141,7 @@ Until     = 'until' SPACE cond:Expr SEP
               body:Stmts -
             'end'                           { $$ = NODE2(UNTIL, cond, body) }
 
-If        = 'if' SPACE cond:Expr SEP            { else_body = 0 }
+If        = 'if' SPACE cond:Expr SEP        { else_body = 0 }
               body:Stmts -
             else_body:Else?
             'end'                           { $$ = NODE3(IF, cond, body, else_body) }
@@ -159,19 +155,6 @@ Unless    = 'unless' SPACE cond:Expr SEP    { else_body = 0 }
               'unless' - cond:Expr          { $$ = NODE2(UNLESS, cond, NODES(body)) }
 
 Else      = 'else' SEP - body:Stmts -       { $$ = body }
-
-Begin     = 'begin' SEP                     { rescues = ensure = 0 }
-            - body:Stmts
-            rescues:Rescue*
-            ensure:Ensure?
-            'end'                           { $$ = NODE3(BEGIN, body, rescues, ensure) }
-
-Rescue    = 'rescue'                        { type = 0 }
-            (- type:Expr)? SEP
-            - body:OptStmts                 { $$ = NODE2(RESCUE, type, body) }
-
-Ensure    = 'ensure' SEP
-            - body:OptStmts                 { $$ = body }
 
 Method    = rcv:ID '.' name:METHOD          { $$ = NODE2(METHOD, NODE2(SEND, 0, NODE(MSG, rcv)), name) }
           | rcv:Value '.' name:METHOD       { $$ = NODE2(METHOD, rcv, name) }
@@ -214,6 +197,7 @@ Return    = 'return' SPACE arg:Expr - !','  { $$ = NODE(RETURN, arg) }
 
 Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | v:SYMBOL                        { $$ = NODE(VALUE, v) }
+          | v:REGEXP                        { $$ = NODE(VALUE, v) }
           | v:STRING1                       { $$ = NODE(STRING, v) }
           | v:STRING2                       { $$ = NODE(STRING, v) }
           | v:CONST                         { $$ = NODE(CONST, v) }
@@ -243,7 +227,6 @@ KEYWORD   = 'while' | 'until' | 'do' | 'end' |
             'if' | 'unless' | 'else' |
             'true' | 'false' | 'nil' | 'self' |
             'class' | 'module' | 'def' |
-            'begin' | 'rescue' | 'ensure' |
             'yield' | 'return'
 
 NAME      = [a-zA-Z0-9_]+
@@ -272,19 +255,29 @@ STRING1   = '\''                            { STRING_START }
             (
               '\\\''                        { STRING_PUSH("'", 1) }
             | < [^\'] >                     { STRING_PUSH(yytext, yyleng) }
-            )* '\''                         { $$ = sbuf }
+            )* '\''                         { $$ = TrString_new2(yyvm, sbuf) }
+
+ESC_CHAR  = '\\n'                           { STRING_PUSH("\n", 1) }
+          | '\\b'                           { STRING_PUSH("\b", 1) }
+          | '\\f'                           { STRING_PUSH("\f", 1) }
+          | '\\r'                           { STRING_PUSH("\r", 1) }
+          | '\\t'                           { STRING_PUSH("\t", 1) }
+          | '\\\"'                          { STRING_PUSH("\"", 1) }
+          | '\\\\'                          { STRING_PUSH("\\", 1) }
 
 STRING2   = '"'                             { STRING_START }
             (
-              '\\n'                         { STRING_PUSH("\n", 1) }
-            | '\\b'                         { STRING_PUSH("\b", 1) }
-            | '\\f'                         { STRING_PUSH("\f", 1) }
-            | '\\r'                         { STRING_PUSH("\r", 1) }
-            | '\\t'                         { STRING_PUSH("\t", 1) }
-            | '\\\"'                        { STRING_PUSH("\"", 1) }
-            | '\\\\'                        { STRING_PUSH("\\", 1) }
+              ESC_CHAR
             | < [^\"] >                     { STRING_PUSH(yytext, yyleng) }
-            )* '"'                          { $$ = sbuf }
+            )*
+            '"'                             { $$ = TrString_new2(yyvm, sbuf) }
+
+REGEXP    = '/'                             { STRING_START }
+            (
+              ESC_CHAR
+            | < [^/] >                      { STRING_PUSH(yytext, yyleng) }
+            )*
+            '/'                             { $$ = TrRegexp_new(yyvm, sbuf, 0) }
 
 -         = [ \t]*
 SPACE     = [ ]+
@@ -294,6 +287,26 @@ SEP       = ( - Comment? (EOL | ';') )+
 
 %%
 
+/* Raise a syntax error.
+   poorly adapted from peg/leg.leg */
+void yyerror() {
+  VM = yyvm;
+  OBJ msg = tr_sprintf(vm, "SyntaxError in %s at line %d", TR_STR_PTR(compiler->filename), compiler->line);
+  /* Stupid ugly code, just to build a string... I suck... */
+  if (yytext[0]) TrString_push(vm, msg, tr_sprintf(vm, " near token '%s'", yytext));
+  if (yypos < yylimit) {
+    yybuf[yylimit]= '\0';
+    TrString_push(vm, msg, tr_sprintf(vm, " before text \""));
+    while (yypos < yylimit) {
+      if ('\n' == yybuf[yypos] || '\r' == yybuf[yypos]) break;
+      char c[2] = { yybuf[yypos++], '\0' };
+      TrString_push(vm, msg, tr_sprintf(vm, c));
+    }
+    TrString_push(vm, msg, tr_sprintf(vm, "\""));
+  }
+  TrVM_raise(vm, msg);
+}
+
 TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
   assert(!compiler && "parser not reentrant");
   charbuf = code;
@@ -301,7 +314,7 @@ TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
   compiler->line += lineno;
   compiler->filename = TrString_new2(vm, fn);
 
-  while (yyparse());
+  if (!yyparse()) yyerror();
 
   TrCompiler_compile(compiler);
   

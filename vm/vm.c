@@ -422,6 +422,7 @@ TrVM *TrVM_new() {
   TrArray_init(vm);
   TrHash_init(vm);
   TrRange_init(vm);
+  TrRegexp_init(vm);
   
   vm->self = TrObject_alloc(vm, 0);
   vm->cf = -1;

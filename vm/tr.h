@@ -8,10 +8,12 @@
 #include <errno.h>
 #include <setjmp.h>
 
+#include <gc.h>
+#include <pcre.h>
+
 #include "config.h"
 #include "vendor/kvec.h"
 #include "vendor/khash.h"
-#include "gc.h"
 
 #define UNUSED(expr)         do { (void)(expr); } while (0)
 #define cast(T,X)            ((T)X)
@@ -35,6 +37,8 @@
 #define TR_CHASH(X)          TR_CTYPE(X,Hash)
 #define TR_CRANGE(X)         TR_CTYPE(X,Range)
 #define TR_CSTRING(X)        ((TR_IS_A(X,String) || TR_IS_A(X,Symbol) ? 0 : TR_TYPE_ERROR(T)),(TrString*)(X))
+#define TR_CREGEXP(X)        TR_CTYPE(X,Regexp)
+#define TR_CSTRING(X)        (tr_assert(TR_IS_A(X,String)||TR_IS_A(X,Symbol), "TypeError: expected String"),(TrString*)(X))
 #define TR_CMETHOD(X)        ((TrMethod*)X)
 #define TR_CBINDING(X)       TR_CTYPE(X,Binding)
 
@@ -146,7 +150,7 @@ KHASH_MAP_INIT_INT(OBJ, OBJ)
 
 typedef enum {
   /*  0 */ TR_T_Object, TR_T_Module, TR_T_Class, TR_T_Method, TR_T_Binding,
-  /*  5 */ TR_T_Symbol, TR_T_String, TR_T_Fixnum, TR_T_Range,
+  /*  5 */ TR_T_Symbol, TR_T_String, TR_T_Fixnum, TR_T_Range, TR_T_Regexp,
   /*  9 */ TR_T_NilClass, TR_T_TrueClass, TR_T_FalseClass,
   /* 12 */ TR_T_Array, TR_T_Hash,
   /* 14 */ TR_T_Node,
@@ -177,8 +181,6 @@ typedef struct TrBlock {
   OBJ filename;
   size_t line;
   struct TrBlock *parent;
-  struct TrBlock *rescue;
-  struct TrBlock *ensure;
   /* dynamic */
   kvec_t(TrCallSite) sites;
 } TrBlock;
@@ -293,6 +295,11 @@ typedef struct {
   khash_t(OBJ) *kh;
 } TrHash;
 
+typedef struct TrRegexp {
+  TR_OBJECT_HEADER;
+  pcre *re;
+} TrRegexp;
+
 /* vm */
 TrVM *TrVM_new();
 void TrVM_raise(VM, OBJ exception);
@@ -306,6 +313,7 @@ OBJ TrSymbol_new(VM, const char *str);
 OBJ TrString_new(VM, const char *str, size_t len);
 OBJ TrString_new2(VM, const char *str);
 OBJ TrString_new3(VM, size_t len);
+OBJ TrString_push(VM, OBJ self, OBJ other);
 OBJ tr_sprintf(VM, const char *fmt, ...);
 void TrSymbol_init(VM);
 void TrString_init(VM);
@@ -370,6 +378,11 @@ OBJ TrException_new(VM, OBJ class, OBJ message);
 OBJ TrException_backtrace(VM, OBJ self);
 void TrException_default_handler(VM, OBJ exception);
 void TrError_init(VM);
+
+/* regexp */
+OBJ TrRegexp_new(VM, char *pattern, int options);
+void TrRegex_free(VM, OBJ self);
+void TrRegexp_init(VM);
 
 /* compiler */
 TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno);

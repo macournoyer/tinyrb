@@ -12,3 +12,4 @@ tinyrb
 tinyrb-*
 
 vendor/gc
+vendor/peg

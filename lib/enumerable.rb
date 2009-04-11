@@ -15,6 +15,14 @@ module Enumerable
   #   false
   # end
   
+  def map
+    a = []
+    each do |i|
+      a << yield i
+    end
+    a
+  end
+  
   def to_a
     a = []
     each do |item|

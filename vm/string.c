@@ -80,11 +80,25 @@ OBJ TrString_new3(VM, size_t len) {
   return (OBJ)s;
 }
 
-OBJ TrString_concat(VM, OBJ self, OBJ other) {
+OBJ TrString_add(VM, OBJ self, OBJ other) {
   return tr_sprintf(vm, "%s%s", TR_STR_PTR(self), TR_STR_PTR(other));
 }
 
+OBJ TrString_push(VM, OBJ self, OBJ other) {
+  TrString *s = TR_CSTRING(self);
+  TrString *o = TR_CSTRING(other);
+  
+  size_t orginal_len = s->len;
+  s->len += o->len;
+  s->ptr = TR_REALLOC(s->ptr, s->len+1);
+  TR_MEMCPY_N(s->ptr + orginal_len, o->ptr, char, o->len);
+  s->ptr[s->len] = '\0';
+
+  return self;
+}
+
 OBJ TrString_replace(VM, OBJ self, OBJ other) {
+  TR_FREE(TR_STR_PTR(self));
   TR_STR_PTR(self) = TR_STR_PTR(other);
   TR_STR_LEN(self) = TR_STR_LEN(other);
   return self;
@@ -130,6 +144,7 @@ void TrString_init(VM) {
   tr_def(c, "size", TrString_size, 0);
   tr_def(c, "replace", TrString_replace, 1);
   tr_def(c, "substring", TrString_substring, 2);
-  tr_def(c, "+", TrString_concat, 1);
+  tr_def(c, "+", TrString_add, 1);
+  tr_def(c, "<<", TrString_push, 1);
   tr_def(c, "<=>", TrString_cmp, 1);
 }

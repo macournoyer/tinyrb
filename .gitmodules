@@ -1,3 +1,0 @@
-[submodule "vendor/peg"]
-	path = vendor/peg
-	url = git://github.com/macournoyer/peg.git
