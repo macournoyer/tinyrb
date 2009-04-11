@@ -36,9 +36,8 @@
 #define TR_CARRAY(X)         TR_CTYPE(X,Array)
 #define TR_CHASH(X)          TR_CTYPE(X,Hash)
 #define TR_CRANGE(X)         TR_CTYPE(X,Range)
-#define TR_CSTRING(X)        ((TR_IS_A(X,String) || TR_IS_A(X,Symbol) ? 0 : TR_TYPE_ERROR(T)),(TrString*)(X))
 #define TR_CREGEXP(X)        TR_CTYPE(X,Regexp)
-#define TR_CSTRING(X)        (tr_assert(TR_IS_A(X,String)||TR_IS_A(X,Symbol), "TypeError: expected String"),(TrString*)(X))
+#define TR_CSTRING(X)        ((TR_IS_A(X,String) || TR_IS_A(X,Symbol) ? 0 : TR_TYPE_ERROR(T)),(TrString*)(X))
 #define TR_CMETHOD(X)        ((TrMethod*)X)
 #define TR_CBINDING(X)       TR_CTYPE(X,Binding)
 
