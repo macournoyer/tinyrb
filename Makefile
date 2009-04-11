@@ -33,6 +33,7 @@ all: tinyrb
 	@${CC} -c ${CFLAGS} ${INCS} -o $@ $<
 
 tinyrb: ${LIBS} ${OBJ}
+	@echo " link tinyrb"
 	@${CC} ${CFLAGS} ${OBJ_POTION} ${OBJ} ${LIBS} ${PKG_LIBS} -o tinyrb
 
 vm/grammar.c: ${LEG} vm/grammar.leg

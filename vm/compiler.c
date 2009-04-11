@@ -357,13 +357,6 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
         PUSH_OP_ABx(b, DEF, blki, TrBlock_push_value(b, method->args[1]));
       }
     } break;
-    case NODE_BEGIN: {
-      TR_ARRAY_EACH(n->args[1], i, v, {
-        
-      });
-      /* body n->args[0] */
-      /* ensure n->args[2] */
-    } break;
     case NODE_CLASS:
     case NODE_MODULE: {
       TrBlock *blk = TrBlock_new(c, 0);

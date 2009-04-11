@@ -318,7 +318,7 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
 }
 
 void TrVM_raise(VM, OBJ exception) {
-  /* Error before VM was started? */
+  /* Short-circuit when error before VM was started */
   if (vm->cf < 0) TrException_default_handler(vm, exception);
   
   OBJ backtrace = TrException_backtrace(vm, exception);
@@ -338,8 +338,7 @@ void TrVM_raise(VM, OBJ exception) {
                        filename, f->line);
     TR_ARRAY_PUSH(backtrace, str);
     
-    /* if (f->rescue) ... */
-    /* if (f->ensure) ... */
+    /* TODO run rescue and ensure blocks */
   }
   
   /* not rescued, use default handler */

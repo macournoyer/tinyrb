@@ -13,3 +13,4 @@ tinyrb-*
 
 vendor/gc
 vendor/peg
+vendor/pcre
