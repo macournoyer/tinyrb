@@ -1,29 +1,16 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <assert.h>
+
 #include "tr.h"
 #include "opcode.h"
 #include "internal.h"
+#include "call.h"
 
 static OBJ TrVM_interpret(VM, TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure);
 
-static inline void TrFrame_push(VM, OBJ self, OBJ class, TrClosure *closure) {
-  register int cf = ++vm->cf;
-  if (cf >= TR_MAX_FRAMES) tr_raise(SystemStackError, "Stack overflow");
-  register TrFrame *f = FRAME;
-  f->self = self;
-  f->class = class;
-  f->closure = closure;
-}
-
-static inline void TrFrame_pop(VM) {
-  /* TODO for GC: release everything on the stack */
-  vm->cf--;
-}
-
 static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
-  OBJ method = TrObject_method(vm, receiver, msg);
-  if (!method) tr_raise(NoMethodError, "Method not found: `%s'", TR_STR_PTR(msg));
+  OBJ method = TrObject_lookup(vm, receiver, msg);
 
 #if TR_CALL_SITE
   TrInst *boing = (ip-1);
@@ -41,49 +28,6 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
 #endif
   
   return method;
-}
-
-static inline OBJ TrVM_call(VM, OBJ receiver, OBJ method, int argc, OBJ *args, int splat, TrClosure *cl) {
-  /* prepare call frame */
-  /* TODO do not create a call frame if calling a pure C function */
-  TrFrame_push(vm, receiver, TR_CLASS(receiver), cl);
-  register TrFrame *f = FRAME;
-  register TrMethod *m = f->method = TR_CMETHOD(method);
-  register TrFunc *func = f->method->func;
-  OBJ ret = TR_NIL;
-  
-  /* splat last arg is needed */
-  if (splat) {
-    OBJ splated = args[argc-1];
-    int splatedn = TR_ARRAY_SIZE(splated);
-    OBJ *new_args = TR_ALLOC_N(OBJ, argc);
-    TR_MEMCPY_N(new_args, args, OBJ, argc-1);
-    TR_MEMCPY_N(new_args + argc-1, &TR_ARRAY_AT(splated, 0), OBJ, splatedn);
-    argc += splatedn-1;
-    args = new_args;
-  }
-  
-  if (m->arity == -1) {
-    ret = func(vm, receiver, argc, args);
-  } else {
-    if (m->arity != argc) tr_raise(ArgumentError, "Expected %d arguments, got %d.", f->method->arity, argc);
-    switch (argc) {
-      case 0:  ret = func(vm, receiver); break;
-      case 1:  ret = func(vm, receiver, args[0]); break;
-      case 2:  ret = func(vm, receiver, args[0], args[1]); break;
-      case 3:  ret = func(vm, receiver, args[0], args[1], args[2]); break;
-      case 4:  ret = func(vm, receiver, args[0], args[1], args[2], args[3]); break;
-      case 5:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4]); break;
-      case 6:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5]); break;
-      case 7:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6]); break;
-      case 8:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]); break;
-      case 9:  ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]); break;
-      case 10: ret = func(vm, receiver, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]); break;
-      default: tr_raise(ArgumentError, "Too much arguments: %d, max is %d for now.", argc, 10);
-    }
-  }
-  TrFrame_pop(vm);
-  return ret;
 }
 
 static OBJ TrVM_defclass(VM, OBJ name, TrBlock *b, int module, OBJ super) {
@@ -275,9 +219,9 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
           }
         }
       }
-      R[GETARG_A(ci)] = TrVM_call(vm,
-                            R[GETARG_A(ci)], /* receiver */
+      R[GETARG_A(ci)] = TrMethod_call(vm,
                             R[GETARG_A(ci)+1], /* method */
+                            R[GETARG_A(ci)], /* receiver */
                             GETARG_B(ci) >> 1, &R[GETARG_A(ci)+2], /* args */
                             GETARG_B(ci) & 1, /* splat */
                             cl /* closure */

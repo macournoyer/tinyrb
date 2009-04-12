@@ -343,6 +343,7 @@ TrClosure *TrClosure_new(VM, TrBlock *b, OBJ self, OBJ class, TrClosure *parent)
 OBJ TrObject_alloc(VM, OBJ class);
 int TrObject_type(VM, OBJ obj);
 OBJ TrObject_method(VM, OBJ self, OBJ name);
+OBJ TrObject_lookup(VM, OBJ self, OBJ name);
 OBJ TrObject_const_set(VM, OBJ self, OBJ name, OBJ value);
 OBJ TrObject_const_get(VM, OBJ self, OBJ name);
 OBJ TrObject_add_singleton_method(VM, OBJ self, OBJ name, OBJ method);

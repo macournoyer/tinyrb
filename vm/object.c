@@ -22,6 +22,12 @@ OBJ TrObject_method(VM, OBJ self, OBJ name) {
   return TrModule_instance_method(vm, TR_CLASS(self), name);
 }
 
+OBJ TrObject_lookup(VM, OBJ self, OBJ name) {
+  OBJ method = TrModule_instance_method(vm, TR_CLASS(self), name);
+  if (!method) tr_raise(NoMethodError, "Method not found: `%s'", TR_STR_PTR(name));
+  return method;
+}
+
 /* TODO respect namespace */
 OBJ TrObject_const_get(VM, OBJ self, OBJ name) {
   UNUSED(self);
