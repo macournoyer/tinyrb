@@ -1,5 +1,6 @@
 #include "tr.h"
 #include "internal.h"
+#include "call.h"
 
 OBJ TrObject_alloc(VM, OBJ class) {
   TrObject *o = TR_INIT_CORE_OBJECT(Object);
@@ -26,6 +27,13 @@ OBJ TrObject_lookup(VM, OBJ self, OBJ name) {
   OBJ method = TrModule_instance_method(vm, TR_CLASS(self), name);
   if (!method) tr_raise(NoMethodError, "Method not found: `%s'", TR_STR_PTR(name));
   return method;
+}
+
+OBJ TrObject_send(VM, OBJ self, int argc, OBJ argv[]) {
+  if (unlikely(argc == 0))
+    tr_raise(ArgumentError, "wrong number of arguments (%d for 1)", argc);
+  OBJ method = TrObject_lookup(vm, self, argv[0]);
+  return TrMethod_call(vm, method, self, argc-1, argv+1, 0, 0);
 }
 
 /* TODO respect namespace */
@@ -87,6 +95,7 @@ void TrObject_init(VM) {
   OBJ c = TR_CORE_CLASS(Object);
   tr_def(c, "class", TrObject_class, 0);
   tr_def(c, "method", TrObject_method, 1);
+  tr_def(c, "send", TrObject_send, -1);
   tr_def(c, "object_id", TrObject_object_id, 0);
   tr_def(c, "instance_eval", TrObject_instance_eval, 1);
   tr_def(c, "to_s", TrObject_inspect, 0);

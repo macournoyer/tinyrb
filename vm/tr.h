@@ -132,11 +132,10 @@
 #define tr_metadef(O,N,F,A)  TrObject_add_singleton_method(vm, (O), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_defclass(N,S)     TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N), S))
 #define tr_defmodule(N)      TrObject_const_set(vm, vm->self, tr_intern(N), TrModule_new(vm, tr_intern(N)))
+
 #define tr_send(R,MSG,...)   ({ \
-  TrMethod *m = TR_CMETHOD(TrObject_method(vm, R, (MSG))); \
-  if (!m) tr_raise(NoMethodError, "Method not found: %s", TR_STR_PTR(MSG)); \
-  FRAME->method = m; \
-  m->func(vm, R, ##__VA_ARGS__); \
+  OBJ __argv[] = { (MSG), ##__VA_ARGS__ }; \
+  TrObject_send(vm, R, sizeof(__argv)/sizeof(OBJ), __argv); \
 })
 #define tr_send2(R,STR,...)  tr_send((R), tr_intern(STR), ##__VA_ARGS__)
 
@@ -344,6 +343,7 @@ OBJ TrObject_alloc(VM, OBJ class);
 int TrObject_type(VM, OBJ obj);
 OBJ TrObject_method(VM, OBJ self, OBJ name);
 OBJ TrObject_lookup(VM, OBJ self, OBJ name);
+OBJ TrObject_send(VM, OBJ self, int argc, OBJ argv[]);
 OBJ TrObject_const_set(VM, OBJ self, OBJ name, OBJ value);
 OBJ TrObject_const_get(VM, OBJ self, OBJ name);
 OBJ TrObject_add_singleton_method(VM, OBJ self, OBJ name, OBJ method);

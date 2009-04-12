@@ -1,4 +1,6 @@
-puts :ohaie
-# => ohaie
-puts :ohaie.to_s.to_s
-# => ohaie
+puts 1.send(:to_s)
+# => 1
+
+send :puts, 2, "cheezburgers"
+# => 2
+# => cheezburgers
