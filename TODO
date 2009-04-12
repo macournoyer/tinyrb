@@ -1,42 +1,41 @@
 @Next
-[ ] raise ExceptionType, ...
-[ ] begin...rescue...ensure
-[ ] def...rescue...ensure
-[ ] super(...)
-[ ] break
-[ ] next
-[ ] non local return/break/next
-[ ] Regexp
-[ ] IO
-[ ] File
-[ ] Dir
-[ ] Kernel#require
-[ ] Fix {...} for blocks
-[ ] namespace constants in Module (A::B)
-*** See TODO in code too!
+* begin...rescue...ensure
+* def...rescue...ensure
+* super(...)
+* break
+* next
+* non local return/break/next
+* IO
+* File
+* Dir
+* Kernel#require
+* Fix {...} for blocks
+* namespace constants in Module (A::B)
+* method_missing
 
 @Later
-[ ] Proc
-[ ] String interpolation
-[ ] FFI
-[ ] Replace GC w/ smaller, simple & embeddable one (tricolor or refcount)
-[ ] Embed bytecode of /lib stuff inside executable
-[ ] ||= &&= +=, etc.
-[ ] Cache constant lookup
-[ ] case...when
-[ ] Float, Bignum
-[ ] Reimplement Array, Hash using Tuple like Rubinius or fix Hash to use #hash
-[ ] puts nil # => nil in MRI
-[ ] Implement & operator
-[ ] Run RubySpecs
-[ ] Fix operator precedence
+* Proc
+* String interpolation
+* FFI
+* Replace GC w/ smaller, simple & embeddable one (tricolor or refcount)
+* Embed bytecode of /lib stuff inside executable
+* ||= &&= +=, etc.
+* Cache constant lookup
+* case...when
+* Float, Bignum
+* Reimplement Array, Hash using Tuple like Rubinius or fix Hash to use #hash
+* puts nil # => nil in MRI
+* Implement & operator
+* Run RubySpecs
+* Fix operator precedence
+* See TODO in code too!
 
 @Someday
-[ ] Compile to file
-[ ] Sandbox
-[ ] Rubygem support w/ http://github.com/fabien/minigems
-[ ] REPL
-[ ] Unicode
-[ ] lightweight threads, coroutines (using libconcurrency?)
-[ ] JIT
-[ ] SIMD acceleration
+* Compile to file
+* Sandbox
+* Rubygem support w/ http://github.com/fabien/minigems
+* REPL
+* Unicode
+* lightweight threads, coroutines (using libconcurrency?)
+* JIT
+* SIMD acceleration
