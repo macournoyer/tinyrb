@@ -50,7 +50,7 @@ static OBJ TrVM_interpret_method(VM, OBJ self, int argc, OBJ argv[]) {
   UNUSED(self);
   assert(FRAME->method);
   register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
-  if (argc != (int)b->argc) tr_raise(ArgumentError, "wrong number of arguments (%d for %lu)", argc, b->argc);
+  if (unlikely(argc != (int)b->argc)) tr_raise(ArgumentError, "wrong number of arguments (%d for %lu)", argc, b->argc);
   return TrVM_interpret(vm, FRAME, b, 0, argc, argv, 0);
 }
 
@@ -200,7 +200,7 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
     OP(CALL): {
       TrClosure *cl = 0;
       TrInst ci = i;
-      if (C > 0) {
+      if (unlikely(C > 0)) {
         /* Get upvalues using the pseudo-instructions following the CALL instruction.
            Eg.: there's one upval to a local (x) to be passed:
              call    0  0  0
