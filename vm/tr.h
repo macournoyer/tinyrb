@@ -127,7 +127,6 @@
 #define tr_intern(S)         TrSymbol_new(vm, (S))
 #define tr_raise(T,M,...)    TrVM_raise(vm, TrException_new(vm, vm->c##T, tr_sprintf(vm, (M), ##__VA_ARGS__)))
 #define tr_raise_errno(M)    tr_raise(SystemCallError, "%s: %s", strerror(errno), (M))
-#define tr_rescue(B)         FRAME->has_rescue_jmp = 1; if (setjmp(FRAME->rescue_jmp)) { B }
 #define tr_def(C,N,F,A)      TrModule_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_metadef(O,N,F,A)  TrObject_add_singleton_method(vm, (O), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_defclass(N,S)     TrObject_const_set(vm, vm->self, tr_intern(N), TrClass_new(vm, tr_intern(N), S))
