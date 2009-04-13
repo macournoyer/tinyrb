@@ -6,7 +6,6 @@
 #include <limits.h>
 #include <assert.h>
 #include <errno.h>
-#include <setjmp.h>
 
 #include <gc.h>
 #include <pcre.h>
@@ -16,7 +15,6 @@
 #include "vendor/khash.h"
 
 #define UNUSED(expr)         do { (void)(expr); } while (0)
-#define cast(T,X)            ((T)X)
 
 /* allocation macros */
 #define TR_MALLOC            GC_malloc
@@ -213,7 +211,6 @@ typedef struct TrFrame {
   OBJ class;
   OBJ filename;
   size_t line;
-  jmp_buf throw_env;
 } TrFrame;
 
 typedef struct {

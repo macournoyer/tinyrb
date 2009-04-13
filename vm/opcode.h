@@ -2,6 +2,8 @@
 #define _OPCODE_H_
 
 /* Taken from Lua */
+#define cast(T,X) ((T)X)
+
 #define SIZE_C    9
 #define SIZE_B    9
 #define SIZE_Bx   (SIZE_C + SIZE_B)
