@@ -128,6 +128,8 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #define sBx    GETARG_sBx(i)
 #define SITE   (b->sites.a)
 
+#define RAISE(R,V) { vm->raise_reason = TR_RAISE_##R; vm->raise_value = (V); return TR_UNDEF; } while(0)
+
 static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure) {
 #if TR_USE_MACHINE_REGS && __i386__
   register TrInst *ip __asm__ ("esi") = b->code.a + start;
@@ -169,7 +171,7 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
     OP(NEWRANGE):   R[A] = TrRange_new(vm, R[A], R[B], C); DISPATCH;
     
     /* return */
-    OP(RETURN):     return R[A];
+    OP(RETURN):     RAISE(RETURN, R[A]);
     OP(YIELD):      R[A] = TrVM_yield(vm, f, B, &R[A+1]); DISPATCH;
     
     /* variable and consts */
@@ -219,13 +221,15 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
           }
         }
       }
-      R[GETARG_A(ci)] = TrMethod_call(vm,
-                            R[GETARG_A(ci)+1], /* method */
-                            R[GETARG_A(ci)], /* receiver */
-                            GETARG_B(ci) >> 1, &R[GETARG_A(ci)+2], /* args */
-                            GETARG_B(ci) & 1, /* splat */
-                            cl /* closure */
-                           );
+      OBJ ret = TrMethod_call(vm,
+                              R[GETARG_A(ci)+1], /* method */
+                              R[GETARG_A(ci)], /* receiver */
+                              GETARG_B(ci) >> 1, &R[GETARG_A(ci)+2], /* args */
+                              GETARG_B(ci) & 1, /* splat */
+                              cl /* closure */
+                             );
+      /* if (unlikely(ret == TR_UNDEF && vm->raise_reason == TR_RAISE_RETURN)) return TR_UNDEF; */
+      R[GETARG_A(ci)] = ret;
       DISPATCH;
     }
     

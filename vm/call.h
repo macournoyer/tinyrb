@@ -33,6 +33,9 @@ inline OBJ TrMethod_call(VM, OBJ self, OBJ receiver, int argc, OBJ *args, int sp
     args = new_args;
   }
   
+  printf("call %s in frame %d\n", TR_STR_PTR(m->name), vm->cf);
+  
+  /* calls the C function */
   if (m->arity == -1) {
     ret = func(vm, receiver, argc, args);
   } else {
@@ -52,6 +55,30 @@ inline OBJ TrMethod_call(VM, OBJ self, OBJ receiver, int argc, OBJ *args, int sp
       default: tr_raise(ArgumentError, "Too much arguments: %d, max is %d for now.", argc, 10);
     }
   }
+  
   TrFrame_pop(vm);
+  
+  /* handle raise */
+  if (unlikely(ret == TR_UNDEF)) {
+    switch (vm->raise_reason) {
+      case TR_RAISE_EXCEPTION:
+        /* TODO */
+        printf("TODO raising...\n");
+        break;
+        
+      case TR_RAISE_RETURN:
+      case TR_RAISE_BREAK:
+        printf("closure: %p\n", f->closure);
+        if (f->closure)
+          return TR_UNDEF;
+        else
+          return ret;
+        break;
+        
+      default:
+        assert(0 && "invalid raise_reason");
+    }
+  }
+  
   return ret;
 }
