@@ -67,11 +67,16 @@ inline OBJ TrMethod_call(VM, OBJ self, OBJ receiver, int argc, OBJ *args, int sp
         break;
         
       case TR_RAISE_RETURN:
-      case TR_RAISE_BREAK:
+        /* TODO run ensure blocks */
         if (f->closure)
           return TR_UNDEF;
         else
           return ret;
+        break;
+        
+      case TR_RAISE_BREAK:
+        /* TODO run ensure blocks */
+        return TR_NIL;
         break;
         
       default:
