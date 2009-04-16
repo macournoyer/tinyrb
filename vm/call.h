@@ -58,15 +58,15 @@ inline OBJ TrMethod_call(VM, OBJ self, OBJ receiver, int argc, OBJ *args, int sp
   
   TrFrame_pop(vm);
   
-  /* handle raise */
+  /* handle throw if some */
   if (unlikely(ret == TR_UNDEF)) {
-    switch (vm->raise_reason) {
-      case TR_RAISE_EXCEPTION:
+    switch (vm->throw_reason) {
+      case TR_THROW_EXCEPTION:
         /* TODO */
         printf("TODO raising...\n");
         break;
         
-      case TR_RAISE_RETURN:
+      case TR_THROW_RETURN:
         /* TODO run ensure blocks */
         if (f->closure)
           return TR_UNDEF;
@@ -74,13 +74,13 @@ inline OBJ TrMethod_call(VM, OBJ self, OBJ receiver, int argc, OBJ *args, int sp
           return ret;
         break;
         
-      case TR_RAISE_BREAK:
+      case TR_THROW_BREAK:
         /* TODO run ensure blocks */
         return TR_NIL;
         break;
         
       default:
-        assert(0 && "invalid raise_reason");
+        assert(0 && "invalid throw_reason");
     }
   }
   

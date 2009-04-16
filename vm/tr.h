@@ -87,6 +87,12 @@
 #define FRAME                (&vm->frames[vm->cf])
 #define PREV_FRAME           (&vm->frames[vm->cf-1])
 
+#define TR_THROW(R,V) ({ \
+  vm->throw_reason = TR_THROW_##R; \
+  vm->throw_value = (V); \
+  return TR_UNDEF; \
+})
+
 /* immediate values macros */
 #define TR_IMMEDIATE(X)      (X==TR_NIL || X==TR_TRUE || X==TR_FALSE || X==TR_UNDEF || TR_IS_FIX(X))
 #define TR_IS_FIX(F)         ((F) & 1)
@@ -154,10 +160,10 @@ typedef enum {
 } TR_T;
 
 typedef enum {
-  TR_RAISE_EXCEPTION,
-  TR_RAISE_RETURN,
-  TR_RAISE_BREAK
-} TR_RAISE_REASON;
+  TR_THROW_EXCEPTION,
+  TR_THROW_RETURN,
+  TR_THROW_BREAK
+} TR_THROW_REASON;
 
 struct TrVM;
 struct TrFrame;
@@ -234,8 +240,8 @@ typedef struct TrVM {
   int cf;                         /* current frame */
   OBJ self;                       /* root object */
   int debug;
-  int raise_reason;
-  OBJ raise_value;
+  int throw_reason;
+  OBJ throw_value;
   
   /* exceptions */
   OBJ cException;
