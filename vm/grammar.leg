@@ -64,6 +64,7 @@ Expr      = Assign
           | Range
           | Yield
           | Return
+          | Break
           | Value
 
 Comment   = - '#' [^\n]*                    # HACK (!EOL)* cause a hang wth?
@@ -195,6 +196,8 @@ Return    = 'return' SPACE arg:Expr - !','  { $$ = NODE(RETURN, arg) }
           | 'return' '(' args:AryItems ')'  { $$ = NODE(RETURN, NODE(ARRAY, args)) }
           | 'return'                        { $$ = NODE(RETURN, 0) }
 
+Break     = 'break'                         { $$ = NODE(BREAK, 0) }
+
 Value     = v:NUMBER                        { $$ = NODE(VALUE, v) }
           | v:SYMBOL                        { $$ = NODE(VALUE, v) }
           | v:REGEXP                        { $$ = NODE(VALUE, v) }
@@ -227,7 +230,7 @@ KEYWORD   = 'while' | 'until' | 'do' | 'end' |
             'if' | 'unless' | 'else' |
             'true' | 'false' | 'nil' | 'self' |
             'class' | 'module' | 'def' |
-            'yield' | 'return'
+            'yield' | 'return' | 'break'
 
 NAME      = [a-zA-Z0-9_]+
 ID        = !'self'                         # self is special, can never be a method name

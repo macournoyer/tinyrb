@@ -128,7 +128,11 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #define sBx    GETARG_sBx(i)
 #define SITE   (b->sites.a)
 
-#define RAISE(R,V) { vm->raise_reason = TR_RAISE_##R; vm->raise_value = (V); return TR_UNDEF; } while(0)
+#define RAISE(R,V) ({ \
+  vm->raise_reason = TR_RAISE_##R; \
+  vm->raise_value = (V); \
+  return TR_UNDEF; \
+})
 
 static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure) {
 #if TR_USE_MACHINE_REGS && __i386__
@@ -171,7 +175,17 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
     OP(NEWRANGE):   R[A] = TrRange_new(vm, R[A], R[B], C); DISPATCH;
     
     /* return */
-    OP(RETURN):     RAISE(RETURN, R[A]);
+    OP(LEAVE):      return R[A];
+    OP(RETURN):
+      if (unlikely(closure))
+        RAISE(RETURN, R[A]);
+      else
+        return R[A];
+    OP(BREAK):
+      if (likely(closure))
+        RAISE(BREAK, TR_NIL);
+      else
+        assert(0 && "break outside of closure"); /* TODO ??? */
     OP(YIELD):      R[A] = TrVM_yield(vm, f, B, &R[A+1]); DISPATCH;
     
     /* variable and consts */
@@ -228,7 +242,7 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
                               GETARG_B(ci) & 1, /* splat */
                               cl /* closure */
                              );
-      /* if (unlikely(ret == TR_UNDEF && vm->raise_reason == TR_RAISE_RETURN)) return TR_UNDEF; */
+      if (unlikely(ret == TR_UNDEF)) return TR_UNDEF;
       R[GETARG_A(ci)] = ret;
       DISPATCH;
     }

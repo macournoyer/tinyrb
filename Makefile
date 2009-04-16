@@ -40,6 +40,8 @@ vm/grammar.c: ${LEG} vm/grammar.leg
 	@echo "  leg vm/grammar.leg"
 	@${LEG} -ovm/grammar.c vm/grammar.leg
 
+vm/vm.o: vm/call.h
+
 ${FREEGETOPT}:
 
 ${LEG}:
