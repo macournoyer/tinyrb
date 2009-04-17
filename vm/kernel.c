@@ -20,7 +20,7 @@ static OBJ TrKernel_puts(VM, OBJ self, int argc, OBJ argv[]) {
 
 static OBJ TrKernel_binding(VM, OBJ self) {
   UNUSED(self);
-  return TrBinding_new(vm, PREV_FRAME);
+  return TrBinding_new(vm, vm->frame->previous);
 }
 
 static OBJ TrKernel_eval(VM, OBJ self, int argc, OBJ argv[]) {
@@ -28,7 +28,7 @@ static OBJ TrKernel_eval(VM, OBJ self, int argc, OBJ argv[]) {
   if (argc < 1) tr_raise(ArgumentError, "string argument required");
   if (argc > 4) tr_raise(ArgumentError, "Too much arguments");
   OBJ string = argv[0];
-  TrFrame *f = (argc > 1 && argv[1]) ? TR_CBINDING(argv[1])->frame : FRAME;
+  TrFrame *f = (argc > 1 && argv[1]) ? TR_CBINDING(argv[1])->frame : vm->frame;
   char *filename = (argc > 2 && argv[1]) ? TR_STR_PTR(argv[2]) : "<eval>";
   size_t lineno = argc > 3 ? TR_FIX2INT(argv[3]) : 0;
   TrBlock *blk = TrBlock_compile(vm, TR_STR_PTR(string), filename, lineno);

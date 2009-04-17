@@ -1,3 +1,4 @@
+#include <alloca.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include "tr.h"
@@ -124,14 +125,11 @@ OBJ tr_sprintf(VM, const char *fmt, ...) {
   va_list arg;
   va_start(arg, fmt);
   int len = vsnprintf(NULL, 0, fmt, arg);
-  /* HACK causes Bus error in Bohem GC */
-  /* char *ptr = TR_ALLOC_N(char, len); */
-  char ptr[4096]; assert(len < 4096);
+  char *ptr = alloca(sizeof(char) * len);
   va_end(arg);
   va_start(arg, fmt);
   vsprintf(ptr, fmt, arg);
   va_end(arg);
-  /* TODO do not allocate twice */
   OBJ str = TrString_new(vm, ptr, len);
   TR_FREE(ptr);
   return str;
