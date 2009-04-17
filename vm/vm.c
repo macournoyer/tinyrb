@@ -31,49 +31,49 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
 }
 
 static OBJ TrVM_defclass(VM, OBJ name, TrBlock *b, int module, OBJ super) {
-  OBJ mod = TrObject_const_get(vm, FRAME->class, name);
+  OBJ mod = TrObject_const_get(vm, vm->frame->class, name);
   
   if (!mod) { /* new module/class */
     if (module)
       mod = TrModule_new(vm, name);
     else
       mod = TrClass_new(vm, name, super ? super : TR_CORE_CLASS(Object));
-    TrObject_const_set(vm, FRAME->class, name, mod);
+    TrObject_const_set(vm, vm->frame->class, name, mod);
   }
-  TrFrame_push(vm, mod, mod, 0);
-  TrVM_interpret(vm, FRAME, b, 0, 0, 0, 0);
-  TrFrame_pop(vm);
+  TR_WITH_FRAME(mod, mod, 0, {
+    TrVM_interpret(vm, vm->frame, b, 0, 0, 0, 0);
+  });
   return mod;
 }
 
 static OBJ TrVM_interpret_method(VM, OBJ self, int argc, OBJ argv[]) {
   UNUSED(self);
-  assert(FRAME->method);
-  register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
+  assert(vm->frame->method);
+  register TrBlock *b = (TrBlock *)TR_CMETHOD(vm->frame->method)->data;
   if (unlikely(argc != (int)b->argc)) tr_raise(ArgumentError, "wrong number of arguments (%d for %lu)", argc, b->argc);
-  return TrVM_interpret(vm, FRAME, b, 0, argc, argv, 0);
+  return TrVM_interpret(vm, vm->frame, b, 0, argc, argv, 0);
 }
 
 static OBJ TrVM_interpret_method_with_defaults(VM, OBJ self, int argc, OBJ argv[]) {
   UNUSED(self);
-  assert(FRAME->method);
-  register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
+  assert(vm->frame->method);
+  register TrBlock *b = (TrBlock *)TR_CMETHOD(vm->frame->method)->data;
   int req_argc = b->argc - kv_size(b->defaults);
   if (argc < req_argc) tr_raise(ArgumentError, "wrong number of arguments (%d for %d)", argc, req_argc);
   if (argc > (int)b->argc) tr_raise(ArgumentError, "wrong number of arguments (%d for %lu)", argc, b->argc);
   int defi = argc - req_argc - 1; /* index in defaults table or -1 for none */
-  return TrVM_interpret(vm, FRAME, b, defi < 0 ? 0 : kv_A(b->defaults, defi), argc, argv, 0);
+  return TrVM_interpret(vm, vm->frame, b, defi < 0 ? 0 : kv_A(b->defaults, defi), argc, argv, 0);
 }
 
 static OBJ TrVM_interpret_method_with_splat(VM, OBJ self, int argc, OBJ argv[]) {
   UNUSED(self);
-  assert(FRAME->method);
-  register TrBlock *b = (TrBlock *)TR_CMETHOD(FRAME->method)->data;
+  assert(vm->frame->method);
+  register TrBlock *b = (TrBlock *)TR_CMETHOD(vm->frame->method)->data;
   /* TODO support defaults */
   assert(kv_size(b->defaults) == 0 && "defaults with splat not supported for now");
   if (argc < (int)b->argc-1) tr_raise(ArgumentError, "wrong number of arguments (%d for %lu)", argc, b->argc-1);
   argv[b->argc-1] = TrArray_new3(vm, argc - b->argc + 1, &argv[b->argc-1]);
-  return TrVM_interpret(vm, FRAME, b, 0, b->argc, argv, 0);
+  return TrVM_interpret(vm, vm->frame, b, 0, b->argc, argv, 0);
 }
 
 static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b, int meta, OBJ receiver) {
@@ -95,9 +95,10 @@ static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b, int meta, OBJ re
 static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
   TrClosure *cl = f->closure;
   if (!cl) tr_raise(LocalJumpError, "no block given");
-  TrFrame_push(vm, cl->self, cl->class, cl->parent);
-  OBJ ret = TrVM_interpret(vm, FRAME, cl->block, 0, argc, argv, cl);
-  TrFrame_pop(vm);
+  OBJ ret = TR_NIL;
+  TR_WITH_FRAME(cl->self, cl->class, cl->parent, {
+    ret = TrVM_interpret(vm, vm->frame, cl->block, 0, argc, argv, cl);
+  });
   return ret;
 }
 
@@ -129,6 +130,7 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #define SITE   (b->sites.a)
 
 static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure) {
+  f->stack = alloca(sizeof(OBJ) * b->regc);
 #if TR_USE_MACHINE_REGS && __i386__
   register TrInst *ip __asm__ ("esi") = b->code.a + start;
   register OBJ *stack __asm__ ("edi") = f->stack;
@@ -169,13 +171,17 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
     OP(NEWRANGE):   R[A] = TrRange_new(vm, R[A], R[B], C); DISPATCH;
     
     /* return */
-    OP(LEAVE):      return R[A];
+    OP(LEAVE):
+      /* TODO for GC: release everything on the stack before returning */
+      return R[A];
     OP(RETURN):
+      /* TODO for GC: release everything on the stack before returning */
       if (unlikely(closure))
         TR_THROW(RETURN, R[A]);
       else
         return R[A];
     OP(BREAK):
+      /* TODO for GC: release everything on the stack before returning */
       if (likely(closure))
         TR_THROW(BREAK, TR_NIL);
       else
@@ -273,17 +279,15 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
   END_OPCODES;
 }
 
-void TrVM_raise(VM, OBJ exception) {
-  /* Short-circuit when error before VM was started */
-  if (vm->cf < 0) TrException_default_handler(vm, exception);
+/* returns the backtrace of the current call frames */
+static OBJ TrVM_backtrace(VM) {
+  OBJ backtrace = TrArray_new(vm);
   
-  OBJ backtrace = TrException_backtrace(vm, exception);
-  tr_setglobal("$!", exception);
-  tr_setglobal("$@", backtrace);
+  if (!vm->frame) return backtrace;
   
-  TrFrame *f;
-  TrFrame_pop(vm);
-  for (f = FRAME; vm->cf >= 0; TrFrame_pop(vm), f = FRAME) {
+  /* skip a frame since it's the one doing the raising */
+  TrFrame *f = vm->frame->previous;
+  while (f) {
     OBJ str;
     char *filename = f->filename ? TR_STR_PTR(f->filename) : "?";
     if (f->method)
@@ -294,10 +298,15 @@ void TrVM_raise(VM, OBJ exception) {
                        filename, f->line);
     TR_ARRAY_PUSH(backtrace, str);
     
-    /* TODO run rescue and ensure blocks */
+    f = f->previous;
   }
   
-  /* not rescued, use default handler */
+  return backtrace;
+}
+
+void TrVM_raise(VM, OBJ exception) {
+  /* TODO unwind the frames */
+  TrException_set_backtrace(vm, exception, TrVM_backtrace(vm));
   TrException_default_handler(vm, exception);
 }
 
@@ -324,9 +333,10 @@ OBJ TrVM_load(VM, char *filename) {
 }
 
 OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[]) {
-  TrFrame_push(vm, self, class, 0);
-  OBJ ret = TrVM_interpret(vm, FRAME, b, 0, argc, argv, 0);
-  TrFrame_pop(vm);
+  OBJ ret = TR_NIL;
+  TR_WITH_FRAME(self, class, 0, {
+    ret = TrVM_interpret(vm, vm->frame, b, 0, argc, argv, 0);
+  });
   return ret;
 }
 

@@ -34,7 +34,7 @@
 OBJ TrException_new(VM, OBJ class, OBJ message) {
   OBJ e = TrObject_alloc(vm, class);
   tr_setivar(e, "@message", message);
-  tr_setivar(e, "@backtrace", TrArray_new(vm));
+  tr_setivar(e, "@backtrace", TR_NIL);
   return (OBJ)e;
 }
 
@@ -54,6 +54,10 @@ static OBJ TrException_message(VM, OBJ self) {
 
 OBJ TrException_backtrace(VM, OBJ self) {
   return tr_getivar(self, "@backtrace");
+}
+
+OBJ TrException_set_backtrace(VM, OBJ self, OBJ backtrace) {
+  return tr_setivar(self, "@backtrace", backtrace);
 }
 
 void TrException_default_handler(VM, OBJ exception) {

@@ -70,7 +70,6 @@
   khash_t(OBJ) *kh = (KH); \
   int ret; \
   khiter_t k = kh_put(OBJ, kh, key, &ret); \
-  if (!ret) kh_del(OBJ, kh, k); \
   kh_value(kh, k) = (V); \
 })
 #define TR_KH_EACH(H,I,V,B) ({ \
@@ -84,8 +83,6 @@
 
 /* vm macros */
 #define VM                   struct TrVM *vm
-#define FRAME                (&vm->frames[vm->cf])
-#define PREV_FRAME           (&vm->frames[vm->cf-1])
 
 #define TR_THROW(R,V) ({ \
   vm->throw_reason = TR_THROW_##R; \
@@ -218,12 +215,13 @@ typedef struct {
 typedef struct TrFrame {
   TrClosure *closure;
   TrMethod *method;  /* current called method */
-  OBJ stack[255];    /* TODO allocate dynamically to use less mem */
+  OBJ *stack;
   OBJ *upvals;
   OBJ self;
   OBJ class;
   OBJ filename;
   size_t line;
+  struct TrFrame *previous;
 } TrFrame;
 
 typedef struct {
@@ -236,8 +234,9 @@ typedef struct TrVM {
   khash_t(OBJ) *globals;
   khash_t(OBJ) *consts;           /* TODO this goes in modules */
   OBJ classes[TR_T_MAX];          /* core classes */
-  TrFrame frames[TR_MAX_FRAMES];  /* TODO allocate dynamically to use less mem */
-  int cf;                         /* current frame */
+  TrFrame *top_frame;             /* top level frame */
+  TrFrame *frame;                 /* current frame */
+  int cf;                         /* current frame number */
   OBJ self;                       /* root object */
   int debug;
   int throw_reason;
@@ -388,6 +387,7 @@ void TrPrimitive_init(VM);
 /* error */
 OBJ TrException_new(VM, OBJ class, OBJ message);
 OBJ TrException_backtrace(VM, OBJ self);
+OBJ TrException_set_backtrace(VM, OBJ self, OBJ backtrace);
 void TrException_default_handler(VM, OBJ exception);
 void TrError_init(VM);
 
