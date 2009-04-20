@@ -280,7 +280,7 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
 }
 
 /* returns the backtrace of the current call frames */
-static OBJ TrVM_backtrace(VM) {
+OBJ TrVM_backtrace(VM) {
   OBJ backtrace = TrArray_new(vm);
   
   if (!vm->frame) return backtrace;
@@ -302,12 +302,6 @@ static OBJ TrVM_backtrace(VM) {
   }
   
   return backtrace;
-}
-
-void TrVM_raise(VM, OBJ exception) {
-  /* TODO unwind the frames */
-  TrException_set_backtrace(vm, exception, TrVM_backtrace(vm));
-  TrException_default_handler(vm, exception);
 }
 
 OBJ TrVM_eval(VM, char *code, char *filename) {
@@ -337,6 +331,10 @@ OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[]) {
   TR_WITH_FRAME(self, class, 0, {
     ret = TrVM_interpret(vm, vm->frame, b, 0, argc, argv, 0);
   });
+  if (ret == TR_UNDEF) {
+    assert(vm->throw_reason == TR_THROW_EXCEPTION);
+    TrException_default_handler(vm, vm->throw_value);
+  }
   return ret;
 }
 

@@ -307,7 +307,8 @@ void yyerror() {
     }
     TrString_push(vm, msg, tr_sprintf(vm, "\""));
   }
-  TrVM_raise(vm, msg);
+  /* TODO msg should not be an object */
+  tr_raise(SyntaxError, TR_STR_PTR(msg));
 }
 
 TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {

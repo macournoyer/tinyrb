@@ -10,6 +10,7 @@
   __f.previous = vm->frame; \
   if (vm->cf == 0) vm->top_frame = __fp; \
   vm->frame = __fp; \
+  __f.method = __f.filename = __f.line = __f.stack = __f.upvals = 0; \
   __f.self = SELF; \
   __f.class = CLASS; \
   __f.closure = CLOS; \
@@ -65,8 +66,7 @@ static inline OBJ TrMethod_call(VM, OBJ self, OBJ receiver, int argc, OBJ *args,
     switch (vm->throw_reason) {
       case TR_THROW_EXCEPTION:
         /* TODO */
-        printf("TODO raising...\n");
-        break;
+        return TR_UNDEF;
         
       case TR_THROW_RETURN:
         /* TODO run ensure blocks */
@@ -74,12 +74,10 @@ static inline OBJ TrMethod_call(VM, OBJ self, OBJ receiver, int argc, OBJ *args,
           return TR_UNDEF;
         else
           return ret;
-        break;
         
       case TR_THROW_BREAK:
         /* TODO run ensure blocks */
         return TR_NIL;
-        break;
         
       default:
         assert(0 && "invalid throw_reason");

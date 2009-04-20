@@ -60,8 +60,8 @@ static OBJ TrKernel_raise(VM, OBJ self, int argc, OBJ argv[]) {
     default:
       tr_raise(ArgumentError, "wrong number of arguments (%d for 2)", argc);
   }
-  TrVM_raise(vm, e);
-  return TR_NIL;
+  TrException_set_backtrace(vm, e, TrVM_backtrace(vm));
+  TR_THROW(EXCEPTION, e);
 }
 
 void TrKernel_init(VM) {

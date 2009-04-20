@@ -27,7 +27,7 @@
 #define TR_CLASS(X)          (TR_IMMEDIATE(X) ? vm->classes[TR_TYPE(X)] : TR_COBJECT(X)->class)
 #define TR_IS_A(X,T)         (TR_TYPE(X) == TR_T_##T)
 #define TR_COBJECT(X)        ((TrObject*)(X))
-#define TR_TYPE_ERROR(T)     TrVM_raise(vm, TrException_new(vm, vm->cTypeError, TrString_new2(vm, "Expected " #T)))
+#define TR_TYPE_ERROR(T)     TR_THROW(EXCEPTION, TrException_new(vm, vm->cTypeError, TrString_new2(vm, "Expected " #T)))
 #define TR_CTYPE(X,T)        ((TR_IS_A(X,T) ? 0 : TR_TYPE_ERROR(T)),(Tr##T*)(X))
 #define TR_CCLASS(X)         ((TR_IS_A(X,Class) || TR_IS_A(X,Module) ? 0 : TR_TYPE_ERROR(T)),(TrClass*)(X))
 #define TR_CMODULE(X)        TR_CCLASS(X)
@@ -127,7 +127,7 @@
 #define tr_getglobal(N)      TR_KH_GET(vm->globals, tr_intern(N))
 #define tr_setglobal(N,V)    TR_KH_SET(vm->globals, tr_intern(N), V)
 #define tr_intern(S)         TrSymbol_new(vm, (S))
-#define tr_raise(T,M,...)    TrVM_raise(vm, TrException_new(vm, vm->c##T, tr_sprintf(vm, (M), ##__VA_ARGS__)))
+#define tr_raise(T,M,...)    TR_THROW(EXCEPTION, TrException_new(vm, vm->c##T, tr_sprintf(vm, (M), ##__VA_ARGS__)))
 #define tr_raise_errno(M)    tr_raise(SystemCallError, "%s: %s", strerror(errno), (M))
 #define tr_def(C,N,F,A)      TrModule_add_method(vm, (C), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
 #define tr_metadef(O,N,F,A)  TrObject_add_singleton_method(vm, (O), tr_intern(N), TrMethod_new(vm, (TrFunc *)(F), TR_NIL, (A)))
@@ -150,7 +150,7 @@ KHASH_MAP_INIT_INT(OBJ, OBJ)
 typedef enum {
   /*  0 */ TR_T_Object, TR_T_Module, TR_T_Class, TR_T_Method, TR_T_Binding,
   /*  5 */ TR_T_Symbol, TR_T_String, TR_T_Fixnum, TR_T_Range, TR_T_Regexp,
-  /*  9 */ TR_T_NilClass, TR_T_TrueClass, TR_T_FalseClass,
+  /* 10 */ TR_T_NilClass, TR_T_TrueClass, TR_T_FalseClass,
   /* 12 */ TR_T_Array, TR_T_Hash,
   /* 14 */ TR_T_Node,
   TR_T_MAX /* keep last */
@@ -311,7 +311,7 @@ typedef struct TrRegexp {
 
 /* vm */
 TrVM *TrVM_new();
-void TrVM_raise(VM, OBJ exception);
+OBJ TrVM_backtrace(VM);
 OBJ TrVM_eval(VM, char *code, char *filename);
 OBJ TrVM_load(VM, char *filename);
 OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[]);

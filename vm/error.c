@@ -66,9 +66,11 @@ void TrException_default_handler(VM, OBJ exception) {
   OBJ backtrace = tr_getivar(exception, "@backtrace");
   
   printf("%s: %s\n", TR_STR_PTR(c->name), TR_STR_PTR(msg));
-  TR_ARRAY_EACH(backtrace, i, v, {
-    printf("%s\n", TR_STR_PTR(v));
-  });
+  if (backtrace) {
+    TR_ARRAY_EACH(backtrace, i, v, {
+      printf("%s\n", TR_STR_PTR(v));
+    });
+  }
   
   TrVM_destroy(vm);
   exit(1);
