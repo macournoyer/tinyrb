@@ -12,5 +12,7 @@ def non_local_return
 end
 
 puts non_local_return
+puts "end"
 # => ok
 # => 1
+# => end

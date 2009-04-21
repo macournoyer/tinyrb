@@ -240,15 +240,20 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
           }
         }
       }
-      VM_RETHROW(
-        R[GETARG_A(ci)] = TrMethod_call(vm,
-                                        R[GETARG_A(ci)+1], /* method */
-                                        R[GETARG_A(ci)], /* receiver */
-                                        GETARG_B(ci) >> 1, &R[GETARG_A(ci)+2], /* args */
-                                        GETARG_B(ci) & 1, /* splat */
-                                        cl /* closure */
-                                       )
-      );
+      OBJ ret = TrMethod_call(vm,
+                              R[GETARG_A(ci)+1], /* method */
+                              R[GETARG_A(ci)], /* receiver */
+                              GETARG_B(ci) >> 1, &R[GETARG_A(ci)+2], /* args */
+                              GETARG_B(ci) & 1, /* splat */
+                              cl /* closure */
+                             );
+      if (unlikely(ret == TR_UNDEF)) {
+        if (f->closure || vm->throw_reason == TR_THROW_EXCEPTION)
+          RETURN(TR_UNDEF);
+        else
+          RETURN(vm->throw_value);
+      }
+      R[GETARG_A(ci)] = ret;
       DISPATCH;
     }
     

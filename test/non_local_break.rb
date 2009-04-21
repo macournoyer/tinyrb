@@ -12,5 +12,7 @@ def non_local_break
 end
 
 non_local_break
+puts "end"
 # => ok
 # => still
+# => end
