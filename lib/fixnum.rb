@@ -6,4 +6,8 @@ class Fixnum
       i = i + 1
     end
   end
+  
+  def inspect
+    to_s
+  end
 end

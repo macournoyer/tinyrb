@@ -63,7 +63,7 @@ TrCompiler *TrCompiler_new(VM, const char *fn) {
 #define NODE_TYPE(N)          (CNODE(N)->ntype)
 #define NODE_ARG(N,I)         (CNODE(N)->args[I])
 
-void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg);
+OBJ TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg);
 
 static int TrCompiler_compile_node_to_RK(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
   int i;
@@ -84,8 +84,8 @@ static int TrCompiler_compile_node_to_RK(VM, TrCompiler *c, TrBlock *b, TrNode *
   
 }
 
-void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
-  if (!n) return;
+OBJ TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) {
+  if (!n) return TR_NIL;
   int start_reg = reg;
   REG(reg);
   b->line = n->line;
@@ -228,7 +228,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
           kv_push(TrBlock *, b->blocks, blk);
           int blk_reg = kv_size(blk->locals);
           COMPILE_NODE(blk, blkn, blk_reg);
-          PUSH_OP_A(blk, LEAVE, blk_reg);
+          PUSH_OP_A(blk, RETURN, blk_reg);
         }
         PUSH_OP_A(b, BOING, 0);
         PUSH_OP_ABx(b, LOOKUP, reg, i);
@@ -311,10 +311,13 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       break;
     case NODE_RETURN:
       if (n->args[0]) COMPILE_NODE(b, n->args[0], reg);
-      PUSH_OP_A(b, RETURN, reg);
+      if (b->parent)
+        PUSH_OP_AB(b, THROW, TR_THROW_RETURN, reg);
+      else
+        PUSH_OP_A(b, RETURN, reg);
       break;
     case NODE_BREAK:
-      PUSH_OP_A(b, BREAK, 0);
+      PUSH_OP_A(b, THROW, TR_THROW_BREAK);
       break;
     case NODE_YIELD: {
       size_t argc = 0;
@@ -350,7 +353,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       }
       /* compile body of method */
       COMPILE_NODES(blk, n->args[2], i, blk_reg, 0);
-      PUSH_OP_A(blk, LEAVE, blk_reg);
+      PUSH_OP_A(blk, RETURN, blk_reg);
       if (method->args[0]) {
         /* metaclass def */
         COMPILE_NODE(b, method->args[0], reg);
@@ -368,7 +371,7 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       reg = 0;
       /* compile body of class */
       COMPILE_NODES(blk, n->args[2], i, reg, 0);
-      PUSH_OP_A(blk, LEAVE, reg);
+      PUSH_OP_A(blk, RETURN, reg);
       if (n->ntype == NODE_CLASS) {
         /* superclass */
         if (n->args[1])
@@ -414,11 +417,12 @@ void TrCompiler_compile_node(VM, TrCompiler *c, TrBlock *b, TrNode *n, int reg) 
       printf("Compiler: unknown node type: %d in %s:%lu\n", n->ntype, TR_STR_PTR(b->filename), b->line);
       if (vm->debug) assert(0);
   }
+  return TR_NIL;
 }
 
 void TrCompiler_compile(TrCompiler *c) {
   TrBlock *b = c->block;
   b->filename = c->filename;
   TrCompiler_compile_node(c->vm, c, b, (TrNode *)c->node, 0);
-  PUSH_OP_A(b, LEAVE, 0);
+  PUSH_OP_A(b, RETURN, 0);
 }

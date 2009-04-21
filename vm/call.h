@@ -10,7 +10,9 @@
   __f.previous = vm->frame; \
   if (vm->cf == 0) vm->top_frame = __fp; \
   vm->frame = __fp; \
-  __f.method = __f.filename = __f.line = __f.stack = __f.upvals = 0; \
+  vm->throw_reason = vm->throw_value = 0; \
+  __f.method = NULL; \
+  __f.filename = __f.line = 0; \
   __f.self = SELF; \
   __f.class = CLASS; \
   __f.closure = CLOS; \

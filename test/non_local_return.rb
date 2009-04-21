@@ -5,11 +5,12 @@ end
 def non_local_return
   yielder do
     puts "ok"
-    return
+    return 1
     puts "nop"
   end
   puts "should not get here"
 end
 
-non_local_return
+puts non_local_return
 # => ok
+# => 1

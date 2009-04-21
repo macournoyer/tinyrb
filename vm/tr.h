@@ -85,10 +85,14 @@
 #define VM                   struct TrVM *vm
 
 #define TR_THROW(R,V) ({ \
+  if (vm->debug && TR_THROW_##R == TR_THROW_EXCEPTION) TrException_default_handler(vm, V); \
   vm->throw_reason = TR_THROW_##R; \
   vm->throw_value = (V); \
   return TR_UNDEF; \
 })
+#define TR_RESCUE_ALL(R)     \
+  if ((R) == TR_UNDEF && vm->throw_reason == TR_THROW_EXCEPTION) \
+    TrException_default_handler(vm, vm->throw_value)
 
 /* immediate values macros */
 #define TR_IMMEDIATE(X)      (X==TR_NIL || X==TR_TRUE || X==TR_FALSE || X==TR_UNDEF || TR_IS_FIX(X))
@@ -388,7 +392,7 @@ void TrPrimitive_init(VM);
 OBJ TrException_new(VM, OBJ class, OBJ message);
 OBJ TrException_backtrace(VM, OBJ self);
 OBJ TrException_set_backtrace(VM, OBJ self, OBJ backtrace);
-void TrException_default_handler(VM, OBJ exception);
+OBJ TrException_default_handler(VM, OBJ exception);
 void TrError_init(VM);
 
 /* regexp */

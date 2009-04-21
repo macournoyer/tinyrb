@@ -25,7 +25,7 @@ class Array
   def to_s
     join
   end
-
+  
   def inspect
     str = map do |i|
       i.inspect

@@ -290,9 +290,8 @@ SEP       = ( - Comment? (EOL | ';') )+
 
 %%
 
-/* Raise a syntax error.
-   poorly adapted from peg/leg.leg */
-void yyerror() {
+/* Raise a syntax error. */
+OBJ yyerror() {
   VM = yyvm;
   OBJ msg = tr_sprintf(vm, "SyntaxError in %s at line %d", TR_STR_PTR(compiler->filename), compiler->line);
   /* Stupid ugly code, just to build a string... I suck... */
@@ -307,24 +306,29 @@ void yyerror() {
     }
     TrString_push(vm, msg, tr_sprintf(vm, "\""));
   }
-  /* TODO msg should not be an object */
+  /* TODO msg should not be a String object */
   tr_raise(SyntaxError, TR_STR_PTR(msg));
 }
 
+/* Compiles code to a TrBlock.
+   Returns NULL on error, error is stored in vm->throw_value. */
 TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
   assert(!compiler && "parser not reentrant");
   charbuf = code;
   compiler = TrCompiler_new(vm, fn);
   compiler->line += lineno;
   compiler->filename = TrString_new2(vm, fn);
+  TrBlock *b = NULL;
 
-  if (!yyparse()) yyerror();
+  if (!yyparse()) {
+    yyerror();
+    goto error;
+  }
 
   TrCompiler_compile(compiler);
-  
-  TrBlock *b = compiler->block;
+  b = compiler->block;
+error:
   charbuf = 0;
   compiler = 0;
-  
   return b;
 }

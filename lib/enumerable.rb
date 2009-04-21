@@ -7,13 +7,12 @@ module Enumerable
     end
   end
   
-  # TODO need non-local return
-  # def include?(item)
-  #   each do |i|
-  #     return true if i == item
-  #   end
-  #   false
-  # end
+  def include?(item)
+    each do |i|
+      return true if i == item
+    end
+    false
+  end
   
   def map
     a = []

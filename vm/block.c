@@ -19,7 +19,7 @@ TrBlock *TrBlock_new(TrCompiler *compiler, TrBlock *parent) {
 
 #define INSPECT_K(K)  (TR_IS_A(K, Symbol) ? TR_STR_PTR(K) : (sprintf(buf, "%d", TR_FIX2INT(K)), buf))
 
-static void TrBlock_dump2(VM, TrBlock *b, int level) {
+static OBJ TrBlock_dump2(VM, TrBlock *b, int level) {
   static char *opcode_names[] = { TR_OP_NAMES };
   char buf[10];
   
@@ -61,6 +61,7 @@ static void TrBlock_dump2(VM, TrBlock *b, int level) {
 
   for (i = 0; i < kv_size(b->blocks); ++i)
     TrBlock_dump2(vm, kv_A(b->blocks, i), level+1);
+  return TR_NIL;
 }
 
 void TrBlock_dump(VM, TrBlock *b) {

@@ -16,7 +16,7 @@
 #define NODES(I)             TrArray_new2(compiler->vm, 1, (I))
 #define NODES_N(N,...)       TrArray_new2(compiler->vm, (N), ##__VA_ARGS__)
 #define PUSH_NODE(A,N)       TR_ARRAY_PUSH((A),(N))
-#define SYMCAT(A,B)          tr_intern(strcat(TR_STR_PTR(A), TR_STR_PTR(B)))
+#define SYMCAT(A,B)          tr_intern(strcat(((TrString*)(A))->ptr, ((TrString*)(B))->ptr))
 
 /* This provides the compiler about branch hints, so it
    keeps the normal case fast. Stolen from Rubinius. */

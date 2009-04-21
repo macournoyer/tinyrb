@@ -78,6 +78,7 @@ static OBJ TrObject_object_id(VM, OBJ self) {
 
 static OBJ TrObject_instance_eval(VM, OBJ self, OBJ code) {
   TrBlock *b = TrBlock_compile(vm, TR_STR_PTR(code), "<eval>", 0);
+  if (!b) return TR_UNDEF;
   return TrVM_run(vm, b, self, TR_COBJECT(self)->class, 0, 0);
 }
 

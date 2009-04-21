@@ -60,7 +60,7 @@ OBJ TrException_set_backtrace(VM, OBJ self, OBJ backtrace) {
   return tr_setivar(self, "@backtrace", backtrace);
 }
 
-void TrException_default_handler(VM, OBJ exception) {
+OBJ TrException_default_handler(VM, OBJ exception) {
   TrClass *c = TR_CCLASS(TR_CLASS(exception));
   OBJ msg = tr_getivar(exception, "@message");
   OBJ backtrace = tr_getivar(exception, "@backtrace");

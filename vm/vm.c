@@ -7,10 +7,13 @@
 #include "internal.h"
 #include "call.h"
 
+#define RETHROW(R) if (unlikely((R) == TR_UNDEF)) return TR_UNDEF
+
 static OBJ TrVM_interpret(VM, TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure);
 
 static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
   OBJ method = TrObject_lookup(vm, receiver, msg);
+  RETHROW(method);
 
 #if TR_CALL_SITE
   TrInst *boing = (ip-1);
@@ -32,17 +35,21 @@ static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
 
 static OBJ TrVM_defclass(VM, OBJ name, TrBlock *b, int module, OBJ super) {
   OBJ mod = TrObject_const_get(vm, vm->frame->class, name);
+  RETHROW(mod);
   
   if (!mod) { /* new module/class */
     if (module)
       mod = TrModule_new(vm, name);
     else
       mod = TrClass_new(vm, name, super ? super : TR_CORE_CLASS(Object));
+    RETHROW(mod);
     TrObject_const_set(vm, vm->frame->class, name, mod);
   }
+  OBJ ret = TR_NIL;
   TR_WITH_FRAME(mod, mod, 0, {
-    TrVM_interpret(vm, vm->frame, b, 0, 0, 0, 0);
+    ret = TrVM_interpret(vm, vm->frame, b, 0, 0, 0, 0);
   });
+  RETHROW(ret);
   return mod;
 }
 
@@ -85,6 +92,7 @@ static OBJ TrVM_defmethod(VM, TrFrame *f, OBJ name, TrBlock *b, int meta, OBJ re
   else
     func = (TrFunc *) TrVM_interpret_method;
   OBJ method = TrMethod_new(vm, func, (OBJ)b, -1);
+  RETHROW(method);
   if (meta)
     TrObject_add_singleton_method(vm, receiver, name, method);
   else
@@ -129,6 +137,13 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #define sBx    GETARG_sBx(i)
 #define SITE   (b->sites.a)
 
+#define RETURN(V) \
+  /* TODO GC release everything on the stack before returning */ \
+  return (V)
+#define VM_RETHROW(R) if (unlikely((R) == TR_UNDEF)) RETURN(TR_UNDEF)
+
+/* Interprets the code in b->code.
+   Returns TR_UNDEF on error. */
 static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure) {
   f->stack = alloca(sizeof(OBJ) * b->regc);
 #if TR_USE_MACHINE_REGS && __i386__
@@ -171,22 +186,12 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
     OP(NEWRANGE):   R[A] = TrRange_new(vm, R[A], R[B], C); DISPATCH;
     
     /* return */
-    OP(LEAVE):
-      /* TODO for GC: release everything on the stack before returning */
-      return R[A];
-    OP(RETURN):
-      /* TODO for GC: release everything on the stack before returning */
-      if (unlikely(closure))
-        TR_THROW(RETURN, R[A]);
-      else
-        return R[A];
-    OP(BREAK):
-      /* TODO for GC: release everything on the stack before returning */
-      if (likely(closure))
-        TR_THROW(BREAK, TR_NIL);
-      else
-        assert(0 && "break outside of closure"); /* TODO ??? */
-    OP(YIELD):      R[A] = TrVM_yield(vm, f, B, &R[A+1]); DISPATCH;
+    OP(RETURN):     RETURN(R[A]);
+    OP(THROW):
+      vm->throw_reason = A;
+      vm->throw_value = R[B];
+      RETURN(TR_UNDEF);
+    OP(YIELD):      VM_RETHROW(R[A] = TrVM_yield(vm, f, B, &R[A+1])); DISPATCH;
     
     /* variable and consts */
     OP(SETUPVAL):   assert(upvals && upvals[B].value); *(upvals[B].value) = R[A]; DISPATCH;
@@ -201,7 +206,7 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
     OP(GETGLOBAL):  R[A] = TR_KH_GET(vm->globals, k[Bx]); DISPATCH;
     
     /* method calling */
-    OP(LOOKUP):     R[A+1] = TrVM_lookup(vm, b, R[A], k[Bx], ip); DISPATCH;
+    OP(LOOKUP):     VM_RETHROW(R[A+1] = TrVM_lookup(vm, b, R[A], k[Bx], ip)); DISPATCH;
     OP(CACHE):
       /* TODO how to expire cache? */
       assert(&SITE[C] && "Method cached but no CallSite found");
@@ -235,23 +240,23 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
           }
         }
       }
-      OBJ ret = TrMethod_call(vm,
-                              R[GETARG_A(ci)+1], /* method */
-                              R[GETARG_A(ci)], /* receiver */
-                              GETARG_B(ci) >> 1, &R[GETARG_A(ci)+2], /* args */
-                              GETARG_B(ci) & 1, /* splat */
-                              cl /* closure */
-                             );
-      if (unlikely(ret == TR_UNDEF)) return TR_UNDEF;
-      R[GETARG_A(ci)] = ret;
+      VM_RETHROW(
+        R[GETARG_A(ci)] = TrMethod_call(vm,
+                                        R[GETARG_A(ci)+1], /* method */
+                                        R[GETARG_A(ci)], /* receiver */
+                                        GETARG_B(ci) >> 1, &R[GETARG_A(ci)+2], /* args */
+                                        GETARG_B(ci) & 1, /* splat */
+                                        cl /* closure */
+                                       )
+      );
       DISPATCH;
     }
     
     /* definition */
-    OP(DEF):        TrVM_defmethod(vm, f, k[Bx], blocks[A], 0, 0); DISPATCH;
-    OP(METADEF):    TrVM_defmethod(vm, f, k[Bx], blocks[A], 1, R[nA]); ip++; DISPATCH;
-    OP(CLASS):      TrVM_defclass(vm, k[Bx], blocks[A], 0, R[nA]); ip++; DISPATCH;
-    OP(MODULE):     TrVM_defclass(vm, k[Bx], blocks[A], 1, 0); DISPATCH;
+    OP(DEF):        VM_RETHROW(TrVM_defmethod(vm, f, k[Bx], blocks[A], 0, 0)); DISPATCH;
+    OP(METADEF):    VM_RETHROW(TrVM_defmethod(vm, f, k[Bx], blocks[A], 1, R[nA])); ip++; DISPATCH;
+    OP(CLASS):      VM_RETHROW(TrVM_defclass(vm, k[Bx], blocks[A], 0, R[nA])); ip++; DISPATCH;
+    OP(MODULE):     VM_RETHROW(TrVM_defclass(vm, k[Bx], blocks[A], 1, 0)); DISPATCH;
     
     /* jumps */
     OP(JMP):        ip += sBx; DISPATCH;
@@ -306,6 +311,7 @@ OBJ TrVM_backtrace(VM) {
 
 OBJ TrVM_eval(VM, char *code, char *filename) {
   TrBlock *b = TrBlock_compile(vm, code, filename, 0);
+  if (!b) return TR_UNDEF;
   if (vm->debug) TrBlock_dump(vm, b);
   return TrVM_run(vm, b, vm->self, TR_CLASS(vm->self), 0, 0);
 }
@@ -331,10 +337,6 @@ OBJ TrVM_run(VM, TrBlock *b, OBJ self, OBJ class, int argc, OBJ argv[]) {
   TR_WITH_FRAME(self, class, 0, {
     ret = TrVM_interpret(vm, vm->frame, b, 0, argc, argv, 0);
   });
-  if (ret == TR_UNDEF) {
-    assert(vm->throw_reason == TR_THROW_EXCEPTION);
-    TrException_default_handler(vm, vm->throw_value);
-  }
   return ret;
 }
 
@@ -354,11 +356,11 @@ TrVM *TrVM_new() {
   TrModule_init(vm);
   TrClass_init(vm);
   TrObject_preinit(vm);
-  TrClass *symbolc = TR_CCLASS(TR_CORE_CLASS(Symbol));
-  TrClass *modulec = TR_CCLASS(TR_CORE_CLASS(Module));
-  TrClass *classc = TR_CCLASS(TR_CORE_CLASS(Class));
-  TrClass *methodc = TR_CCLASS(TR_CORE_CLASS(Method));
-  TrClass *objectc = TR_CCLASS(TR_CORE_CLASS(Object));
+  TrClass *symbolc = (TrClass*)TR_CORE_CLASS(Symbol);
+  TrClass *modulec = (TrClass*)TR_CORE_CLASS(Module);
+  TrClass *classc = (TrClass*)TR_CORE_CLASS(Class);
+  TrClass *methodc = (TrClass*)TR_CORE_CLASS(Method);
+  TrClass *objectc = (TrClass*)TR_CORE_CLASS(Object);
   /* set proper superclass has Object is defined last */
   symbolc->super = modulec->super = methodc->super = (OBJ)objectc;
   classc->super = (OBJ)modulec;

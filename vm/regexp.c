@@ -67,7 +67,8 @@ OBJ TrRegexp_match(VM, OBJ self, OBJ str) {
 }
 
 void TrRegex_free(VM, OBJ self) {
-  TrRegexp *r = TR_CREGEXP(self);
+  UNUSED(vm);
+  TrRegexp *r = (TrRegexp*)self;
   pcre_free(r->re);
   TR_FREE(r);
 }

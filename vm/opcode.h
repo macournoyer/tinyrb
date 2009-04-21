@@ -92,9 +92,8 @@ enum TrInstCode {
   TR_OP_JMP,        /*   sBx    jump sBx instructions */
   TR_OP_JMPIF,      /* A sBx    jump sBx instructions if R[A] */
   TR_OP_JMPUNLESS,  /* A sBx    jump sBx instructions unless R[A] */
-  TR_OP_LEAVE,      /* A        return R[A] */
   TR_OP_RETURN,     /* A        return R[A] (can be non local) */
-  TR_OP_BREAK,      /*          break (can be non local) */
+  TR_OP_THROW,      /* A B      throw type=A value=R[B] */
   TR_OP_SETUPVAL,   /* A B      upvals[B] = R[A] */
   TR_OP_GETUPVAL,   /* A B      R[A] = upvals[B] */
   TR_OP_DEF,        /* A Bx     define method k[Bx] on self w/ blocks[A] */
@@ -135,9 +134,8 @@ enum TrInstCode {
   "jmp", \
   "jmpif", \
   "jmpunless", \
-  "leave", \
   "return", \
-  "break", \
+  "throw", \
   "setupval", \
   "getupval", \
   "def", \
@@ -179,9 +177,8 @@ enum TrInstCode {
   &&op_JMP, \
   &&op_JMPIF, \
   &&op_JMPUNLESS, \
-  &&op_LEAVE, \
   &&op_RETURN, \
-  &&op_BREAK, \
+  &&op_THROW, \
   &&op_SETUPVAL, \
   &&op_GETUPVAL, \
   &&op_DEF, \
