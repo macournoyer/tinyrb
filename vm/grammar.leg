@@ -271,7 +271,7 @@ ESC_CHAR  = '\\n'                           { STRING_PUSH("\n", 1) }
 STRING2   = '"'                             { STRING_START }
             (
               ESC_CHAR
-            | < [^\"] >                     { STRING_PUSH(yytext, yyleng) }
+            | < [^\"] >                     { STRING_PUSH(yytext, yyleng) }  #" for higlighting
             )*
             '"'                             { $$ = TrString_new2(yyvm, sbuf) }
 
@@ -311,7 +311,7 @@ OBJ yyerror() {
 }
 
 /* Compiles code to a TrBlock.
-   Returns NULL on error, error is stored in vm->throw_value. */
+   Returns NULL on error, error is stored in TR_EXCEPTION. */
 TrBlock *TrBlock_compile(VM, char *code, char *fn, size_t lineno) {
   assert(!compiler && "parser not reentrant");
   charbuf = code;

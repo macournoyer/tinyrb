@@ -247,12 +247,32 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
                               GETARG_B(ci) & 1, /* splat */
                               cl /* closure */
                              );
+      
+      /* Handle throw if some.
+         A "throw" is done by returning TR_UNDEF to exit a current call frame (TrFrame)
+         until one handle it by returning are real value or continuing execution.
+         Non-local returns and exception propagation are implemented this way.
+         Rubinius and Python do it this way. */
       if (unlikely(ret == TR_UNDEF)) {
-        if (f->closure || vm->throw_reason == TR_THROW_EXCEPTION)
-          RETURN(TR_UNDEF);
-        else
-          RETURN(vm->throw_value);
+        switch (vm->throw_reason) {
+          case TR_THROW_EXCEPTION:
+            /* TODO run rescue and stop propagation if rescued */
+            /* TODO run ensure block */
+            RETURN(TR_UNDEF);
+
+          case TR_THROW_RETURN:
+            /* TODO run ensure block */
+            if (f->closure) RETURN(TR_UNDEF);
+            RETURN(vm->throw_value);
+
+          case TR_THROW_BREAK:
+            break;
+
+          default:
+            assert(0 && "BUG: invalid throw_reason");
+        }
       }
+
       R[GETARG_A(ci)] = ret;
       DISPATCH;
     }
@@ -404,7 +424,7 @@ TrVM *TrVM_new() {
   vm->sNEG = tr_intern("@-");
   vm->sNOT = tr_intern("!");
   
-  TrVM_load(vm, "lib/boot.rb");
+  TR_FAILSAFE(TrVM_load(vm, "lib/boot.rb"));
   
   return vm;
 }

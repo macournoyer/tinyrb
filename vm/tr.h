@@ -84,15 +84,18 @@
 /* vm macros */
 #define VM                   struct TrVM *vm
 
-#define TR_THROW(R,V) ({ \
-  if (vm->debug && TR_THROW_##R == TR_THROW_EXCEPTION) TrException_default_handler(vm, V); \
-  vm->throw_reason = TR_THROW_##R; \
-  vm->throw_value = (V); \
-  return TR_UNDEF; \
-})
-#define TR_RESCUE_ALL(R)     \
-  if ((R) == TR_UNDEF && vm->throw_reason == TR_THROW_EXCEPTION) \
-    TrException_default_handler(vm, vm->throw_value)
+/* throw macros */
+#define TR_THROW(R,V)        ({ \
+                               vm->throw_reason = TR_THROW_##R; \
+                               vm->throw_value = (V); \
+                               return TR_UNDEF; \
+                             })
+#define TR_HAS_EXCEPTION(R)  ((R) == TR_UNDEF && vm->throw_reason == TR_THROW_EXCEPTION)
+#define TR_FAILSAFE(R)       if (TR_HAS_EXCEPTION(R)) { \
+                               TrException_default_handler(vm, TR_EXCEPTION); \
+                               abort(); \
+                             }
+#define TR_EXCEPTION         (assert(vm->throw_reason == TR_THROW_EXCEPTION), vm->throw_value)
 
 /* immediate values macros */
 #define TR_IMMEDIATE(X)      (X==TR_NIL || X==TR_TRUE || X==TR_FALSE || X==TR_UNDEF || TR_IS_FIX(X))

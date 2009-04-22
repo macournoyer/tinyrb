@@ -23,7 +23,7 @@ int main (int argc, char *argv[]) {
   while((opt = getopt(argc, argv, "e:vdh")) != -1) {
     switch(opt) {
       case 'e':
-        TR_RESCUE_ALL(TrVM_eval(vm, optarg, "<eval>"));
+        TR_FAILSAFE(TrVM_eval(vm, optarg, "<eval>"));
         return 0;
       case 'v':
         printf("tinyrb %s\n", TR_VERSION);
@@ -43,7 +43,7 @@ int main (int argc, char *argv[]) {
   argv += optind;
   
   if (argc > 0) {
-    TR_RESCUE_ALL(TrVM_load(vm, argv[argc-1]));
+    TR_FAILSAFE(TrVM_load(vm, argv[argc-1]));
     return 0;
   }
   

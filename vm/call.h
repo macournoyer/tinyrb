@@ -25,7 +25,8 @@
 
 static inline OBJ TrMethod_call(VM, OBJ self, OBJ receiver, int argc, OBJ *args, int splat, TrClosure *cl) {
   OBJ ret = TR_NIL;
-  TrFrame *f = 0;
+  TrFrame *f = NULL;
+
   TR_WITH_FRAME(receiver, TR_CLASS(receiver), cl, {
     f = vm->frame;
     TrMethod *m = f->method = TR_CMETHOD(self);
@@ -62,29 +63,6 @@ static inline OBJ TrMethod_call(VM, OBJ self, OBJ receiver, int argc, OBJ *args,
       }
     }
   });
-  
-  /* handle throw if some */
-  if (unlikely(ret == TR_UNDEF)) {
-    switch (vm->throw_reason) {
-      case TR_THROW_EXCEPTION:
-        /* TODO */
-        return TR_UNDEF;
-        
-      case TR_THROW_RETURN:
-        /* TODO run ensure blocks */
-        if (f->closure)
-          return TR_UNDEF;
-        else
-          return ret;
-        
-      case TR_THROW_BREAK:
-        /* TODO run ensure blocks */
-        return TR_NIL;
-        
-      default:
-        assert(0 && "invalid throw_reason");
-    }
-  }
   
   return ret;
 }
