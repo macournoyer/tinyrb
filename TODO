@@ -6,11 +6,11 @@
 * Kernel#require
 * Fix {...} for blocks
 * namespace constants in Module (A::B)
-* method_missing
 * break
 * next
 
 @Later
+* Fix CallSite leak (see TODO in TrVM_lookup)
 * begin...rescue...ensure
 * def...rescue...ensure
 * Proc

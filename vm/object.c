@@ -23,17 +23,22 @@ OBJ TrObject_method(VM, OBJ self, OBJ name) {
   return TrModule_instance_method(vm, TR_CLASS(self), name);
 }
 
-OBJ TrObject_lookup(VM, OBJ self, OBJ name) {
-  OBJ method = TrModule_instance_method(vm, TR_CLASS(self), name);
-  if (!method) tr_raise(NoMethodError, "Method not found: `%s'", TR_STR_PTR(name));
-  return method;
+OBJ TrObject_method_missing(VM, OBJ self, int argc, OBJ argv[]) {
+  UNUSED(self);
+  assert(argc > 0);
+  tr_raise(NoMethodError, "Method not found: `%s'", TR_STR_PTR(argv[0]));
 }
 
 OBJ TrObject_send(VM, OBJ self, int argc, OBJ argv[]) {
   if (unlikely(argc == 0))
     tr_raise(ArgumentError, "wrong number of arguments (%d for 1)", argc);
-  OBJ method = TrObject_lookup(vm, self, argv[0]);
-  return TrMethod_call(vm, method, self, argc-1, argv+1, 0, 0);
+  OBJ method = TrObject_method(vm, self, argv[0]);
+  if (unlikely(method == TR_NIL)) {
+    method = TrObject_method(vm, self, tr_intern("method_missing"));
+    return TrMethod_call(vm, method, self, argc, argv, 0, 0);
+  } else {
+    return TrMethod_call(vm, method, self, argc-1, argv+1, 0, 0);
+  }
 }
 
 /* TODO respect namespace */
@@ -96,6 +101,7 @@ void TrObject_init(VM) {
   OBJ c = TR_CORE_CLASS(Object);
   tr_def(c, "class", TrObject_class, 0);
   tr_def(c, "method", TrObject_method, 1);
+  tr_def(c, "method_missing", TrObject_method_missing, -1);
   tr_def(c, "send", TrObject_send, -1);
   tr_def(c, "object_id", TrObject_object_id, 0);
   tr_def(c, "instance_eval", TrObject_instance_eval, 1);

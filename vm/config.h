@@ -19,9 +19,6 @@
 
 #endif
 
-/* Portable optimizations */
-#define TR_CALL_SITE  1            /* enable caching method lookup at the call site */
-
 /* Various limits */
 #define TR_MAX_FRAMES 255
 #define MAX_INT       (INT_MAX-2)  /* maximum value of an int (-2 for safety) */

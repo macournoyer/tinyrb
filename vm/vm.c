@@ -12,25 +12,37 @@
 static OBJ TrVM_interpret(VM, TrFrame *f, TrBlock *b, int start, int argc, OBJ argv[], TrClosure *closure);
 
 static OBJ TrVM_lookup(VM, TrBlock *b, OBJ receiver, OBJ msg, TrInst *ip) {
-  OBJ method = TrObject_lookup(vm, receiver, msg);
+  OBJ method = TrObject_method(vm, receiver, msg);
   RETHROW(method);
 
-#if TR_CALL_SITE
   TrInst *boing = (ip-1);
+  /* TODO do not prealloc TrCallSite here, every one is a memory leak and a new
+          one is created on polymorphic calls. */
   TrCallSite *s = (kv_pushp(TrCallSite, b->sites));
   s->class = TR_CLASS(receiver);
-  s->method = method;
   s->miss = 0;
+  s->method = method;
+  s->message = msg;
+  if (unlikely(method == TR_NIL)) {
+    s->method = TrObject_method(vm, receiver, tr_intern("method_missing"));
+    s->method_missing = 1;
+  }
   
   /* Implement Monomorphic method cache by replacing the previous instruction (BOING)
      w/ CACHE that uses the CallSite to find the method instead of doing a full lookup. */
-  SET_OPCODE(*boing, TR_OP_CACHE);
-  SETARG_A(*boing, GETARG_A(*ip)); /* receiver register */
-  SETARG_B(*boing, 1); /* jmp */
-  SETARG_C(*boing, kv_size(b->sites)-1); /* CallSite index */
-#endif
+  if (GET_OPCODE(*boing) == TR_OP_CACHE) {
+    /* Existing call site */
+    /* TODO maybe take existing call site hit miss into consideration to replace it with this one.
+       For now, we just don't replace it, the first one is always the cached one. */
+  } else {
+    /* New call site, we cache it fo shizzly! */
+    SET_OPCODE(*boing, TR_OP_CACHE);
+    SETARG_A(*boing, GETARG_A(*ip)); /* receiver register */
+    SETARG_B(*boing, 1); /* jmp */
+    SETARG_C(*boing, kv_size(b->sites)-1); /* CallSite index */
+  }
   
-  return method;
+  return (OBJ)s;
 }
 
 static OBJ TrVM_defclass(VM, OBJ name, TrBlock *b, int module, OBJ super) {
@@ -140,7 +152,7 @@ static inline OBJ TrVM_yield(VM, TrFrame *f, int argc, OBJ argv[]) {
 #define RETURN(V) \
   /* TODO GC release everything on the stack before returning */ \
   return (V)
-#define VM_RETHROW(R) if (unlikely((R) == TR_UNDEF)) RETURN(TR_UNDEF)
+#define VM_RETHROW(R) if (unlikely((OBJ)(R) == TR_UNDEF)) RETURN(TR_UNDEF)
 
 /* Interprets the code in b->code.
    Returns TR_UNDEF on error. */
@@ -163,6 +175,7 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
   f->line = b->line;
   f->filename = b->filename;
   TrUpval *upvals = closure ? closure->upvals : 0;
+  TrCallSite *call = 0;
 
   /* transfer locals */
   if (argc > 0) { 
@@ -206,12 +219,12 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
     OP(GETGLOBAL):  R[A] = TR_KH_GET(vm->globals, k[Bx]); DISPATCH;
     
     /* method calling */
-    OP(LOOKUP):     VM_RETHROW(R[A+1] = TrVM_lookup(vm, b, R[A], k[Bx], ip)); DISPATCH;
+    OP(LOOKUP):     VM_RETHROW(call = (TrCallSite*)TrVM_lookup(vm, b, R[A], k[Bx], ip)); DISPATCH;
     OP(CACHE):
       /* TODO how to expire cache? */
       assert(&SITE[C] && "Method cached but no CallSite found");
       if (likely(SITE[C].class == TR_CLASS((R[A])))) {
-        R[A+1] = SITE[C].method;
+        call = &SITE[C];
         ip += B;
       } else {
         /* TODO invalidate CallSite if too much miss. */
@@ -240,14 +253,19 @@ static OBJ TrVM_interpret(VM, register TrFrame *f, TrBlock *b, int start, int ar
           }
         }
       }
+      int argc = GETARG_B(ci) >> 1;
+      OBJ *argv = &R[GETARG_A(ci)+2];
+      if (unlikely(call->method_missing)) {
+        argc++;
+        *(--argv) = call->message;
+      }
       OBJ ret = TrMethod_call(vm,
-                              R[GETARG_A(ci)+1], /* method */
+                              call->method,
                               R[GETARG_A(ci)], /* receiver */
-                              GETARG_B(ci) >> 1, &R[GETARG_A(ci)+2], /* args */
+                              argc, argv,
                               GETARG_B(ci) & 1, /* splat */
                               cl /* closure */
                              );
-      
       /* Handle throw if some.
          A "throw" is done by returning TR_UNDEF to exit a current call frame (TrFrame)
          until one handle it by returning are real value or continuing execution.
