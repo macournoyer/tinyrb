@@ -67,7 +67,7 @@ Expr      = Assign
           | Break
           | Value
 
-Comment   = - '#' [^\n]*                    # HACK (!EOL)* cause a hang wth?
+Comment   = - '#' (!EOL .)*
 
 Call      =                                 { block = rcv = 0 }
             ( rcv:Value '.'
