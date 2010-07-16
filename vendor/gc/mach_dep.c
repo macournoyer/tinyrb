@@ -160,7 +160,7 @@ void GC_push_regs()
 #endif
 
 #if !defined(HAVE_PUSH_REGS) && defined(UNIX_LIKE)
-# include <ucontext.h>
+# include <sys/ucontext.h>
 #endif
 
 /* Ensure that either registers are pushed, or callee-save registers	*/

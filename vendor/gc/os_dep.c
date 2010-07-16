@@ -2752,7 +2752,7 @@ GC_bool GC_old_segv_handler_used_si;
 # if defined(MSWIN32) || defined(MSWINCE)
     LONG WINAPI GC_write_fault_handler(struct _EXCEPTION_POINTERS *exc_info)
 # else
-#   include <ucontext.h>
+#   include <sys/ucontext.h>
     /*ARGSUSED*/
     void GC_write_fault_handler(int sig, siginfo_t *si, void *raw_sc)
 # endif /* MSWIN32 || MSWINCE */
